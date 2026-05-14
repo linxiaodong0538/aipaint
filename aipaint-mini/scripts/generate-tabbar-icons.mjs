@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Resvg } from "@resvg/resvg-js";
 import { getIconData, iconToSVG, replaceIDs } from "@iconify/utils";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -55,10 +56,21 @@ await mkdir(outputDir, { recursive: true });
 
 for (const icon of icons) {
   for (const [state, color] of Object.entries(colors)) {
+    const svg = renderIcon(icon.name, color);
+
     await writeFile(
       resolve(outputDir, `${icon.key}-${state}.svg`),
-      renderIcon(icon.name, color),
+      svg,
       "utf8"
     );
+
+    const png = new Resvg(svg, {
+      fitTo: {
+        mode: "width",
+        value: 96
+      }
+    }).render().asPng();
+
+    await writeFile(resolve(outputDir, `${icon.key}-${state}.png`), png);
   }
 }

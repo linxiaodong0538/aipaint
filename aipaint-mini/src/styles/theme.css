@@ -1,0 +1,212 @@
+@theme {
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-surface: #f9f9f9;
+  --color-surface-dim: #dadada;
+  --color-surface-bright: #f9f9f9;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f3f4;
+  --color-surface-container: #eeeeee;
+  --color-surface-container-high: #e8e8e8;
+  --color-surface-container-highest: #e2e2e2;
+  --color-on-surface: #1a1c1c;
+  --color-on-surface-variant: #4c4546;
+  --color-inverse-surface: #2f3131;
+  --color-inverse-on-surface: #f0f1f1;
+  --color-outline: #7e7576;
+  --color-outline-variant: #cfc4c5;
+  --color-surface-tint: #5e5e5e;
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1b1b1b;
+  --color-on-primary-container: #848484;
+  --color-inverse-primary: #c6c6c6;
+  --color-secondary: #5f5e5e;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e2dfde;
+  --color-on-secondary-container: #636262;
+  --color-tertiary: #000000;
+  --color-on-tertiary: #ffffff;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-background: #f9f9f9;
+  --color-on-background: #1a1c1c;
+  --color-surface-variant: #e2e2e2;
+
+  --radius-sm: 0.25rem;
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --spacing-unit: 8px;
+  --spacing-container: 32px;
+  --spacing-gutter: 24px;
+
+  --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.05);
+  --shadow-tactile: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 16px 32px rgba(0, 0, 0, 0.08);
+  --shadow-pressed: inset 0 2px 8px rgba(0, 0, 0, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.7);
+  --blur-glass: 20px;
+}
+
+:root,
+page {
+  --app-font-family: var(--font-sans);
+
+  --app-surface: var(--color-surface);
+  --app-surface-dim: var(--color-surface-dim);
+  --app-surface-bright: var(--color-surface-bright);
+  --app-surface-container-lowest: var(--color-surface-container-lowest);
+  --app-surface-container-low: var(--color-surface-container-low);
+  --app-surface-container: var(--color-surface-container);
+  --app-surface-container-high: var(--color-surface-container-high);
+  --app-surface-container-highest: var(--color-surface-container-highest);
+  --app-on-surface: var(--color-on-surface);
+  --app-on-surface-variant: var(--color-on-surface-variant);
+  --app-inverse-surface: var(--color-inverse-surface);
+  --app-inverse-on-surface: var(--color-inverse-on-surface);
+  --app-outline: var(--color-outline);
+  --app-outline-variant: var(--color-outline-variant);
+  --app-primary: var(--color-primary);
+  --app-on-primary: var(--color-on-primary);
+  --app-primary-container: var(--color-primary-container);
+  --app-secondary: var(--color-secondary);
+  --app-secondary-container: var(--color-secondary-container);
+  --app-error: var(--color-error);
+  --app-background: var(--color-background);
+  --app-on-background: var(--color-on-background);
+
+  --app-radius-sm: var(--radius-sm);
+  --app-radius: var(--radius-default);
+  --app-radius-md: var(--radius-md);
+  --app-radius-lg: var(--radius-lg);
+  --app-radius-xl: var(--radius-xl);
+  --app-radius-full: var(--radius-full);
+
+  --app-space-unit: var(--spacing-unit);
+  --app-container-padding: var(--spacing-container);
+  --app-gutter: var(--spacing-gutter);
+  --app-stack-sm: 8px;
+  --app-stack-md: 16px;
+  --app-stack-lg: 32px;
+  --app-stack-xl: 64px;
+
+  --app-shadow-card: var(--shadow-card);
+  --app-shadow-tactile: var(--shadow-tactile);
+  --app-shadow-pressed: var(--shadow-pressed);
+  --app-glass-bg: rgba(255, 255, 255, 0.8);
+  --app-glass-border: rgba(255, 255, 255, 0.65);
+  --app-border-subtle: rgba(0, 0, 0, 0.05);
+}
+
+.app-page {
+  min-height: 100vh;
+  background: var(--app-background);
+  color: var(--app-on-background);
+  font-family: var(--app-font-family);
+}
+
+.app-container {
+  width: 100%;
+  padding-right: var(--app-container-padding);
+  padding-left: var(--app-container-padding);
+}
+
+.app-card {
+  background: var(--app-surface-container-lowest);
+  border: 1px solid var(--app-border-subtle);
+  border-radius: var(--app-radius-xl);
+  box-shadow: var(--app-shadow-card);
+}
+
+.app-glass {
+  background: var(--app-glass-bg);
+  border: 1px solid var(--app-glass-border);
+  box-shadow: var(--app-shadow-tactile);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
+.app-title {
+  color: var(--app-on-surface);
+  font-family: var(--app-font-family);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.app-label {
+  color: var(--app-on-surface-variant);
+  font-family: var(--app-font-family);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.app-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  color: var(--app-on-primary);
+  background: var(--app-primary);
+  border-radius: var(--app-radius-lg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+}
+
+.app-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  color: var(--app-on-surface);
+  background: var(--app-surface-container-lowest);
+  border: 1px solid var(--app-outline-variant);
+  border-radius: var(--app-radius-lg);
+  font-weight: 700;
+}
+
+.app-input {
+  min-height: 48px;
+  padding: 0 16px;
+  color: var(--app-on-surface);
+  background: #f5f5f5;
+  border-radius: var(--app-radius-lg);
+}
+
+.app-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 12px;
+  color: var(--app-on-surface);
+  background: var(--app-surface-container);
+  border-radius: var(--app-radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.app-chip-active {
+  color: var(--app-on-primary);
+  background: var(--app-primary);
+}
+
+@media (max-width: 480px) {
+  :root,
+  page {
+    --app-container-padding: 24px;
+    --app-gutter: 16px;
+  }
+
+  .app-title {
+    font-size: 24px;
+    line-height: 32px;
+  }
+}

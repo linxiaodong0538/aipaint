@@ -1,2 +1,3 @@
 @import "weapp-tailwindcss/index.css";
+@import "./theme.css";
 @import "./base.css";

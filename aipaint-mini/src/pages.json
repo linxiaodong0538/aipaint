@@ -3,8 +3,9 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "Home",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "首页",
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white"
       }
     },
     {
@@ -33,30 +34,30 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "uni-app Tailwind",
     "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#f8fafc"
+    "backgroundColor": "#f9f9f9"
   },
   "tabBar": {
     "custom": true,
-    "color": "#9ca3af",
-    "selectedColor": "#111111",
+    "color": "#4c4546",
+    "selectedColor": "#000000",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "Home"
+        "text": "首页"
       },
       {
         "pagePath": "pages/templates/index",
-        "text": "Templates"
+        "text": "模板"
       },
       {
         "pagePath": "pages/works/index",
-        "text": "Works"
+        "text": "作品库"
       },
       {
         "pagePath": "pages/me/index",
-        "text": "Me"
+        "text": "我的"
       }
     ]
   }

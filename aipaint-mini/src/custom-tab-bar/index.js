@@ -4,27 +4,27 @@ Component({
     tabs: [
       {
         pagePath: "/pages/index/index",
-        text: "Home",
-        normalIcon: "/static/tabbar/home-normal.svg",
-        activeIcon: "/static/tabbar/home-active.svg"
+        text: "首页",
+        normalIcon: "/static/tabbar/home-normal.png",
+        activeIcon: "/static/tabbar/home-active.png"
       },
       {
         pagePath: "/pages/templates/index",
-        text: "Templates",
-        normalIcon: "/static/tabbar/templates-normal.svg",
-        activeIcon: "/static/tabbar/templates-active.svg"
+        text: "模板",
+        normalIcon: "/static/tabbar/templates-normal.png",
+        activeIcon: "/static/tabbar/templates-active.png"
       },
       {
         pagePath: "/pages/works/index",
-        text: "Works",
-        normalIcon: "/static/tabbar/works-normal.svg",
-        activeIcon: "/static/tabbar/works-active.svg"
+        text: "作品库",
+        normalIcon: "/static/tabbar/works-normal.png",
+        activeIcon: "/static/tabbar/works-active.png"
       },
       {
         pagePath: "/pages/me/index",
-        text: "Me",
-        normalIcon: "/static/tabbar/me-normal.svg",
-        activeIcon: "/static/tabbar/me-active.svg"
+        text: "我的",
+        normalIcon: "/static/tabbar/me-normal.png",
+        activeIcon: "/static/tabbar/me-active.png"
       }
     ]
   },

@@ -1,8 +1,9 @@
 page {
   min-height: 100%;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--app-background);
+  color: var(--app-on-background);
   font-family:
+    "Plus Jakarta Sans",
     -apple-system,
     BlinkMacSystemFont,
     "Helvetica Neue",
