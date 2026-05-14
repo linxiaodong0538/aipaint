@@ -11,8 +11,10 @@
     {
       "path": "pages/templates/index",
       "style": {
-        "navigationBarTitleText": "Templates",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "生图模板",
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white"
+        // "navigationStyle": "custom"
       }
     },
     {

@@ -1,41 +1,68 @@
 <template>
-  <view class="home-page">
-    <scroll-view class="home-scroll" scroll-y enhanced :show-scrollbar="false">
-      <view class="home-content">
-        <view class="hero">
-          <image class="hero__image" mode="aspectFill" :src="heroImage" />
-          <view class="hero__shade" />
-          <view class="hero__content">
-            <text class="hero__badge">NEW RELEASE</text>
-            <text class="hero__title">GPT Image 2</text>
-            <text class="hero__desc ">
+  <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+    <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
+      <view class="px-[36rpx] pb-[208rpx] pt-[36rpx]">
+        <view
+          class="relative h-[480rpx] overflow-hidden rounded-[64rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+        >
+          <image class="absolute inset-0 h-full w-full opacity-[0.62]" mode="aspectFill" :src="heroImage" />
+          <view
+            class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_12%,rgba(0,0,0,0.22)_42%,rgba(0,0,0,0.88)_100%)]"
+          />
+          <view class="absolute bottom-[32rpx] left-[32rpx] right-[32rpx] flex flex-col items-start">
+            <text
+              class="inline-flex rounded-full border border-[rgba(255,255,255,0.26)] bg-[rgba(255,255,255,0.18)] px-[28rpx] py-[12rpx] text-[20rpx] font-bold leading-[28rpx] tracking-[4rpx] text-white backdrop-blur-[40rpx]"
+            >
+              NEW RELEASE
+            </text>
+            <text class="mt-[16rpx] text-[64rpx] font-extrabold leading-[76rpx] text-white">
+              GPT Image 2
+            </text>
+            <text class="mt-[8rpx] max-w-[560rpx] text-[30rpx] font-normal leading-[46rpx] text-white/70">
               利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。体验前所未有的艺术精确度。
             </text>
-            <button class="hero__button" @tap="goTemplates">
+            <button
+              class="mt-[32rpx] flex h-[96rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
+              @tap="goTemplates"
+            >
               <text>开始创作</text>
-              <text class="hero__button-arrow">→</text>
+              <text class="text-[34rpx] font-medium leading-[34rpx]">→</text>
             </button>
           </view>
         </view>
 
-        <view class="section-head">
+        <view class="mt-[64rpx] flex items-end justify-between">
           <view>
-            <text class="section-head__title">风格探索</text>
-            <text class="section-head__desc">选择一个基调开始您的艺术之旅</text>
+            <text class="block text-[48rpx] font-bold leading-[64rpx] text-black">风格探索</text>
+            <text class="mt-[4rpx] block text-[28rpx] leading-[40rpx] text-[#636262]">
+              选择一个基调开始您的艺术之旅
+            </text>
           </view>
-          <button class="section-head__link" @tap="goTemplates">
+          <button
+            class="flex h-[44rpx] min-w-[144rpx] items-center justify-end gap-[4rpx] bg-transparent p-0 text-[28rpx] font-bold leading-[44rpx] text-black"
+            @tap="goTemplates"
+          >
             <text>查看全部</text>
-            <text class="section-head__arrow">›</text>
+            <text class="text-[34rpx] leading-[38rpx]">›</text>
           </button>
         </view>
 
-        <scroll-view class="chips" scroll-x enhanced :show-scrollbar="false">
-          <view class="chips__row">
+        <scroll-view
+          class="-mx-[48rpx] mt-[48rpx] w-[calc(100%+96rpx)] whitespace-nowrap"
+          scroll-x
+          enhanced
+          :show-scrollbar="false"
+        >
+          <view class="flex gap-[16rpx] px-[48rpx] pb-[4rpx]">
             <button
               v-for="chip in chips"
               :key="chip"
-              class="chip"
-              :class="{ 'chip--active': chip === activeChip }"
+              class="inline-flex h-[72rpx] items-center justify-center rounded-full border px-[48rpx] text-[28rpx] font-bold leading-[72rpx]"
+              :class="
+                chip === activeChip
+                  ? 'border-black bg-black text-white'
+                  : 'border-[rgba(0,0,0,0.1)] bg-white text-[#636262]'
+              "
               @tap="activeChip = chip"
             >
               {{ chip }}
@@ -43,18 +70,26 @@
           </view>
         </scroll-view>
 
-        <view class="style-grid">
+        <view class="mt-[28rpx] grid grid-cols-2 gap-[32rpx]">
           <view
             v-for="item in styles"
             :key="item.title"
-            class="style-card"
+            class="relative block h-[454rpx] overflow-hidden rounded-[48rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
             @tap="goTemplates"
           >
-            <image class="style-card__image" mode="aspectFill" :src="item.image" />
-            <view class="style-card__shade" />
-            <view class="style-card__meta">
-              <text class="style-card__title">{{ item.title }}</text>
-              <text class="style-card__icon">{{ item.icon }}</text>
+            <image class="h-full w-full" mode="aspectFill" :src="item.image" />
+            <view
+              class="absolute bottom-0 left-0 right-0 h-[150rpx] bg-[linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.66))]"
+            />
+            <view class="absolute bottom-[32rpx] left-[32rpx] right-[32rpx] flex items-center justify-between text-white">
+              <text class="max-w-[168rpx] text-left text-[28rpx] font-extrabold leading-[38rpx] text-white">
+                {{ item.title }}
+              </text>
+              <text
+                class="flex h-[42rpx] w-[42rpx] items-center justify-center rounded-full border border-[rgba(255,255,255,0.56)] text-[22rpx] font-extrabold leading-[42rpx] text-white"
+              >
+                {{ item.icon }}
+              </text>
             </view>
           </view>
         </view>
@@ -110,294 +145,3 @@ onShow(() => {
   setCustomTabBarIndex(0);
 });
 </script>
-
-<style scoped>
-.home-page {
-  min-height: 100vh;
-  overflow: hidden;
-  background: #f9f9f9;
-  color: #1a1c1c;
-  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.brand__mark {
-  display: flex;
-  width: 44rpx;
-  height: 44rpx;
-  align-items: center;
-  justify-content: center;
-  color: #000000;
-  font-size: 34rpx;
-  font-weight: 700;
-  line-height: 44rpx;
-}
-
-.brand__name {
-  color: #000000;
-  font-size: 48rpx;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 56rpx;
-}
-
-.profile-button {
-  display: flex;
-  width: 48rpx;
-  height: 48rpx;
-  align-items: center;
-  justify-content: center;
-  color: #636262;
-  background: transparent;
-}
-
-.profile-button__icon {
-  font-size: 26rpx;
-  font-weight: 700;
-  line-height: 48rpx;
-}
-
-.home-scroll {
-  height: 100vh;
-}
-
-.home-content {
-  padding: 48rpx 48rpx 208rpx;
-}
-
-.hero {
-  position: relative;
-  height: 480rpx;
-  overflow: hidden;
-  background: #000000;
-  border-radius: 64rpx;
-  box-shadow: 0 40rpx 80rpx rgba(0, 0, 0, 0.05);
-}
-
-.hero__image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.62;
-}
-
-.hero__shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 12%, rgba(0, 0, 0, 0.22) 42%, rgba(0, 0, 0, 0.88) 100%);
-}
-
-.hero__content {
-  position: absolute;
-  right: 32rpx;
-  bottom: 32rpx;
-  left: 32rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.hero__badge {
-  display: inline-flex;
-  padding: 12rpx 28rpx;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1rpx solid rgba(255, 255, 255, 0.26);
-  border-radius: 999rpx;
-  backdrop-filter: blur(40rpx);
-  font-size: 20rpx;
-  font-weight: 700;
-  letter-spacing: 4rpx;
-  line-height: 28rpx;
-}
-
-.hero__title {
-  margin-top: 16rpx;
-  color: #ffffff;
-  font-size: 64rpx;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 76rpx;
-}
-
-.hero__desc {
-  margin-top: 8rpx;
-  max-width: 560rpx;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 30rpx;
-  font-weight: 400;
-  line-height: 46rpx;
-}
-
-.hero__button {
-  display: flex;
-  min-width: 212rpx;
-  height: 96rpx;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  margin-top: 32rpx;
-  padding: 0 48rpx;
-  color: #000000;
-  background: #ffffff;
-  border-radius: 24rpx;
-  font-size: 28rpx;
-  font-weight: 800;
-  line-height: 96rpx;
-}
-
-.hero__button-arrow {
-  font-size: 34rpx;
-  font-weight: 500;
-  line-height: 34rpx;
-}
-
-.section-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-top: 64rpx;
-}
-
-.section-head__title {
-  display: block;
-  color: #000000;
-  font-size: 48rpx;
-  font-weight: 700;
-  line-height: 64rpx;
-}
-
-.section-head__desc {
-  display: block;
-  margin-top: 4rpx;
-  color: #636262;
-  font-size: 28rpx;
-  line-height: 40rpx;
-}
-
-.section-head__link {
-  display: flex;
-  min-width: 144rpx;
-  height: 44rpx;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4rpx;
-  padding: 0;
-  color: #000000;
-  background: transparent;
-  font-size: 28rpx;
-  font-weight: 700;
-  line-height: 44rpx;
-}
-
-.section-head__arrow {
-  font-size: 34rpx;
-  line-height: 38rpx;
-}
-
-.chips {
-  width: calc(100% + 96rpx);
-  margin: 48rpx -48rpx 0;
-  white-space: nowrap;
-}
-
-.chips__row {
-  display: flex;
-  gap: 16rpx;
-  padding: 0 48rpx 4rpx;
-}
-
-.chip {
-  display: inline-flex;
-  height: 72rpx;
-  align-items: center;
-  justify-content: center;
-  padding: 0 48rpx;
-  color: #636262;
-  background: #ffffff;
-  border: 1rpx solid rgba(0, 0, 0, 0.1);
-  border-radius: 999rpx;
-  font-size: 28rpx;
-  font-weight: 700;
-  line-height: 72rpx;
-}
-
-.chip--active {
-  color: #ffffff;
-  background: #000000;
-  border-color: #000000;
-}
-
-.style-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 32rpx;
-  margin-top: 28rpx;
-}
-
-.style-card {
-  position: relative;
-  display: block;
-  height: 454rpx;
-  overflow: hidden;
-  padding: 0;
-  background: #ffffff;
-  border: 1rpx solid rgba(0, 0, 0, 0.05);
-  border-radius: 48rpx;
-  box-shadow: 0 40rpx 80rpx rgba(0, 0, 0, 0.05);
-}
-
-.style-card__image {
-  width: 100%;
-  height: 100%;
-}
-
-.style-card__shade {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 150rpx;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.66));
-}
-
-.style-card__meta {
-  position: absolute;
-  right: 32rpx;
-  bottom: 32rpx;
-  left: 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #ffffff;
-}
-
-.style-card__title {
-  max-width: 168rpx;
-  color: #ffffff;
-  font-size: 28rpx;
-  font-weight: 800;
-  line-height: 38rpx;
-  text-align: left;
-}
-
-.style-card__icon {
-  display: flex;
-  width: 42rpx;
-  height: 42rpx;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  border: 1rpx solid rgba(255, 255, 255, 0.56);
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  font-weight: 800;
-  line-height: 42rpx;
-}
-</style>
