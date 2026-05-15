@@ -95,14 +95,14 @@
         </view>
       </view>
     </scroll-view>
+    <AppTabBar active="home" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { onShow } from "@dcloudio/uni-app";
+import AppTabBar from "@/components/AppTabBar.vue";
 import { routes, switchTab } from "@/utils/router";
-import { setCustomTabBarIndex } from "@/utils/tabbar";
 
 const heroImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAHaLmgTeKMCIq__T1vgUYUp8cJe_0aDfBw6MQL9TtpXg5KWzLrpg99RqTMkr4PJmxCogcnynHzLntk0c-kvnFAZnJT5z_OHH_WTp6vOho3DUtRA7xJipLhatstWi_DEQ6E0Bo4q4MqmMgLeCC0ghaon_d-WOsD4FQbKowY1q246jJBfKyw2QPos_ZhzBb6swUN7EvoxdWHwyN4TAtTpOxOYvYlYA_bROGnn-JDINvon-Z1elz-R2EFuOqEe4Rk2hQM31r69QbOP9BC";
@@ -140,8 +140,4 @@ const styles = [
 function goTemplates() {
   switchTab(routes.templates);
 }
-
-onShow(() => {
-  setCustomTabBarIndex(0);
-});
 </script>

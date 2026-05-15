@@ -37,30 +37,5 @@
     "navigationBarTitleText": "uni-app Tailwind",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#f9f9f9"
-  },
-  "tabBar": {
-    "custom": true,
-    "color": "#4c4546",
-    "selectedColor": "#000000",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/templates/index",
-        "text": "模板"
-      },
-      {
-        "pagePath": "pages/works/index",
-        "text": "作品库"
-      },
-      {
-        "pagePath": "pages/me/index",
-        "text": "我的"
-      }
-    ]
   }
 }

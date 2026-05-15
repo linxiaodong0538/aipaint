@@ -40,13 +40,13 @@
         </view>
       </view>
     </scroll-view>
+    <AppTabBar active="templates" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { onShow } from "@dcloudio/uni-app";
-import { setCustomTabBarIndex } from "@/utils/tabbar";
+import AppTabBar from "@/components/AppTabBar.vue";
 
 const chips = ["全部", "极简主义", "超现实", "赛博朋克", "水墨艺术", "抽象表现"];
 const activeChip = ref("全部");
@@ -102,7 +102,4 @@ const templates = [
   },
 ];
 
-onShow(() => {
-  setCustomTabBarIndex(1);
-});
 </script>

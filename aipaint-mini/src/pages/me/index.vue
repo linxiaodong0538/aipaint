@@ -18,18 +18,14 @@
         </view>
       </view>
     </AppCard>
+    <AppTabBar active="me" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { onShow } from "@dcloudio/uni-app";
 import AppCard from "@/components/AppCard.vue";
+import AppTabBar from "@/components/AppTabBar.vue";
 import { useUserStore } from "@/store/modules/user";
-import { setCustomTabBarIndex } from "@/utils/tabbar";
 
 const userStore = useUserStore();
-
-onShow(() => {
-  setCustomTabBarIndex(3);
-});
 </script>
