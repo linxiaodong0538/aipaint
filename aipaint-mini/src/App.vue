@@ -12,4 +12,6 @@ onHide(() => {
 </script>
 <style>
 @import "./styles/app.css";
+@import "./styles/theme.css";
+@import "./styles/base.css";
 </style>
