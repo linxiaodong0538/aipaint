@@ -41,7 +41,7 @@ export function reLaunch(path: string, params?: RouteParams) {
 }
 
 export function switchTab(path: string) {
-  return uni.redirectTo({
+  return uni.switchTab({
     url: path,
   });
 }

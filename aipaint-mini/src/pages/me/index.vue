@@ -18,13 +18,11 @@
         </view>
       </view>
     </AppCard>
-    <AppTabBar active="me" />
   </view>
 </template>
 
 <script setup lang="ts">
 import AppCard from "@/components/AppCard.vue";
-import AppTabBar from "@/components/AppTabBar.vue";
 import { useUserStore } from "@/store/modules/user";
 
 const userStore = useUserStore();

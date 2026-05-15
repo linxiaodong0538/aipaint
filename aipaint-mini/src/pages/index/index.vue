@@ -95,13 +95,11 @@
         </view>
       </view>
     </scroll-view>
-    <AppTabBar active="home" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import AppTabBar from "@/components/AppTabBar.vue";
 import { routes, switchTab } from "@/utils/router";
 
 const heroImage =

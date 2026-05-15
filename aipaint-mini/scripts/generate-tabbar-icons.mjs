@@ -32,7 +32,7 @@ const icons = [
 
 const colors = {
   normal: "#9b9b9b",
-  active: "#ffffff"
+  active: "#000000"
 };
 
 function renderIcon(name, color) {

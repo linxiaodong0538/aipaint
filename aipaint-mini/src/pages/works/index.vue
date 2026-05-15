@@ -16,12 +16,9 @@
         <text class="mt-2 block text-sm font-medium text-slate-700">{{ item }}</text>
       </view>
     </view>
-    <AppTabBar active="works" />
   </view>
 </template>
 
 <script setup lang="ts">
-import AppTabBar from "@/components/AppTabBar.vue";
-
 const works = ["Work 01", "Work 02", "Work 03", "Work 04"];
 </script>

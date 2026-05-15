@@ -37,5 +37,37 @@
     "navigationBarTitleText": "uni-app Tailwind",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#f9f9f9"
+  },
+  "tabBar": {
+    "color": "#4c4546",
+    "selectedColor": "#000000",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home-normal.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/templates/index",
+        "text": "模板",
+        "iconPath": "static/tabbar/templates-normal.png",
+        "selectedIconPath": "static/tabbar/templates-active.png"
+      },
+      {
+        "pagePath": "pages/works/index",
+        "text": "作品库",
+        "iconPath": "static/tabbar/works-normal.png",
+        "selectedIconPath": "static/tabbar/works-active.png"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/me-normal.png",
+        "selectedIconPath": "static/tabbar/me-active.png"
+      }
+    ]
   }
 }
