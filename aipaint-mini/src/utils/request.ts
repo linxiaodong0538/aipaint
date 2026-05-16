@@ -7,8 +7,9 @@ import { useUserStore } from "@/store/modules/user";
 
 export interface ApiResponse<T = unknown> {
   code: number;
+  msg?: string;
   message: string;
-  data: T;
+  data?: T;
 }
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://example.com/api";
@@ -61,7 +62,7 @@ service.interceptors.response.use(
       return Promise.reject(payload);
     }
 
-    if (payload && typeof payload === "object" && "data" in payload) {
+    if (payload && typeof payload === "object" && "data" in payload && payload.data !== undefined) {
       return (payload as ApiResponse<T>).data;
     }
 

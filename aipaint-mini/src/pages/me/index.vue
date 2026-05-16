@@ -28,7 +28,7 @@
         <view class="flex flex-col items-center pt-[48rpx]">
           <view class="relative">
             <image
-              src="/static/me/avatar.jpg"
+              :src="avatarSrc"
               mode="aspectFill"
               class="h-[176rpx] w-[176rpx] overflow-hidden rounded-full border-[4rpx] border-[rgba(255,255,255,0.72)] bg-white grayscale shadow-[0_20rpx_40rpx_rgba(0,0,0,0.14)]"
             />
@@ -46,8 +46,23 @@
           >
             {{ displayName }}
           </text>
+          <text
+            class="mt-[8rpx] text-center text-[24rpx] leading-[32rpx] text-[var(--app-on-surface-variant)]"
+          >
+            ID:{{ displayId }}
+          </text>
+
+          <button
+            v-if="!userStore.isLogin"
+            class="mt-[24rpx] flex h-[72rpx] min-w-[240rpx] items-center justify-center rounded-full bg-black px-[44rpx] text-[28rpx] font-semibold leading-none text-white"
+            :loading="userStore.loggingIn"
+            @tap="handleLogin"
+          >
+            一键快捷登录
+          </button>
 
           <view
+            v-if="userStore.isLogin"
             class="mt-[36rpx] flex w-full items-center justify-between rounded-[32rpx] bg-black px-[40rpx] py-[36rpx]"
           >
             <view class="flex min-w-0 flex-col">
@@ -87,6 +102,7 @@
             v-for="task in tasks"
             :key="task.title"
             class="flex min-h-[168rpx] flex-col items-center justify-center rounded-[24rpx] bg-white px-[12rpx] py-[20rpx] text-center shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)] active:scale-[0.98]"
+            @tap="handleUserAction"
           >
             <text
               class="iconfont text-[44rpx] leading-none text-[var(--app-primary)]"
@@ -101,7 +117,7 @@
             <text
               class="mt-[4rpx] text-[22rpx] leading-[28rpx] text-[var(--app-on-surface-variant)]"
             >
-              {{ task.desc }}
+              {{ userStore.isLogin ? task.desc : "登录查看" }}
             </text>
           </view>
         </view>
@@ -118,6 +134,7 @@
                 ? 'border-b border-[rgba(0,0,0,0.06)]'
                 : ''
             "
+            @tap="handleUserAction"
           >
             <view class="flex min-w-0 items-center gap-[22rpx]">
               <text
@@ -135,6 +152,7 @@
         </view>
 
         <view
+          v-if="userStore.isLogin"
           class="mt-[24rpx] flex h-[96rpx] items-center justify-center gap-[14rpx] rounded-[24rpx] bg-white shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)] active:scale-[0.99]"
           @tap="handleLogout"
         >
@@ -153,6 +171,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { onShow } from "@dcloudio/uni-app";
 import { getNavBarLayout } from "@/utils/nav-bar";
 import { useUserStore } from "@/store/modules/user";
 
@@ -171,7 +190,11 @@ interface MenuItem {
 const navLayout = getNavBarLayout();
 const userStore = useUserStore();
 
-const displayName = computed(() => userStore.profile?.nickname || "未来探索者");
+const displayName = computed(() =>
+  userStore.isLogin ? userStore.profile?.nickname || "游客用户" : "游客用户",
+);
+const displayId = computed(() => (userStore.isLogin ? userStore.profile?.id || "-" : "-"));
+const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.jpg");
 
 const tasks: TaskItem[] = [
   { title: "每日签到", desc: "+50 PTS", iconClass: "icon-qiandao" },
@@ -194,11 +217,32 @@ const menuItems: MenuItem[] = [
   { title: "我的作品", iconClass: "icon-images" },
 ];
 
+onShow(() => {
+  if (userStore.isLogin && !userStore.profile) {
+    userStore.fetchProfile().catch(() => undefined);
+  }
+});
+
+function handleLogin() {
+  userStore.loginWithWechat().catch(() => undefined);
+}
+
+function handleUserAction() {
+  if (!userStore.isLogin) {
+    handleLogin();
+  }
+}
+
 function handleRecharge() {
+  if (!userStore.isLogin) {
+    handleLogin();
+    return;
+  }
   uni.showToast({ title: "立即充值", icon: "none" });
 }
 
 function handleLogout() {
-  uni.showToast({ title: "退出登录", icon: "none" });
+  userStore.logout();
+  uni.showToast({ title: "已退出登录", icon: "none" });
 }
 </script>

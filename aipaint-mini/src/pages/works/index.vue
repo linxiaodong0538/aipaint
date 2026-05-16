@@ -6,7 +6,7 @@
       <view
         v-for="tab in tabs"
         :key="tab.value"
-        class="flex h-[64rpx] items-center justify-center rounded-full px-[28rpx] text-[24rpx] font-semibold leading-none"
+        class="flex h-[64rpx] items-center justify-center rounded-full px-[28rpx] text-[28rpx] font-semibold leading-none"
         :class="
           activeTab === tab.value
             ? 'bg-black text-white shadow-[0_12rpx_24rpx_rgba(0,0,0,0.12)]'
@@ -18,10 +18,48 @@
       </view>
     </view>
 
-    <view v-if="showInProgress" class="mt-[48rpx]">
-      <view class="mb-[28rpx] flex items-center gap-[12rpx]">
-        <text class="w-[24rpx] text-center text-[24rpx] leading-none">🌱</text>
-        <text class="text-[24rpx] font-semibold text-[#6c6c6c]">进行中</text>
+    <view
+      v-if="!userStore.isLogin"
+      class="mt-[180rpx] flex flex-col items-center px-[12rpx] text-center"
+    >
+      <view class="relative flex h-[200rpx] w-[200rpx] items-center justify-center">
+        <view
+          class="absolute h-[176rpx] w-[176rpx] rounded-full bg-[#efefef]/80"
+        />
+        <view
+          class="relative flex h-[152rpx] w-[152rpx] items-center justify-center rounded-[36rpx] border border-[#ebebeb] bg-white shadow-[0_20rpx_48rpx_rgba(0,0,0,0.06)]"
+        >
+          <text
+            class="iconfont icon-images text-[72rpx] leading-none text-[#c8c8c8]"
+          />
+        </view>
+      </view>
+
+      <text
+        class="mt-[48rpx] block text-[36rpx] font-bold leading-[50rpx] text-black"
+      >
+        登录后查看你的作品
+      </text>
+
+      <text
+        class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]"
+      >
+        登录后同步你的创作记录与生成状态
+      </text>
+
+      <button
+        class="mt-[56rpx] flex h-[88rpx] w-full max-w-[520rpx] items-center justify-center rounded-full bg-black px-[48rpx] text-[30rpx] font-bold leading-none text-white"
+        :loading="userStore.loggingIn"
+        @tap="handleLogin"
+      >
+        立即登录
+      </button>
+    </view>
+
+    <view v-if="userStore.isLogin && showInProgress" class="mt-[48rpx]">
+      <view class="mb-[28rpx] flex items-center gap-[8rpx]">
+        <text class="leading-none iconfont icon-jinhangzhong" style="font-size: 36rpx;"></text>
+        <text class="text-[28rpx] font-semibold text-[#6c6c6c]  leading-none">进行中</text>
       </view>
 
       <view class="flex flex-col gap-[28rpx]">
@@ -31,7 +69,7 @@
           class="rounded-[28rpx] bg-white px-[24rpx] py-[24rpx] shadow-[0_24rpx_60rpx_rgba(0,0,0,0.08)]"
         >
           <view class="flex items-start justify-between">
-            <view class="flex items-center gap-[20rpx]">
+            <view class="flex items-center gap-[24rpx]">
               <image
                 :src="item.image"
                 mode="aspectFill"
@@ -41,7 +79,7 @@
                 <text class="block text-[28rpx] font-semibold leading-[36rpx] text-black">
                   {{ item.title }}
                 </text>
-                <text class="mt-[4rpx] block text-[22rpx] leading-[30rpx] text-[#8e8e8e]">
+                <text class="mt-[8rpx] block text-[22rpx] leading-[30rpx] text-[#8e8e8e]">
                   {{ item.meta }}
                 </text>
               </view>
@@ -62,10 +100,10 @@
       </view>
     </view>
 
-    <view v-if="showCompleted" class="mt-[44rpx]">
-      <view class="mb-[28rpx] flex items-center gap-[12rpx]">
-        <text class="w-[24rpx] text-center text-[24rpx] leading-none">✨</text>
-        <text class="text-[24rpx] font-semibold text-[#6c6c6c]">已完成</text>
+    <view v-if="userStore.isLogin && showCompleted" class="mt-[44rpx]">
+      <view class="mb-[28rpx] flex items-center gap-[8rpx]">
+        <text class="iconfont icon-shanshan" style="font-size: 38rpx;"></text>
+        <text class="text-[28rpx] font-semibold text-[#6c6c6c]  leading-none">已完成</text>
       </view>
 
       <view class="grid grid-cols-2 gap-[36rpx]">
@@ -83,6 +121,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useUserStore } from "@/store/modules/user";
 
 type TabValue = "all" | "generating" | "completed";
 
@@ -105,6 +144,7 @@ const tabs: Array<{ label: string; value: TabValue }> = [
 ];
 
 const activeTab = ref<TabValue>("all");
+const userStore = useUserStore();
 
 const inProgressWorks: ProgressWork[] = [
   {
@@ -135,4 +175,8 @@ const showInProgress = computed(
 const showCompleted = computed(
   () => activeTab.value === "all" || activeTab.value === "completed",
 );
+
+function handleLogin() {
+  userStore.loginWithWechat().catch(() => undefined);
+}
 </script>
