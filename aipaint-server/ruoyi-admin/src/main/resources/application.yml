@@ -98,6 +98,11 @@ token:
   # 令牌有效期（默认30分钟）
   expireTime: 30
 
+wechat:
+  miniapp:
+    appid: ""
+    secret: ""
+
 # MyBatis配置
 mybatis:
   # 搜索指定包别名

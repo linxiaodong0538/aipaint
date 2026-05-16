@@ -20,7 +20,7 @@ export function login(params: LoginParams) {
 
 export function getUserProfile() {
   return request<UserProfile>({
-    url: "/user/profile",
+    url: "/auth/profile",
     method: "GET",
   });
 }

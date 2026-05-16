@@ -14,4 +14,5 @@ onHide(() => {
 @import "./styles/app.css";
 @import "./styles/theme.css";
 @import "./styles/base.css";
+@import "./static/font/iconfont.css";
 </style>
