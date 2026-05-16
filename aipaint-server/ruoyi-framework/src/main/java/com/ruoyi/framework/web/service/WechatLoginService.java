@@ -26,6 +26,8 @@ public class WechatLoginService
 {
     private static final String CODE_TO_SESSION_URL = "https://api.weixin.qq.com/sns/jscode2session";
 
+    private static final String[] NICKNAMES = { "灵感画师", "像素玩家", "云朵画家", "霓虹画手", "奇想造梦", "画境行者" };
+
     @Value("${wechat.miniapp.appid:}")
     private String appid;
 
@@ -100,12 +102,18 @@ public class WechatLoginService
         SysUser user = new SysUser();
         user.setOpenid(openid);
         user.setUserName("wx_" + buildOpenidSuffix(openid));
-        user.setNickName("游客用户");
+        user.setNickName(generateNickname());
         user.setStatus(UserConstants.NORMAL);
         user.setSex("2");
         user.setPassword(SecurityUtils.encryptPassword(openid));
         userService.registerUser(user);
         return userService.selectUserByOpenid(openid);
+    }
+
+    private String generateNickname()
+    {
+        int index = Math.abs((int) (System.nanoTime() % NICKNAMES.length));
+        return NICKNAMES[index];
     }
 
     private String buildOpenidSuffix(String openid)

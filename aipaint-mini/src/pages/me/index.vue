@@ -30,7 +30,7 @@
             <image
               :src="avatarSrc"
               mode="aspectFill"
-              class="h-[176rpx] w-[176rpx] overflow-hidden rounded-full border-[4rpx] border-[rgba(255,255,255,0.72)] bg-white grayscale shadow-[0_20rpx_40rpx_rgba(0,0,0,0.14)]"
+              class="h-[176rpx] w-[176rpx] overflow-hidden rounded-full border-[4rpx] border-[rgba(255,255,255,0.72)] bg-white shadow-[0_20rpx_40rpx_rgba(0,0,0,0.14)]"
             />
             <view
               class="absolute bottom-[2rpx] right-[2rpx] flex h-[44rpx] w-[44rpx] items-center justify-center rounded-full border-[4rpx] border-[#f7f7f7] bg-[var(--app-primary)]"
@@ -194,7 +194,7 @@ const displayName = computed(() =>
   userStore.isLogin ? userStore.profile?.nickname || "游客用户" : "游客用户",
 );
 const displayId = computed(() => (userStore.isLogin ? userStore.profile?.id || "-" : "-"));
-const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.jpg");
+const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.png");
 
 const tasks: TaskItem[] = [
   { title: "每日签到", desc: "+50 PTS", iconClass: "icon-qiandao" },
