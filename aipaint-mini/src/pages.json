@@ -20,21 +20,23 @@
     {
       "path": "pages/works/index",
       "style": {
-        "navigationBarTitleText": "Works",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "作品库",
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white"
       }
     },
     {
       "path": "pages/me/index",
       "style": {
-        "navigationBarTitleText": "Me",
-        "navigationStyle": "custom"
+        "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white"
       }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "uni-app Tailwind",
+    "navigationBarTitleText": "AI智绘",
     "navigationBarBackgroundColor": "#ffffff",
     "backgroundColor": "#f9f9f9"
   },
