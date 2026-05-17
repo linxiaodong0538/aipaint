@@ -18,23 +18,16 @@
     </view>
 
     <scroll-view class="min-h-0 flex-1" scroll-y enhanced :show-scrollbar="false">
-      <view class="px-[36rpx] pb-[224rpx]">
-        <view class="grid grid-cols-2 gap-[36rpx] pb-[36rpx]">
+      <view class="px-[24rpx] pb-[224rpx]">
+        <view class="grid grid-cols-2 gap-[24rpx] pb-[36rpx]">
           <view
             v-for="template in templates"
             :key="template.title"
             class="overflow-hidden rounded-[48rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
+            @tap="goDetail(template)"
           >
-            <view class="h-[318rpx] overflow-hidden bg-[#eeeeee]">
+            <view class="h-[440rpx] overflow-hidden bg-[#eeeeee]">
               <image class="h-full w-full" mode="aspectFill" :src="template.image" />
-            </view>
-            <view class="p-[32rpx]">
-              <text class="block text-[28rpx] font-semibold leading-[40rpx] text-black">
-                {{ template.title }}
-              </text>
-              <text class="mt-[4rpx] block text-[24rpx] font-medium leading-[32rpx] text-[#636262]">
-                {{ template.desc }}
-              </text>
             </view>
           </view>
         </view>
@@ -45,6 +38,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { navigateTo, routes } from "@/utils/router";
 
 const chips = ["全部", "极简主义", "超现实", "赛博朋克", "水墨艺术", "抽象表现"];
 const activeChip = ref("全部");
@@ -99,5 +93,13 @@ const templates = [
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDg1wfvmjr27Z35iMy0xuxdbO88ziI23TJdPT0cf-4dN0__IH1OurtM4pHdBJbYSeACOYz_YzyVxKCFixJIbhkbHkUntzOzu_dglucTVxnTideDIwlzDCRqptOf9i1AIWhQ2mJ2DkEjIc53u_3j7CREdvyLtnfzgm5u9F7UBS_QEK_6dPIULaOBMeG53jLzNU2B-SvWUniKhxBrB2b1_eQuYpRIA75Sx2BC0enE66CXtergZNJwS0BIWhczTRqOoCpCexFlPywMIkKN",
   },
 ];
+
+function goDetail(template: (typeof templates)[number]) {
+  navigateTo(routes.templateDetail, {
+    title: template.title,
+    desc: template.desc,
+    image: template.image,
+  });
+}
 
 </script>

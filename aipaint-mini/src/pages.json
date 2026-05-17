@@ -18,6 +18,14 @@
       }
     },
     {
+      "path": "pages/templates/detail",
+      "style": {
+        "navigationBarTitleText": "模板详情",
+        "navigationBarBackgroundColor": "#f7f7f7",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
       "path": "pages/works/index",
       "style": {
         "navigationBarTitleText": "作品库",

@@ -1,7 +1,7 @@
 <template>
   <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="px-[36rpx] pb-[208rpx] pt-[36rpx]">
+      <view class="px-[24rpx] pb-[208rpx] pt-[36rpx]">
         <view
           class="relative h-[480rpx] overflow-hidden rounded-[64rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
@@ -70,7 +70,7 @@
           </view>
         </scroll-view>
 
-        <view class="mt-[28rpx] grid grid-cols-2 gap-[32rpx]">
+        <view class="mt-[28rpx] grid grid-cols-2 gap-[24rpx]">
           <view
             v-for="item in styles"
             :key="item.title"
@@ -78,19 +78,6 @@
             @tap="goTemplates"
           >
             <image class="h-full w-full" mode="aspectFill" :src="item.image" />
-            <view
-              class="absolute bottom-0 left-0 right-0 h-[150rpx] bg-[linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.66))]"
-            />
-            <view class="absolute bottom-[32rpx] left-[32rpx] right-[32rpx] flex items-center justify-between text-white">
-              <text class="max-w-[168rpx] text-left text-[28rpx] font-extrabold leading-[38rpx] text-white">
-                {{ item.title }}
-              </text>
-              <text
-                class="flex h-[42rpx] w-[42rpx] items-center justify-center rounded-full border border-[rgba(255,255,255,0.56)] text-[22rpx] font-extrabold leading-[42rpx] text-white"
-              >
-                {{ item.icon }}
-              </text>
-            </view>
           </view>
         </view>
       </view>
