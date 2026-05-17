@@ -1,7 +1,7 @@
 <template>
   <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="px-[24rpx] pb-[208rpx] pt-[36rpx]">
+      <view class="px-[24rpx] pb-[80rpx] pt-[24rpx]">
         <view
           class="relative h-[480rpx] overflow-hidden rounded-[64rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >

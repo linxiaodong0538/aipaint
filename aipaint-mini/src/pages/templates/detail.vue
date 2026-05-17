@@ -26,11 +26,7 @@
             </text>
           </view>
         </view>
-
-        <text class="mt-[20rpx] block text-[44rpx] font-bold leading-[56rpx] tracking-[-0.5rpx] text-black">
-          {{ title }}
-        </text>
-
+        
         <view class="mt-[40rpx] flex items-center justify-between">
           <text class="text-[26rpx] font-semibold leading-[36rpx] text-[#6a6a6a]">
             提示词 (Prompt)
