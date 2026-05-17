@@ -23,7 +23,7 @@
           <view
             v-for="template in templates"
             :key="template.title"
-            class="overflow-hidden rounded-[48rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
+            class="overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
             @tap="goDetail(template)"
           >
             <view class="h-[440rpx] overflow-hidden bg-[#eeeeee]">

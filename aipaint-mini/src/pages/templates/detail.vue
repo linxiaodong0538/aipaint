@@ -1,51 +1,54 @@
-<template>
+rounded<template>
   <view class="flex min-h-screen flex-col bg-[#f7f7f7] font-sans text-[#1a1c1c]">
     <scroll-view class="min-h-0 flex-1" scroll-y enhanced :show-scrollbar="false">
       <view
         class="mx-auto max-w-[750rpx] px-[24rpx] pt-[8rpx]"
         :style="{ paddingBottom: `calc(200rpx + ${safeAreaBottom}px)` }"
       >
-        <view class="relative overflow-hidden rounded-[48rpx] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)]">
+        <view class="relative overflow-hidden rounded-[32rpx] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)]">
           <image class="block w-full" mode="widthFix" :src="image" />
         </view>
 
-        <view class="mt-[24rpx] flex flex-wrap items-center gap-[12rpx]">
-          <view class="rounded-full bg-[#e8e8e8] px-[20rpx] py-[10rpx]">
-            <text class="text-[22rpx] font-bold leading-[30rpx] text-[#6a6a6a]">
-              {{ tag }}
+        <view class="mt-[24rpx] flex flex-col gap-[24rpx]">
+          <view class="rounded-[32rpx] bg-white px-[28rpx] py-[28rpx]">
+            <text class="block text-[30rpx] font-bold leading-[42rpx] text-black">
+              模板详情
             </text>
+            <view class="mt-[24rpx] flex flex-col gap-[20rpx]">
+              <view
+                v-for="row in detailRows"
+                :key="row.label"
+                class="flex items-center justify-between gap-[24rpx]"
+              >
+                <text class="shrink-0 text-[26rpx] leading-[36rpx] text-[#9a9a9a]">
+                  {{ row.label }}
+                </text>
+                <text class="text-right text-[26rpx] font-medium leading-[36rpx] text-[#1a1c1c]">
+                  {{ row.value }}
+                </text>
+              </view>
+            </view>
           </view>
-          <view class="rounded-full bg-[#e8e8e8] px-[20rpx] py-[10rpx]">
-            <text class="text-[22rpx] font-medium leading-[30rpx] text-[#6a6a6a]">
-              {{ model }}
-            </text>
-          </view>
-          <view class="rounded-full bg-[#e8e8e8] px-[20rpx] py-[10rpx]">
-            <text class="text-[22rpx] font-medium leading-[30rpx] text-[#6a6a6a]">
-              {{ ratio }}
-            </text>
-          </view>
-        </view>
-        
-        <view class="mt-[40rpx] flex items-center justify-between">
-          <text class="text-[26rpx] font-semibold leading-[36rpx] text-[#6a6a6a]">
-            提示词 (Prompt)
-          </text>
-          <view
-            class="flex items-center gap-[8rpx] active:opacity-70"
-            @tap="copyPrompt"
-          >
-            <text class="text-[24rpx] leading-none text-[#9a9a9a]">⧉</text>
-            <text class="text-[24rpx] font-medium leading-[32rpx] text-[#9a9a9a]">
-              复制全文
-            </text>
-          </view>
-        </view>
 
-        <view class="mt-[16rpx] rounded-[40rpx] bg-white px-[28rpx] py-[28rpx]">
-          <text class="block whitespace-pre-line text-[26rpx] italic leading-[44rpx] text-[#333333]">
-            “{{ prompt }}”
-          </text>
+          <view class="rounded-[32rpx] bg-white px-[28rpx] py-[28rpx]">
+            <view class="flex items-center justify-between gap-[16rpx]">
+              <text class="text-[30rpx] font-bold leading-[42rpx] text-black">
+                提示词
+              </text>
+              <view
+                class="flex shrink-0 items-center gap-[8rpx] active:opacity-70"
+                @tap="copyPrompt"
+              >
+                <text class="text-[24rpx] leading-none text-[#9a9a9a]">⧉</text>
+                <text class="text-[24rpx] font-medium leading-[32rpx] text-[#9a9a9a]">
+                  复制全文
+                </text>
+              </view>
+            </view>
+            <text class="mt-[20rpx] block whitespace-pre-line text-[26rpx] italic leading-[44rpx] text-[#333333]">
+              “{{ prompt }}”
+            </text>
+          </view>
         </view>
       </view>
     </scroll-view>
@@ -68,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 
 const fallbackImage =
@@ -82,7 +85,12 @@ const prompt = ref(
 const tag = ref("赛博朋克");
 const model = ref("V2.4 模型");
 const ratio = ref("16:9");
-const liked = ref(false);
+
+const detailRows = computed(() => [
+  { label: "分类", value: tag.value || "未分类" },
+  { label: "AI 引擎", value: model.value || "通用" },
+  { label: "画幅比例", value: ratio.value },
+]);
 
 const safeAreaBottom = ref(0);
 try {
