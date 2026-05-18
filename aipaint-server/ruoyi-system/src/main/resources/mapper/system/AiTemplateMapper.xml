@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiTemplateMapper">
+
+    <resultMap type="AiTemplate" id="AiTemplateResult">
+        <id     property="templateId"   column="template_id"  />
+        <result property="title"        column="title"        />
+        <result property="category"     column="category"     />
+        <result property="description"  column="description"  />
+        <result property="coverUrl"     column="cover_url"    />
+        <result property="prompt"       column="prompt"       />
+        <result property="aiEngine"     column="ai_engine"    />
+        <result property="ratio"        column="ratio"        />
+        <result property="sort"         column="sort"         />
+        <result property="status"       column="status"       />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"  />
+        <result property="updateBy"     column="update_by"    />
+        <result property="updateTime"   column="update_time"  />
+        <result property="remark"       column="remark"       />
+    </resultMap>
+
+    <sql id="selectTemplateVo">
+        select template_id, title, category, description, cover_url, prompt, ai_engine, ratio, sort, status,
+               create_by, create_time, update_by, update_time, remark
+        from ai_template
+    </sql>
+
+    <sql id="templateWhere">
+        <where>
+            <if test="title != null and title != ''">
+                AND title like concat('%', #{title}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectTemplateList" parameterType="AiTemplate" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        <include refid="templateWhere"/>
+        order by sort asc, create_time desc, template_id desc
+    </select>
+
+    <select id="selectEnabledTemplateList" parameterType="AiTemplate" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        <where>
+            status = '0'
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+        </where>
+        order by sort asc, create_time desc, template_id desc
+    </select>
+
+    <select id="selectEnabledCategories" resultType="String">
+        select distinct category
+        from ai_template
+        where status = '0' and category is not null and category != ''
+        group by category
+        order by min(sort) asc, category asc
+    </select>
+
+    <select id="selectTemplateById" parameterType="Long" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where template_id = #{templateId}
+    </select>
+
+    <select id="selectEnabledTemplateById" parameterType="Long" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where template_id = #{templateId} and status = '0'
+    </select>
+
+    <insert id="insertTemplate" parameterType="AiTemplate" useGeneratedKeys="true" keyProperty="templateId">
+        insert into ai_template(
+            <if test="title != null and title != ''">title,</if>
+            <if test="category != null and category != ''">category,</if>
+            <if test="description != null">description,</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url,</if>
+            <if test="prompt != null and prompt != ''">prompt,</if>
+            <if test="aiEngine != null">ai_engine,</if>
+            <if test="ratio != null">ratio,</if>
+            <if test="sort != null">sort,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="category != null and category != ''">#{category},</if>
+            <if test="description != null">#{description},</if>
+            <if test="coverUrl != null and coverUrl != ''">#{coverUrl},</if>
+            <if test="prompt != null and prompt != ''">#{prompt},</if>
+            <if test="aiEngine != null">#{aiEngine},</if>
+            <if test="ratio != null">#{ratio},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTemplate" parameterType="AiTemplate">
+        update ai_template
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url = #{coverUrl},</if>
+            <if test="prompt != null and prompt != ''">prompt = #{prompt},</if>
+            <if test="aiEngine != null">ai_engine = #{aiEngine},</if>
+            <if test="ratio != null">ratio = #{ratio},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where template_id = #{templateId}
+    </update>
+
+    <delete id="deleteTemplateByIds" parameterType="Long">
+        delete from ai_template where template_id in
+        <foreach collection="array" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+</mapper>

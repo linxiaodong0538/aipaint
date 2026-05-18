@@ -12,7 +12,7 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://example.com/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const service = ajax.create({
   baseURL: BASE_URL,
