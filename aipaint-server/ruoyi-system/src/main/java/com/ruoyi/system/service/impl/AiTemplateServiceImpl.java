@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.domain.AiTemplate;
+import com.ruoyi.system.domain.AiTemplateCategory;
 import com.ruoyi.system.mapper.AiTemplateMapper;
 import com.ruoyi.system.service.IAiTemplateService;
 
@@ -29,7 +30,7 @@ public class AiTemplateServiceImpl implements IAiTemplateService
     }
 
     @Override
-    public List<String> selectEnabledCategories()
+    public List<AiTemplateCategory> selectEnabledCategories()
     {
         return templateMapper.selectEnabledCategories();
     }

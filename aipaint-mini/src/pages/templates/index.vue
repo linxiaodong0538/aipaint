@@ -5,12 +5,12 @@
         <view class="flex gap-[16rpx] pb-[24rpx]">
           <button
             v-for="chip in chips"
-            :key="chip"
+            :key="chip.categoryCode"
             class="inline-flex w-auto min-w-0 shrink-0 items-center justify-center rounded-full px-[24rpx] py-[12rpx] text-[26rpx] font-semibold leading-[34rpx] active:scale-95"
-            :class="chip === activeChip ? 'bg-black text-white' : 'bg-[#e2e2e2] text-[#1a1c1c]'"
+            :class="chip.categoryName === activeChip ? 'bg-black text-white' : 'bg-[#e2e2e2] text-[#1a1c1c]'"
             @tap="handleChipChange(chip)"
           >
-            {{ chip }}
+            {{ chip.categoryName }}
           </button>
         </view>
       </scroll-view>
@@ -33,7 +33,7 @@
                 {{ template.title }}
               </text>
               <text class="mt-[8rpx] block text-[24rpx] leading-[32rpx] text-[#8a8a8a]">
-                {{ template.description || template.category }}
+                {{ template.description || template.categoryName }}
               </text>
             </view>
           </view>
@@ -46,9 +46,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { navigateTo, routes } from "@/utils/router";
-import { getTemplateCategories, listTemplates, type TemplateItem } from "@/api/template";
+import { getTemplateCategories, listTemplates, type TemplateCategory, type TemplateItem } from "@/api/template";
 
-const chips = ref<string[]>(["全部"]);
+const chips = ref<TemplateCategory[]>([{ categoryName: "全部", categoryId: 0, categoryCode: "all" }]);
 const activeChip = ref("全部");
 const templates = ref<TemplateItem[]>([]);
 
@@ -56,16 +56,17 @@ const filteredTemplates = computed(() => {
   if (activeChip.value === "全部") {
     return templates.value;
   }
-  return templates.value.filter((item) => item.category === activeChip.value);
+  return templates.value.filter((item) => item.categoryName === activeChip.value);
 });
 
 async function loadCategories() {
   const categories = await getTemplateCategories();
-  chips.value = ["全部", ...categories];
+  chips.value = [{ categoryName: "全部", categoryId: 0, categoryCode: "all" }, ...categories];
 }
 
 async function loadTemplates() {
-  const params = activeChip.value === "全部" ? undefined : { category: activeChip.value };
+  const selected = chips.value.find((item) => item.categoryName === activeChip.value);
+  const params = !selected || selected.categoryCode === "all" ? undefined : { categoryId: String(selected.categoryId) };
   templates.value = await listTemplates(params);
 }
 
@@ -75,8 +76,8 @@ function goDetail(template: TemplateItem) {
   });
 }
 
-async function handleChipChange(chip: string) {
-  activeChip.value = chip;
+async function handleChipChange(chip: TemplateCategory) {
+  activeChip.value = chip.categoryName;
   await loadTemplates();
 }
 

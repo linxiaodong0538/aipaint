@@ -24,9 +24,13 @@ public class AiTemplate extends BaseEntity
     @Excel(name = "模板标题")
     private String title;
 
-    /** 分类 */
+    /** 分类ID */
+    @Excel(name = "分类ID", cellType = ColumnType.NUMERIC)
+    private Long categoryId;
+
+    /** 分类名称 */
     @Excel(name = "分类")
-    private String category;
+    private String categoryName;
 
     /** 描述 */
     @Excel(name = "描述")
@@ -78,16 +82,25 @@ public class AiTemplate extends BaseEntity
         this.title = title;
     }
 
-    @NotBlank(message = "分类不能为空")
-    @Size(min = 0, max = 50, message = "分类长度不能超过50个字符")
-    public String getCategory()
+    @NotNull(message = "分类不能为空")
+    public Long getCategoryId()
     {
-        return category;
+        return categoryId;
     }
 
-    public void setCategory(String category)
+    public void setCategoryId(Long categoryId)
     {
-        this.category = category;
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName()
+    {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName)
+    {
+        this.categoryName = categoryName;
     }
 
     @Size(min = 0, max = 200, message = "描述长度不能超过200个字符")
@@ -172,7 +185,8 @@ public class AiTemplate extends BaseEntity
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
             .append("templateId", getTemplateId())
             .append("title", getTitle())
-            .append("category", getCategory())
+            .append("categoryId", getCategoryId())
+            .append("categoryName", getCategoryName())
             .append("description", getDescription())
             .append("coverUrl", getCoverUrl())
             .append("prompt", getPrompt())

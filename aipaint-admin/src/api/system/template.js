@@ -9,6 +9,57 @@ export function listTemplate(query) {
   })
 }
 
+// 查询模板分类列表
+export function listTemplateCategory(query) {
+  return request({
+    url: '/system/template/category/list',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询模板分类详细
+export function getTemplateCategory(categoryId) {
+  return request({
+    url: '/system/template/category/' + categoryId,
+    method: 'get'
+  })
+}
+
+// 新增模板分类
+export function addTemplateCategory(data) {
+  return request({
+    url: '/system/template/category',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改模板分类
+export function updateTemplateCategory(data) {
+  return request({
+    url: '/system/template/category',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除模板分类
+export function delTemplateCategory(categoryId) {
+  return request({
+    url: '/system/template/category/' + categoryId,
+    method: 'delete'
+  })
+}
+
+// 查询模板分类选择框列表
+export function optionselectTemplateCategory() {
+  return request({
+    url: '/system/template/category/optionselect',
+    method: 'get'
+  })
+}
+
 // 查询模板详细
 export function getTemplate(templateId) {
   return request({

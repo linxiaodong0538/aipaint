@@ -78,13 +78,14 @@ import { getTemplateDetail, type TemplateItem } from "@/api/template";
 const template = ref<TemplateItem>({
   templateId: 0,
   title: "",
-  category: "",
+  categoryId: 0,
+  categoryName: "",
   coverUrl: "",
   prompt: "",
 });
 
 const detailRows = computed(() => [
-  { label: "分类", value: template.value.category || "未分类" },
+  { label: "分类", value: template.value.categoryName || "未分类" },
   { label: "AI 引擎", value: template.value.aiEngine || "通用" },
   { label: "画幅比例", value: template.value.ratio || "--" },
 ]);

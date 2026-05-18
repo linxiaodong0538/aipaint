@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.AiTemplate;
+import com.ruoyi.system.domain.AiTemplateCategory;
 
 /**
  * 生图模板 数据层
@@ -12,7 +13,7 @@ public interface AiTemplateMapper
 
     public List<AiTemplate> selectEnabledTemplateList(AiTemplate template);
 
-    public List<String> selectEnabledCategories();
+    public List<AiTemplateCategory> selectEnabledCategories();
 
     public AiTemplate selectTemplateById(Long templateId);
 

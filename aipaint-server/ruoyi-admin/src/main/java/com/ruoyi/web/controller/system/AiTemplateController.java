@@ -20,7 +20,9 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.domain.AiTemplate;
+import com.ruoyi.system.domain.AiTemplateCategory;
 import com.ruoyi.system.service.IAiTemplateService;
+import com.ruoyi.system.service.IAiTemplateCategoryService;
 
 /**
  * 生图模板后台管理
@@ -31,6 +33,9 @@ public class AiTemplateController extends BaseController
 {
     @Autowired
     private IAiTemplateService templateService;
+
+    @Autowired
+    private IAiTemplateCategoryService categoryService;
 
     @PreAuthorize("@ss.hasPermi('system:template:list')")
     @GetMapping("/list")
@@ -74,6 +79,13 @@ public class AiTemplateController extends BaseController
     {
         template.setUpdateBy(getUsername());
         return toAjax(templateService.updateTemplate(template));
+    }
+
+    @GetMapping("/optionselect")
+    public AjaxResult optionselect()
+    {
+        List<AiTemplateCategory> categories = categoryService.selectCategoryAll();
+        return success(categories);
     }
 
     @PreAuthorize("@ss.hasPermi('system:template:edit')")

@@ -3,7 +3,8 @@ import { request } from "@/utils/request";
 export interface TemplateItem {
   templateId: number;
   title: string;
-  category: string;
+  categoryId: number;
+  categoryName: string;
   description?: string;
   coverUrl: string;
   prompt: string;
@@ -15,7 +16,7 @@ export interface TemplateItem {
 }
 
 export function getTemplateCategories() {
-  return request<string[]>({
+  return request<TemplateCategory[]>({
     url: "/mini/templates/categories",
     method: "GET",
   });
@@ -34,4 +35,12 @@ export function getTemplateDetail(templateId: number | string) {
     url: `/mini/templates/${templateId}`,
     method: "GET",
   });
+}
+
+export interface TemplateCategory {
+  categoryId: number;
+  categoryName: string;
+  categoryCode: string;
+  sort?: number;
+  status?: string;
 }

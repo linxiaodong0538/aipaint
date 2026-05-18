@@ -11,13 +11,14 @@
         />
       </el-form-item>
       <el-form-item label="分类" prop="category">
-        <el-input
-          v-model="queryParams.category"
-          placeholder="请输入分类"
-          clearable
-          style="width: 180px"
-          @keyup.enter="handleQuery"
-        />
+        <el-select v-model="queryParams.categoryId" placeholder="请选择分类" clearable style="width: 180px">
+          <el-option
+            v-for="item in categoryOptions"
+            :key="item.categoryId"
+            :label="item.categoryName"
+            :value="item.categoryId"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="模板状态" clearable style="width: 180px">
@@ -59,7 +60,7 @@
         </template>
       </el-table-column>
       <el-table-column label="标题" align="center" prop="title" min-width="140" :show-overflow-tooltip="true" />
-      <el-table-column label="分类" align="center" prop="category" width="110" />
+      <el-table-column label="分类" align="center" prop="categoryName" width="110" />
       <el-table-column label="AI引擎" align="center" prop="aiEngine" width="120" />
       <el-table-column label="比例" align="center" prop="ratio" width="90" />
       <el-table-column label="排序" align="center" prop="sort" width="80" />
@@ -105,7 +106,14 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="分类" prop="category">
-              <el-input v-model="form.category" placeholder="请输入分类" />
+              <el-select v-model="form.categoryId" placeholder="请选择分类">
+                <el-option
+                  v-for="item in categoryOptions"
+                  :key="item.categoryId"
+                  :label="item.categoryName"
+                  :value="item.categoryId"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -168,12 +176,13 @@
 </template>
 
 <script setup name="Template">
-import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, changeTemplateStatus } from "@/api/system/template"
+import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, changeTemplateStatus, optionselectTemplateCategory } from "@/api/system/template"
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = useDict("sys_normal_disable")
 
 const templateList = ref([])
+const categoryOptions = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -189,12 +198,12 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     title: undefined,
-    category: undefined,
+    categoryId: undefined,
     status: undefined
   },
   rules: {
     title: [{ required: true, message: "模板标题不能为空", trigger: "blur" }],
-    category: [{ required: true, message: "分类不能为空", trigger: "blur" }],
+    categoryId: [{ required: true, message: "分类不能为空", trigger: "change" }],
     coverUrl: [{ required: true, message: "封面图不能为空", trigger: "blur" }],
     prompt: [{ required: true, message: "提示词不能为空", trigger: "blur" }],
     sort: [{ required: true, message: "排序不能为空", trigger: "blur" }]
@@ -221,7 +230,7 @@ function reset() {
   form.value = {
     templateId: undefined,
     title: undefined,
-    category: undefined,
+    categoryId: undefined,
     description: undefined,
     coverUrl: undefined,
     prompt: undefined,
@@ -313,5 +322,12 @@ function handleExport() {
   }, `template_${new Date().getTime()}.xlsx`)
 }
 
+function loadCategoryOptions() {
+  optionselectTemplateCategory().then(response => {
+    categoryOptions.value = response.data || []
+  })
+}
+
+loadCategoryOptions()
 getList()
 </script>
