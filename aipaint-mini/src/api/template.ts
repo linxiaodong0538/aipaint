@@ -1,4 +1,12 @@
 import { request } from "@/utils/request";
+import { baseUrl } from "@/config/env";
+
+function resolveFileUrl(url?: string) {
+  if (!url) return "";
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith("data:")) return url;
+  if (url.startsWith("/")) return `${baseUrl}${url}`;
+  return `${baseUrl}/${url}`;
+}
 
 export interface TemplateItem {
   templateId: number;
@@ -27,14 +35,14 @@ export function listTemplates(params?: Record<string, string>) {
     url: "/mini/templates/list",
     method: "GET",
     params,
-  });
+  }).then((list) => list.map((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) })));
 }
 
 export function getTemplateDetail(templateId: number | string) {
   return request<TemplateItem>({
     url: `/mini/templates/${templateId}`,
     method: "GET",
-  });
+  }).then((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) }));
 }
 
 export interface TemplateCategory {
