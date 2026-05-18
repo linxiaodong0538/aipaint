@@ -44,6 +44,7 @@ export const useUserStore = defineStore("user", {
       try {
         uni.removeStorageSync("token");
         const loginResult = await uni.login({ provider: "weixin" });
+        console.log('loginResult',loginResult)
         const code = loginResult.code;
 
         if (!code) {

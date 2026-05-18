@@ -100,8 +100,8 @@ token:
 
 wechat:
   miniapp:
-    appid: "wxf8365150fd6ec414"
-    secret: "a3e88c44457963418d9f8347a08ab500"
+    appid: "wxea537cd58dc3bea3"
+    secret: "63b6e900df411760b62404ec41947a53"
 
 # MyBatis配置
 mybatis:
