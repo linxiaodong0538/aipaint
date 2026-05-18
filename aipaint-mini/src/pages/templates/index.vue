@@ -18,16 +18,14 @@
 
     <scroll-view class="min-h-0 flex-1" scroll-y enhanced :show-scrollbar="false">
       <view class="px-[24rpx] pb-[224rpx]">
-        <view class="grid grid-cols-2 gap-[24rpx] pb-[36rpx]">
+        <view class="columns-2 gap-[24rpx] pb-[36rpx]">
           <view
             v-for="template in filteredTemplates"
             :key="template.templateId"
-            class="overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
             @tap="goDetail(template)"
           >
-            <view class="h-[440rpx] overflow-hidden bg-[#eeeeee]">
-              <image class="h-full w-full" mode="aspectFill" :src="template.coverUrl" />
-            </view>
+            <image class="block w-full" mode="widthFix" :src="template.coverUrl" />
             <view class="px-[20rpx] py-[18rpx]">
               <text class="block text-[28rpx] font-semibold leading-[38rpx] text-black">
                 {{ template.title }}

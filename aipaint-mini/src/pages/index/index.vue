@@ -66,14 +66,22 @@
           </view>
         </scroll-view>
 
-        <view class="mt-[28rpx] grid grid-cols-2 gap-[24rpx]">
+        <view class="mt-[28rpx] columns-2 gap-[24rpx]">
           <view
             v-for="item in templates"
             :key="item.templateId"
-            class="relative block h-[454rpx] overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
             @tap="goTemplateDetail(item.templateId)"
           >
-            <image class="h-full w-full" mode="aspectFill" :src="item.coverUrl" />
+            <image class="block w-full" mode="widthFix" :src="item.coverUrl" />
+            <view class="px-[20rpx] py-[18rpx]">
+              <text class="block text-[28rpx] font-semibold leading-[38rpx] text-black">
+                {{ item.title }}
+              </text>
+              <text class="mt-[8rpx] block text-[24rpx] leading-[32rpx] text-[#8a8a8a]">
+                {{ item.description || item.categoryName }}
+              </text>
+            </view>
           </view>
         </view>
       </view>
