@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.SysMenu;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.model.LoginBody;
 import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.core.domain.model.MiniUserProfile;
+import com.ruoyi.common.core.domain.model.WechatLoginBody;
 import com.ruoyi.common.core.text.Convert;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -21,6 +24,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
+import com.ruoyi.framework.web.service.WechatLoginService;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysMenuService;
 
@@ -45,6 +49,9 @@ public class SysLoginController
     private TokenService tokenService;
 
     @Autowired
+    private WechatLoginService wechatLoginService;
+
+    @Autowired
     private ISysConfigService configService;
 
     /**
@@ -62,6 +69,35 @@ public class SysLoginController
                 loginBody.getUuid());
         ajax.put(Constants.TOKEN, token);
         return ajax;
+    }
+
+    /**
+     * 微信小程序快捷登录
+     * 
+     * @param loginBody 微信登录信息
+     * @return 结果
+     */
+    @Anonymous
+    @PostMapping("/auth/wechat-login")
+    public AjaxResult wechatLogin(@RequestBody WechatLoginBody loginBody)
+    {
+        WechatLoginService.LoginResult result = wechatLoginService.login(loginBody.getCode());
+        AjaxResult ajax = AjaxResult.success();
+        ajax.put(Constants.TOKEN, result.getToken());
+        ajax.put("user", toMiniUserProfile(result.getUser()));
+        return ajax;
+    }
+
+    /**
+     * 获取小程序用户信息
+     * 
+     * @return 小程序用户信息
+     */
+    @GetMapping("/auth/profile")
+    public AjaxResult miniProfile()
+    {
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        return AjaxResult.success(toMiniUserProfile(loginUser.getUser()));
     }
 
     /**
@@ -104,6 +140,14 @@ public class SysLoginController
         Long userId = SecurityUtils.getUserId();
         List<SysMenu> menus = menuService.selectMenuTreeByUserId(userId);
         return AjaxResult.success(menuService.buildMenus(menus));
+    }
+
+    private MiniUserProfile toMiniUserProfile(SysUser user)
+    {
+        return new MiniUserProfile(
+                Convert.toStr(user.getUserId()),
+                Convert.toStr(user.getNickName(), "游客用户"),
+                Convert.toStr(user.getAvatar(), ""));
     }
 
     // 获取用户密码自定义配置规则

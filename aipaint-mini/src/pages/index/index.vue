@@ -1,9 +1,9 @@
 <template>
   <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="px-[36rpx] pb-[208rpx] pt-[36rpx]">
+      <view class="px-[24rpx] pb-[80rpx] pt-[24rpx]">
         <view
-          class="relative h-[480rpx] overflow-hidden rounded-[64rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          class="relative h-[460rpx] overflow-hidden rounded-[46rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
           <image class="absolute inset-0 h-full w-full opacity-[0.62]" mode="aspectFill" :src="heroImage" />
           <view
@@ -15,14 +15,14 @@
             >
               NEW RELEASE
             </text>
-            <text class="mt-[16rpx] text-[64rpx] font-extrabold leading-[76rpx] text-white">
+            <text class="mt-[16rpx] text-[56rpx] font-extrabold leading-[76rpx] text-white">
               GPT Image 2
             </text>
             <text class="mt-[8rpx] max-w-[560rpx] text-[30rpx] font-normal leading-[46rpx] text-white/70">
               利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。体验前所未有的艺术精确度。
             </text>
             <button
-              class="mt-[32rpx] flex h-[96rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
+              class="mt-[32rpx] flex h-[88rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
               @tap="goTemplates"
             >
               <text>开始创作</text>
@@ -31,10 +31,10 @@
           </view>
         </view>
 
-        <view class="mt-[64rpx] flex items-end justify-between">
+        <view class="mt-[40rpx] flex items-end justify-between">
           <view>
-            <text class="block text-[48rpx] font-bold leading-[64rpx] text-black">风格探索</text>
-            <text class="mt-[4rpx] block text-[28rpx] leading-[40rpx] text-[#636262]">
+            <text class="block text-[48rpx] font-bold leading-[48rpx] text-black">风格探索</text>
+            <text class="mt-[16rpx] block text-[28rpx] leading-[40rpx] text-[#636262]">
               选择一个基调开始您的艺术之旅
             </text>
           </view>
@@ -48,7 +48,7 @@
         </view>
 
         <scroll-view
-          class="-mx-[48rpx] mt-[48rpx] w-[calc(100%+96rpx)] whitespace-nowrap"
+          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+96rpx)] whitespace-nowrap"
           scroll-x
           enhanced
           :show-scrollbar="false"
@@ -70,27 +70,14 @@
           </view>
         </scroll-view>
 
-        <view class="mt-[28rpx] grid grid-cols-2 gap-[32rpx]">
+        <view class="mt-[28rpx] grid grid-cols-2 gap-[24rpx]">
           <view
             v-for="item in styles"
             :key="item.title"
-            class="relative block h-[454rpx] overflow-hidden rounded-[48rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+            class="relative block h-[454rpx] overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
             @tap="goTemplates"
           >
             <image class="h-full w-full" mode="aspectFill" :src="item.image" />
-            <view
-              class="absolute bottom-0 left-0 right-0 h-[150rpx] bg-[linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.66))]"
-            />
-            <view class="absolute bottom-[32rpx] left-[32rpx] right-[32rpx] flex items-center justify-between text-white">
-              <text class="max-w-[168rpx] text-left text-[28rpx] font-extrabold leading-[38rpx] text-white">
-                {{ item.title }}
-              </text>
-              <text
-                class="flex h-[42rpx] w-[42rpx] items-center justify-center rounded-full border border-[rgba(255,255,255,0.56)] text-[22rpx] font-extrabold leading-[42rpx] text-white"
-              >
-                {{ item.icon }}
-              </text>
-            </view>
           </view>
         </view>
       </view>

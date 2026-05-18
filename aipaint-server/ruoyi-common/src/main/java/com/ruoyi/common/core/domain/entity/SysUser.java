@@ -55,6 +55,9 @@ public class SysUser extends BaseEntity
     /** 用户头像 */
     private String avatar;
 
+    /** 微信小程序 openid */
+    private String openid;
+
     /** 密码 */
     private String password;
 
@@ -199,6 +202,16 @@ public class SysUser extends BaseEntity
         this.avatar = avatar;
     }
 
+    public String getOpenid()
+    {
+        return openid;
+    }
+
+    public void setOpenid(String openid)
+    {
+        this.openid = openid;
+    }
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public String getPassword()
     {
@@ -321,6 +334,7 @@ public class SysUser extends BaseEntity
             .append("phonenumber", getPhonenumber())
             .append("sex", getSex())
             .append("avatar", getAvatar())
+            .append("openid", getOpenid())
             .append("password", getPassword())
             .append("status", getStatus())
             .append("delFlag", getDelFlag())
