@@ -17,6 +17,7 @@ function withQuery(path: string, params?: RouteParams) {
 
 export const routes = {
   home: "/pages/index/index",
+  generate: "/pages/generate/index",
   templates: "/pages/templates/index",
   templateDetail: "/pages/templates/detail",
   works: "/pages/works/index",

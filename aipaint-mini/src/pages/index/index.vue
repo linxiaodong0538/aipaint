@@ -23,7 +23,7 @@
             </text>
             <button
               class="mt-[32rpx] flex h-[88rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
-              @tap="goTemplates"
+              @tap="goGenerate"
             >
               <text>开始创作</text>
               <text class="text-[34rpx] font-medium leading-[34rpx]">→</text>
@@ -140,6 +140,10 @@ function goTemplateDetail(templateId: number) {
 
 function goTemplates() {
   switchTab(routes.templates);
+}
+
+function goGenerate() {
+  navigateTo(routes.generate);
 }
 
 onMounted(async () => {
