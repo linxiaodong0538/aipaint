@@ -11,10 +11,22 @@
             <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">1张, 5MB以内</text>
           </view>
           <view
-            class="flex h-[192rpx] flex-col items-center justify-center gap-[8rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white active:scale-[0.99]"
+            class="relative flex flex-col items-center justify-center gap-[8rpx] bg-white active:scale-[0.99]"
+            :class="
+              referenceImage
+                ? 'aspect-square border border-[rgba(0,0,0,0.05)] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)] rounded-[24rpx] h-[300rpx] mx-auto '
+                : 'h-[192rpx] border-[4rpx] border-dashed border-[#cfc4c5] rounded-[48rpx]'
+            "
             @tap="chooseImage"
           >
-            <image v-if="referenceImage" class="h-full w-full" mode="aspectFill" :src="referenceImage" />
+            <image v-if="referenceImage" class="h-full w-full rounded-[24rpx]" mode="aspectFill" :src="referenceImage" />
+            <button
+              v-if="referenceImage"
+              class="absolute right-[-16rpx] top-[-16rpx] flex h-[48rpx] w-[48rpx] items-center justify-center rounded-full bg-[rgba(0,0,0,0.68)] p-0 active:scale-95"
+              @tap.stop="removeImage"
+            >
+              <text class="text-[34rpx] font-medium leading-[56rpx] text-white">×</text>
+            </button>
             <view v-else class="flex flex-col items-center">
               <view class="relative flex h-[40rpx] w-[40rpx] items-center justify-center">
                 <text class="iconfont icon-icon_paizhaoshangchuan leading-none"  style="font-size: 42rpx;"/>
@@ -295,6 +307,10 @@ function chooseImage() {
       referenceImage.value = result.tempFilePaths[0] || "";
     },
   });
+}
+
+function removeImage() {
+  referenceImage.value = "";
 }
 
 function goHistory() {
