@@ -48,7 +48,7 @@
         </view>
 
         <scroll-view
-          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+96rpx)] whitespace-nowrap"
+          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+48rpx)] whitespace-nowrap"
           scroll-x
           enhanced
           :show-scrollbar="false"
