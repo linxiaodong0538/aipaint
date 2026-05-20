@@ -1,4 +1,4 @@
-rounded<template>
+<template>
   <view class="flex min-h-screen flex-col bg-[#f7f7f7] font-sans text-[#1a1c1c]">
     <scroll-view class="min-h-0 flex-1" scroll-y enhanced :show-scrollbar="false">
       <view
@@ -6,13 +6,13 @@ rounded<template>
         :style="{ paddingBottom: `calc(200rpx + ${safeAreaBottom}px)` }"
       >
         <view class="relative overflow-hidden rounded-[32rpx] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)]">
-          <image class="block w-full" mode="widthFix" :src="image" />
+          <image class="block w-full" mode="widthFix" :src="template.coverUrl" />
         </view>
 
         <view class="mt-[24rpx] flex flex-col gap-[24rpx]">
           <view class="rounded-[32rpx] bg-white px-[28rpx] py-[28rpx]">
             <text class="block text-[30rpx] font-bold leading-[42rpx] text-black">
-              模板详情
+              {{ template.title || "模板详情" }}
             </text>
             <view class="mt-[24rpx] flex flex-col gap-[20rpx]">
               <view
@@ -46,7 +46,7 @@ rounded<template>
               </view>
             </view>
             <text class="mt-[20rpx] block whitespace-pre-line text-[26rpx] italic leading-[44rpx] text-[#333333]">
-              “{{ prompt }}”
+              “{{ template.prompt }}”
             </text>
           </view>
         </view>
@@ -73,23 +73,21 @@ rounded<template>
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import { getTemplateDetail, type TemplateItem } from "@/api/template";
 
-const fallbackImage =
-  "https://lh3.googleusercontent.com/aida/ADBb0ugTvaISAkWYCVI3CybD5o2emwRxAZqqwi-943erpzpWRCXsQgZC4Es-NXZBD8aeXyfM5y_G0UVThxGztTyTwuwNmzN5rSRge7BhBcHDCcVf6M_QWV1ZseGAYWPKWF-KhSBYdntLcy4eX5zcO5bzpn7aYOTTEAs0c7LQvdvEw2Uw8a2B6A_GTL2S8Bnm1gcUMJ3RKiz9vRsl5azqAD0W66fwLPTMHY582g9SpOLJErz-PT4Zq24vb4HIwmE";
-
-const title = ref("赛博霓虹之夜");
-const image = ref(fallbackImage);
-const prompt = ref(
-  "A cinematic wide shot of a futuristic Tokyo street at night, neon reflections on wet asphalt, deep blacks, high contrast lighting, volumetric fog, cyberpunk architecture, hyper-realistic, 8k resolution, minimalist composition, sharp focus.",
-);
-const tag = ref("赛博朋克");
-const model = ref("V2.4 模型");
-const ratio = ref("16:9");
+const template = ref<TemplateItem>({
+  templateId: 0,
+  title: "",
+  categoryId: 0,
+  categoryName: "",
+  coverUrl: "",
+  prompt: "",
+});
 
 const detailRows = computed(() => [
-  { label: "分类", value: tag.value || "未分类" },
-  { label: "AI 引擎", value: model.value || "通用" },
-  { label: "画幅比例", value: ratio.value },
+  { label: "分类", value: template.value.categoryName || "未分类" },
+  { label: "AI 引擎", value: template.value.aiEngine || "通用" },
+  { label: "画幅比例", value: template.value.ratio || "--" },
 ]);
 
 const safeAreaBottom = ref(0);
@@ -100,22 +98,15 @@ try {
   safeAreaBottom.value = 0;
 }
 
-onLoad((options) => {
-  if (!options) return;
-  if (typeof options.title === "string" && options.title) {
-    title.value = decodeURIComponent(options.title);
-  }
-  if (typeof options.image === "string" && options.image) {
-    image.value = decodeURIComponent(options.image);
-  }
-  if (typeof options.desc === "string" && options.desc) {
-    tag.value = decodeURIComponent(options.desc);
-  }
+onLoad(async (options) => {
+  if (!options?.id) return;
+  const detail = await getTemplateDetail(options.id);
+  template.value = detail;
 });
 
 function copyPrompt() {
   uni.setClipboardData({
-    data: prompt.value,
+    data: template.value.prompt,
     success() {
       uni.showToast({ title: "已复制", icon: "none" });
     },

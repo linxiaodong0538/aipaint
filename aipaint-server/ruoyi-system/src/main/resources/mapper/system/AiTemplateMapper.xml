@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiTemplateMapper">
+
+    <resultMap type="AiTemplate" id="AiTemplateResult">
+        <id     property="templateId"   column="template_id"  />
+        <result property="title"        column="title"        />
+        <result property="categoryId"   column="category_id"  />
+        <result property="categoryName" column="category_name"/>
+        <result property="description"  column="description"  />
+        <result property="coverUrl"     column="cover_url"    />
+        <result property="prompt"       column="prompt"       />
+        <result property="aiEngine"     column="ai_engine"    />
+        <result property="ratio"        column="ratio"        />
+        <result property="sort"         column="sort"         />
+        <result property="status"       column="status"       />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"  />
+        <result property="updateBy"     column="update_by"    />
+        <result property="updateTime"   column="update_time"  />
+        <result property="remark"       column="remark"       />
+    </resultMap>
+
+    <resultMap type="AiTemplateCategory" id="AiTemplateCategoryResult">
+        <id property="categoryId" column="category_id" />
+        <result property="categoryName" column="category_name" />
+        <result property="categoryCode" column="category_code" />
+        <result property="sort" column="sort" />
+        <result property="status" column="status" />
+        <result property="createBy" column="create_by" />
+        <result property="createTime" column="create_time" />
+        <result property="updateBy" column="update_by" />
+        <result property="updateTime" column="update_time" />
+        <result property="remark" column="remark" />
+    </resultMap>
+
+    <sql id="selectTemplateVo">
+        select t.template_id, t.title, t.category_id, c.category_name, t.description, t.cover_url, t.prompt, t.ai_engine, t.ratio, t.sort, t.status,
+               t.create_by, t.create_time, t.update_by, t.update_time, t.remark
+        from ai_template t
+        left join ai_template_category c on c.category_id = t.category_id
+    </sql>
+
+    <sql id="templateWhere">
+        <where>
+            <if test="title != null and title != ''">
+                AND t.title like concat('%', #{title}, '%')
+            </if>
+            <if test="categoryId != null">
+                AND t.category_id = #{categoryId}
+            </if>
+            <if test="status != null and status != ''">
+                AND t.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectTemplateList" parameterType="AiTemplate" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        <include refid="templateWhere"/>
+        order by t.sort asc, t.create_time desc, t.template_id desc
+    </select>
+
+    <select id="selectEnabledTemplateList" parameterType="AiTemplate" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        <where>
+            t.status = '0'
+            <if test="categoryId != null">
+                AND t.category_id = #{categoryId}
+            </if>
+        </where>
+        order by t.sort asc, t.create_time desc, t.template_id desc
+    </select>
+
+    <select id="selectEnabledCategories" resultMap="AiTemplateCategoryResult">
+        select c.category_id, c.category_name, c.category_code, c.sort, c.status, c.create_by, c.create_time, c.update_by, c.update_time, c.remark
+        from ai_template_category c
+        where c.status = '0'
+          and exists (
+            select 1 from ai_template t
+            where t.category_id = c.category_id and t.status = '0'
+          )
+        order by c.sort asc, c.category_id asc
+    </select>
+
+    <select id="selectTemplateById" parameterType="Long" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where t.template_id = #{templateId}
+    </select>
+
+    <select id="selectEnabledTemplateById" parameterType="Long" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        where t.template_id = #{templateId} and t.status = '0'
+    </select>
+
+    <insert id="insertTemplate" parameterType="AiTemplate" useGeneratedKeys="true" keyProperty="templateId">
+        insert into ai_template(
+            <if test="title != null and title != ''">title,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="description != null">description,</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url,</if>
+            <if test="prompt != null and prompt != ''">prompt,</if>
+            <if test="aiEngine != null">ai_engine,</if>
+            <if test="ratio != null">ratio,</if>
+            <if test="sort != null">sort,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        )values(
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="description != null">#{description},</if>
+            <if test="coverUrl != null and coverUrl != ''">#{coverUrl},</if>
+            <if test="prompt != null and prompt != ''">#{prompt},</if>
+            <if test="aiEngine != null">#{aiEngine},</if>
+            <if test="ratio != null">#{ratio},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateTemplate" parameterType="AiTemplate">
+        update ai_template
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url = #{coverUrl},</if>
+            <if test="prompt != null and prompt != ''">prompt = #{prompt},</if>
+            <if test="aiEngine != null">ai_engine = #{aiEngine},</if>
+            <if test="ratio != null">ratio = #{ratio},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where template_id = #{templateId}
+    </update>
+
+    <delete id="deleteTemplateByIds" parameterType="Long">
+        delete from ai_template where template_id in
+        <foreach collection="array" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+</mapper>

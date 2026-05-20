@@ -1,0 +1,277 @@
+<!DOCTYPE html><html class="light" lang="zh-CN" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VisionAI - AI生成</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#dadada",
+                        "secondary": "#5f5e5e",
+                        "on-surface-variant": "#4c4546",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-background": "#1a1c1c",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "outline": "#7e7576",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary-fixed-variant": "#474747",
+                        "on-primary-container": "#848484",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "surface-tint": "#5e5e5e",
+                        "outline-variant": "#cfc4c5",
+                        "surface": "#f9f9f9",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary": "#000000",
+                        "on-tertiary-container": "#838484",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-on-surface": "#f0f1f1",
+                        "secondary-container": "#e2dfde",
+                        "inverse-surface": "#2f3131",
+                        "primary-fixed": "#e2e2e2",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-container-low": "#f3f3f4",
+                        "surface-container-high": "#e8e8e8",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f9f9f9",
+                        "surface-container": "#eeeeee",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-primary-fixed": "#1b1b1b",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#1b1b1b",
+                        "on-secondary-container": "#636262",
+                        "primary": "#000000",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "inverse-primary": "#c6c6c6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1a1c1c",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "container-padding": "32px",
+                        "unit": "8px",
+                        "stack-md": "16px",
+                        "stack-xl": "64px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+        .inner-glow:hover {
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f9f9f9;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 10px; }
+    </style>
+</head>
+<body class="text-on-surface antialiased">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-2xl px-gutter py-2 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-[20px]">arrow_back_ios_new</span>
+</button>
+<h1 class="font-headline-md text-[20px] text-primary">AI生成</h1>
+</div>
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-[22px]">history</span>
+</button>
+</header>
+<main class="pt-16 pb-32 max-w-2xl mx-auto px-4 space-y-4">
+<!-- Reference Image Upload Area -->
+<section class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest">参考图片</label>
+<span class="text-[10px] text-outline">1张, 5MB以内</span>
+</div>
+<div class="w-full">
+<!-- Upload Trigger (Reduced Height) -->
+<div class="h-24 flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-all cursor-pointer group"><span class="material-symbols-outlined text-outline group-hover:scale-110 transition-transform text-[20px]">add_a_photo</span>
+<span class="text-[11px] text-on-surface-variant font-medium tracking-wide">点击上传图片</span></div>
+</div>
+</section>
+<!-- Prompt Input -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面描述</label>
+<div class="relative glass-card rounded-2xl p-3 focus-within:ring-2 ring-primary/5 transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-body-md font-body-md min-h-[80px] p-0 resize-none text-primary" maxlength="1000" placeholder="描述你想要的画面..."></textarea>
+
+<div class="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/30">
+    <div class="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
+        <span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">auto_awesome</span>
+        <span class="text-[11px] font-medium text-secondary"><h3 class="text-sm font-medium gap-2 flex items-center" style="border-color: lab(91.055 0.663072 0.865579); border-image: initial; padding: 0px; font-size: 14px; gap: 8px; line-height: 1.42857; --tw-font-weight: 500; color: lab(2.86037 0.455312 0.568903); font-family: Figtree, &quot;Figtree Fallback&quot;; background-color: rgb(255, 255, 255);">Prompt</h3></span>
+    </div>
+    <div class="flex items-center gap-2">
+        <span class="w-[1px] h-3 bg-outline-variant/30"></span>
+        <span class="text-[10px] text-outline tracking-wider">支持中英文</span>
+    </div>
+</div></div>
+</section>
+<!-- Model Selection -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">AI 模型</label>
+<div class="grid grid-cols-1 gap-2">
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]">image</span>
+</div>
+<div>
+<p class="text-[13px] font-semibold text-primary leading-tight">G Image 2</p>
+<p class="text-[11px] text-outline leading-tight">极速通用艺术风格</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">radio_button_unchecked</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-xl bg-primary text-white transition-all cursor-pointer border border-primary shadow-lg shadow-primary/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">workspace_premium</span>
+</div>
+<div>
+<p class="text-[13px] font-semibold leading-tight">Pro Model</p>
+<p class="text-[11px] opacity-70 leading-tight">顶级写实，高精度</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-white text-[18px]">check_circle</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]">brush</span>
+</div>
+<div>
+<p class="text-[13px] font-semibold text-primary leading-tight">V2.4</p>
+<p class="text-[11px] text-outline leading-tight">二次元插画专属</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">radio_button_unchecked</span>
+</div>
+</div>
+</section>
+<!-- Controls Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Quality & Count -->
+<div class="space-y-4">
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">质量</label>
+<div class="flex gap-2">
+<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">1K</button>
+<button class="flex-1 py-1.5 rounded-lg bg-primary text-white text-[12px] font-semibold active:scale-95 shadow-sm">2K</button>
+<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">4K</button>
+</div>
+</section>
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">生成数量</label>
+<div class="flex gap-1 p-1 bg-surface-container-high rounded-xl">
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">1</button>
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">2</button>
+<button class="flex-1 py-1 rounded-lg bg-white text-primary text-[12px] font-bold shadow-sm">3</button>
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">4</button>
+</div>
+</section>
+</div>
+<!-- Aspect Ratio (Compact) -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面比例</label>
+<div class="grid grid-cols-4 gap-2">
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-4 h-4 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">1:1</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-primary bg-primary/5 transition-all active:scale-95">
+<div class="w-5 h-4 border border-primary rounded-sm bg-primary/20"></div>
+<span class="text-[9px] font-bold">4:3</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-5 h-3.5 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">3:2</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-6 h-3 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">16:9</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Action Sheet (More Compact) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 p-4">
+<div class="max-w-2xl mx-auto glass-card rounded-2xl p-3 flex items-center justify-between shadow-[0_-15px_40px_rgba(0,0,0,0.08)]"><div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">token</span>
+<span class="text-[20px] font-bold text-primary tracking-tight">8</span>
+</div>
+<p class="text-[10px] text-secondary font-medium tracking-wider">预计消耗</p>
+</div>
+<button class="bg-primary text-white px-10 py-3.5 rounded-xl text-[15px] font-bold active:scale-95 transition-all inner-glow hover:opacity-90 flex items-center gap-2 shadow-lg">
+<span class="">立即生成</span>
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+</button></div>
+</footer>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none opacity-10">
+<div class="absolute top-[5%] right-[-5%] w-[300px] h-[300px] bg-secondary-fixed/30 rounded-full blur-[80px]"></div>
+<div class="absolute bottom-[10%] left-[-10%] w-[400px] h-[400px] bg-tertiary-fixed/40 rounded-full blur-[100px]"></div>
+</div>
+
+
+</body></html>

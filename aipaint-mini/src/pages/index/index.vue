@@ -23,7 +23,7 @@
             </text>
             <button
               class="mt-[32rpx] flex h-[88rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
-              @tap="goTemplates"
+              @tap="goGenerate"
             >
               <text>开始创作</text>
               <text class="text-[34rpx] font-medium leading-[34rpx]">→</text>
@@ -55,29 +55,33 @@
         >
           <view class="flex gap-[16rpx] px-[48rpx] pb-[4rpx]">
             <button
-              v-for="chip in chips"
-              :key="chip"
-              class="inline-flex h-[72rpx] items-center justify-center rounded-full border px-[48rpx] text-[28rpx] font-bold leading-[72rpx]"
-              :class="
-                chip === activeChip
-                  ? 'border-black bg-black text-white'
-                  : 'border-[rgba(0,0,0,0.1)] bg-white text-[#636262]'
-              "
-              @tap="activeChip = chip"
+              v-for="chip in chipList"
+              :key="chip.categoryId"
+              class="inline-flex w-auto min-w-0 shrink-0 items-center justify-center rounded-full px-[24rpx] py-[12rpx] text-[26rpx] font-semibold leading-[34rpx] active:scale-95"
+              :class="isActiveChip(chip) ? 'bg-black text-white' : 'bg-[#e2e2e2] text-[#1a1c1c]'"
+              @tap="handleCategoryChange(chip)"
             >
-              {{ chip }}
+              {{ chip.categoryName }}
             </button>
           </view>
         </scroll-view>
 
-        <view class="mt-[28rpx] grid grid-cols-2 gap-[24rpx]">
+        <view class="mt-[28rpx] columns-2 gap-[24rpx]">
           <view
-            v-for="item in styles"
-            :key="item.title"
-            class="relative block h-[454rpx] overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
-            @tap="goTemplates"
+            v-for="item in templates"
+            :key="item.templateId"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
+            @tap="goTemplateDetail(item.templateId)"
           >
-            <image class="h-full w-full" mode="aspectFill" :src="item.image" />
+            <image class="block w-full" mode="widthFix" :src="item.coverUrl" />
+            <view class="px-[20rpx] py-[18rpx]">
+              <text class="block text-[28rpx] font-semibold leading-[38rpx] text-black">
+                {{ item.title }}
+              </text>
+              <text class="mt-[8rpx] block text-[24rpx] leading-[32rpx] text-[#8a8a8a]">
+                {{ item.description || item.categoryName }}
+              </text>
+            </view>
           </view>
         </view>
       </view>
@@ -86,43 +90,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { routes, switchTab } from "@/utils/router";
+import { onMounted, ref, computed } from "vue";
+import { routes, navigateTo, switchTab } from "@/utils/router";
+import { getTemplateCategories, listTemplates, type TemplateCategory, type TemplateItem } from "@/api/template";
 
 const heroImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAHaLmgTeKMCIq__T1vgUYUp8cJe_0aDfBw6MQL9TtpXg5KWzLrpg99RqTMkr4PJmxCogcnynHzLntk0c-kvnFAZnJT5z_OHH_WTp6vOho3DUtRA7xJipLhatstWi_DEQ6E0Bo4q4MqmMgLeCC0ghaon_d-WOsD4FQbKowY1q246jJBfKyw2QPos_ZhzBb6swUN7EvoxdWHwyN4TAtTpOxOYvYlYA_bROGnn-JDINvon-Z1elz-R2EFuOqEe4Rk2hQM31r69QbOP9BC";
 
-const chips = ["全部", "复古", "插画", "角色", "其他"];
-const activeChip = ref("全部");
+const chips = ref<TemplateCategory[]>([]);
+const activeCategoryId = ref<number | "all">("all");
+const templates = ref<TemplateItem[]>([]);
 
-const styles = [
-  {
-    title: "人像摄影",
-    icon: "面",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCDqQ81RIrF4DYD6IUhgk5Vd-HiPTFoFCeTMaWVb-9zHZd4K-Uy-hrFd36GNLO1fBIlElhH5f28yVXbYMoY6X3BIKdBlbLRDlhkyu06sNreUu6wR6LjzKHdQHIHJnStkzZfKDej2S5XC8fpYwc9E_ZPtp0C7M1N_LX9hBdNqgDJabPA_FvW983rcC8Jv3ppP-jqZLrCRkf1hdR18Nd9CQUla4c_ZWMaSTWDUbpL-WJ8RGkZ5oNKHPCLkWAoFq8N3_Ujlwi-qkZC0ly9",
-  },
-  {
-    title: "壮丽风景",
-    icon: "山",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBTyCO2I_N97JxY2C3TgX2L5IDL2as-Lg-uSM3tyrJlG_w3IfAu0XiLafx04Sj84OoXSHRVQICE-leVwH2qkCyVsKZllB9aRkAYD7W8YSTZ1Fc1C6BR5EAWE6mC0ZoU6_BeoJumcvIAy5Bb-Q7WihM623FcPZhBsoCNzjOhWwu3jNSefyqhP8pij7nZ_urm9Ni11jSPfMLWf36bHT2lFXRcpOWoOddLfZ1CWXCtexsNRT6zKUB12vBXBwuQdTYkJtgzHJMCMRpdP0Ma",
-  },
-  {
-    title: "二次元",
-    icon: "绘",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDWKltY_tzZNoDkNNHoihAHH2yucH6ItJtGGuYmww1FuDw39xmuV73WVQ2Tft8pQPIH_Mw2dUvLnO4nJwrIknuqBBjJ2Pcm2QgSTkDaCiZ-D_AeF_QRdHExbsxmT_EofojW0qCO8ZI7NA7E3k0QbWhHKEBSlRfL9Yytm8Wvy9F8OHArBp83ddF7WMdBW3jMAFMxcjgtIs2NYLDO7RgPj79lr88ZpHVeKoTwJfbJDdZQQWOVa7LCzV73xe1_AV23koT8FzdclvsiLm-K",
-  },
-  {
-    title: "3D 艺术",
-    icon: "立",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCfS8GbRH19-WMIqfyCUTzFz8SVAxQS2k8nsziQOBvXFE-dtfXLFyh2eAylTfuOePlXtME3MguBsKladcSpyyJY-0xP-RPHUJ_tQo84JsV16PVkrpSTwKmcW0-Jtk7zZ1JaGdu18OvsOHH89Sw8R5em0fQCpqe_zERusg4vnZBNsbXdu2RlwRUVlJxXh2sKxZkZncomPo9VfaqD1MYWRC-Jdt_iMF4RQjSlOIz01Cx-Q8KrME0BMa8uF7CKY8I16NNEP2M2UKgqLVQy",
-  },
-];
+const defaultChip: TemplateCategory = {
+  categoryId: 0,
+  categoryName: "全部",
+  categoryCode: "all",
+};
+
+const chipList = computed(() => [defaultChip, ...chips.value]);
+
+async function loadCategories() {
+  const data = await getTemplateCategories();
+  chips.value = data || [];
+}
+
+async function loadTemplates() {
+  const params: Record<string, string> = {};
+  if (activeCategoryId.value !== "all") {
+    params.categoryId = String(activeCategoryId.value);
+  }
+  templates.value = await listTemplates(params);
+}
+
+function handleCategoryChange(chip: TemplateCategory) {
+  activeCategoryId.value = chip.categoryCode === "all" ? "all" : chip.categoryId;
+  loadTemplates();
+}
+
+function isActiveChip(chip: TemplateCategory) {
+  if (chip.categoryCode === "all") {
+    return activeCategoryId.value === "all";
+  }
+  return activeCategoryId.value === chip.categoryId;
+}
+
+function goTemplateDetail(templateId: number) {
+  navigateTo(routes.templateDetail, { id: templateId });
+}
 
 function goTemplates() {
   switchTab(routes.templates);
 }
+
+function goGenerate() {
+  navigateTo(routes.generate);
+}
+
+onMounted(async () => {
+  await loadCategories();
+  await loadTemplates();
+});
 </script>

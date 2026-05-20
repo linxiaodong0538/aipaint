@@ -26,6 +26,14 @@
       }
     },
     {
+      "path": "pages/generate/index",
+      "style": {
+        "navigationBarTitleText": "AI生成",
+        "navigationBarBackgroundColor": "#000",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
       "path": "pages/works/index",
       "style": {
         "navigationBarTitleText": "作品库",

@@ -4,6 +4,7 @@ import ajax, {
 } from "@/uni_modules/u-ajax/js_sdk";
 
 import { useUserStore } from "@/store/modules/user";
+import { baseUrl } from "@/config/env";
 
 export interface ApiResponse<T = unknown> {
   code: number;
@@ -12,10 +13,8 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://example.com/api";
-
 const service = ajax.create({
-  baseURL: BASE_URL,
+  baseURL: baseUrl,
   timeout: 15000,
   header: {
     common: {
