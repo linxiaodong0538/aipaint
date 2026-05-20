@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.exception.ServiceException;
@@ -88,45 +89,27 @@ public class AiImageGatewayClient
         String resultImageUrl = null;
         try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8)))
         {
+            StringBuilder eventData = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null)
             {
-                String eventData = normalizeEventData(line);
-                if (eventData == null)
+                if (line.isBlank())
                 {
+                    resultImageUrl = handleStreamEvent(eventData.toString(), resultImageUrl, previewConsumer);
+                    eventData.setLength(0);
                     continue;
                 }
 
-                JSONObject event = JSON.parseObject(eventData);
-                JSONObject error = event.getJSONObject("error");
-                if (error != null)
+                String data = normalizeEventData(line);
+                if (data != null)
                 {
-                    throw new ServiceException("图片生成失败：" + error.getString("message"));
+                    eventData.append(data);
                 }
+            }
 
-                String type = event.getString("type");
-                String b64Json = event.getString("b64_json");
-                if (b64Json == null || b64Json.isBlank())
-                {
-                    continue;
-                }
-
-                String imageUrl = saveBase64Image(b64Json);
-                if ("image_generation.partial_image".equals(type))
-                {
-                    if (previewConsumer != null)
-                    {
-                        previewConsumer.accept(imageUrl);
-                    }
-                }
-                else if ("image_generation.completed".equals(type))
-                {
-                    resultImageUrl = imageUrl;
-                    if (previewConsumer != null)
-                    {
-                        previewConsumer.accept(imageUrl);
-                    }
-                }
+            if (eventData.length() > 0)
+            {
+                resultImageUrl = handleStreamEvent(eventData.toString(), resultImageUrl, previewConsumer);
             }
         }
 
@@ -134,6 +117,62 @@ public class AiImageGatewayClient
         {
             throw new ServiceException("图片生成失败：流式返回缺少最终图片");
         }
+        return resultImageUrl;
+    }
+
+    private String handleStreamEvent(String eventData, String resultImageUrl, Consumer<String> previewConsumer) throws IOException
+    {
+        String data = eventData == null ? "" : eventData.trim();
+        if (data.isEmpty() || "[DONE]".equals(data))
+        {
+            return resultImageUrl;
+        }
+
+        JSONObject event;
+        try
+        {
+            event = JSON.parseObject(data);
+        }
+        catch (JSONException e)
+        {
+            if (e.getMessage() != null && e.getMessage().contains("EOF"))
+            {
+                throw new ServiceException("图片生成失败：流式返回中断，请重试");
+            }
+            throw new ServiceException("图片生成失败：流式返回格式异常");
+        }
+
+        JSONObject error = event.getJSONObject("error");
+        if (error != null)
+        {
+            throw new ServiceException("图片生成失败：" + error.getString("message"));
+        }
+
+        String type = event.getString("type");
+        String b64Json = event.getString("b64_json");
+        if (b64Json == null || b64Json.isBlank())
+        {
+            return resultImageUrl;
+        }
+
+        String imageUrl = saveBase64Image(b64Json);
+        if ("image_generation.partial_image".equals(type))
+        {
+            if (previewConsumer != null)
+            {
+                previewConsumer.accept(imageUrl);
+            }
+            return resultImageUrl;
+        }
+        if ("image_generation.completed".equals(type))
+        {
+            if (previewConsumer != null)
+            {
+                previewConsumer.accept(imageUrl);
+            }
+            return imageUrl;
+        }
+
         return resultImageUrl;
     }
 
@@ -175,7 +214,25 @@ public class AiImageGatewayClient
 
     private String readJsonAndSave(String responseBody) throws IOException, InterruptedException
     {
-        JSONObject body = JSON.parseObject(responseBody);
+        if (responseBody == null || responseBody.isBlank())
+        {
+            throw new ServiceException("图片生成失败：返回结果为空");
+        }
+
+        JSONObject body;
+        try
+        {
+            body = JSON.parseObject(responseBody);
+        }
+        catch (JSONException e)
+        {
+            if (e.getMessage() != null && e.getMessage().contains("EOF"))
+            {
+                throw new ServiceException("图片生成失败：返回结果不完整，请重试");
+            }
+            throw new ServiceException("图片生成失败：返回结果格式异常");
+        }
+
         JSONArray data = body.getJSONArray("data");
         if (data == null || data.isEmpty())
         {

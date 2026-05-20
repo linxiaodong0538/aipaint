@@ -1,7 +1,7 @@
 <template>
-  <view class="relative h-screen overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+  <view class="fixed inset-0 h-screen overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
     <section
-      class="absolute inset-0 flex flex-col items-center justify-center px-[48rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
+      class="absolute inset-0 flex flex-col items-center justify-center px-[32rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
       :class="progressStateClass"
     >
       <view v-if="previewImage && taskState !== 'failed'" class="mb-[72rpx] w-full max-w-[560rpx]">
@@ -70,29 +70,42 @@
     </section>
 
     <section
-      class="absolute inset-0 flex flex-col items-center justify-center px-[48rpx] pb-[260rpx] transition-all duration-1000 ease-in-out"
+      class="absolute inset-x-0 top-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out"
       :class="completedStateClass"
     >
-      <view class="relative aspect-square w-full max-w-[640rpx] px-[0rpx]">
-        <view class="h-full w-full overflow-hidden rounded-[64rpx] border border-[rgba(0,0,0,0.05)] bg-white p-[16rpx] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
-          <view class="relative h-full w-full overflow-hidden rounded-[48rpx]">
+      <view class="relative flex w-full flex-col items-center p-[32rpx]">
+        <view class="aspect-square w-full overflow-hidden border border-[rgba(0,0,0,0.05)] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
+          <view class="relative h-full w-full overflow-hidden">
             <image
               v-if="generatedImage"
               class="h-full w-full scale-[1.05] transition-transform duration-1000"
-              mode="aspectFill"
+              mode="widthFix"
               :src="generatedImage"
               @tap="previewGeneratedImage"
             />
             <view v-else class="h-full w-full bg-[#e2e2e2]" />
-            <view class="absolute right-[32rpx] top-[32rpx] flex items-center gap-[12rpx] rounded-full border border-[rgba(255,255,255,0.1)] bg-[rgba(0,0,0,0.8)] px-[24rpx] py-[12rpx] backdrop-blur-[24rpx]">
-              <text class="iconfont icon-gou2x text-[22rpx] leading-none text-white" />
-              <text class="text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[2rpx] text-white">G Image 2</text>
-            </view>
           </view>
         </view>
 
         <view
-          class="mt-[64rpx] flex justify-center gap-[32rpx] transition-all delay-500 duration-700"
+          class="mt-[28rpx] w-full rounded-[28rpx] border border-[rgba(0,0,0,0.04)] bg-white/90 px-[28rpx] py-[24rpx] shadow-[0_16rpx_40rpx_rgba(0,0,0,0.05)]"
+        >
+          <text class="result-prompt block text-[26rpx] font-semibold leading-[38rpx] text-black">
+            {{ detailTitle }}
+          </text>
+          <view class="mt-[18rpx] flex flex-wrap gap-[12rpx]">
+            <text
+              v-for="item in detailTags"
+              :key="item"
+              class="rounded-full bg-[#f1f1f1] px-[18rpx] py-[8rpx] text-[20rpx] font-medium leading-[28rpx] text-[#5f5e5e]"
+            >
+              {{ item }}
+            </text>
+          </view>
+        </view>
+
+        <view
+          class="mt-[36rpx] flex justify-center gap-[32rpx] transition-all delay-500 duration-700"
           :class="taskState === 'success' ? 'translate-y-0 opacity-100' : 'translate-y-[32rpx] opacity-0'"
         >
           <button class="grid justify-items-center gap-[16rpx] bg-transparent p-0 active:scale-95" open-type="share">
@@ -107,12 +120,6 @@
             </view>
             <text class="text-[22rpx] font-medium leading-[28rpx] tracking-[4rpx] text-[#4c4546]">重新生成</text>
           </button>
-          <button class="grid justify-items-center gap-[16rpx] bg-transparent p-0 active:scale-95" @tap="showUnsupported">
-            <view class="flex h-[96rpx] w-[96rpx] items-center justify-center rounded-full border border-[#cfc4c5]">
-              <text class="iconfont icon-MaterialSymbolsBrush text-[38rpx] leading-none text-black" />
-            </view>
-            <text class="text-[22rpx] font-medium leading-[28rpx] tracking-[4rpx] text-[#4c4546]">局部重绘</text>
-          </button>
         </view>
       </view>
     </section>
@@ -120,7 +127,7 @@
     <view
       class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.1)] bg-[rgba(255,255,255,0.9)] px-[48rpx] pt-[32rpx] backdrop-blur-[40rpx] transition-transform duration-700 ease-out"
       :class="taskState === 'success' ? 'translate-y-0' : 'translate-y-full'"
-      :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }"
+      :style="{ height: `${bottomBarHeight}px`, paddingBottom: footerSafePadding }"
     >
       <button
         class="mx-auto flex h-[104rpx] w-full max-w-[640rpx] items-center justify-center gap-[16rpx] rounded-full bg-black text-white shadow-[0_20rpx_40rpx_rgba(0,0,0,0.16)] active:scale-95"
@@ -136,7 +143,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad, onUnload } from "@dcloudio/uni-app";
-import { getGenerationTask } from "@/api/generate";
+import { getGenerationTask, type GenerationTask } from "@/api/generate";
 import { navigateBack } from "@/utils/router";
 
 type TaskState = "processing" | "success" | "failed";
@@ -147,7 +154,13 @@ const progress = ref(0);
 const generatedImage = ref("");
 const previewImage = ref("");
 const errorMessage = ref("");
+const taskPrompt = ref("");
+const taskModel = ref("");
+const taskQuality = ref("");
+const taskRatio = ref("");
+const taskCreateTime = ref("");
 const safeAreaBottom = ref(0);
+const windowWidth = ref(375);
 
 let progressTimer: ReturnType<typeof setInterval> | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -157,11 +170,22 @@ let pollAttempts = 0;
 try {
   const info = uni.getSystemInfoSync();
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0;
+  windowWidth.value = info.windowWidth || 375;
 } catch {
   safeAreaBottom.value = 0;
+  windowWidth.value = 375;
 }
 
 const roundedProgress = computed(() => Math.min(100, Math.floor(progress.value)));
+const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}px`);
+const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
+const detailTitle = computed(() => taskPrompt.value || "未命名作品");
+const detailTags = computed(() => [
+  formatModel(taskModel.value),
+  formatQuality(taskQuality.value),
+  taskRatio.value,
+  formatCreateTime(taskCreateTime.value),
+].filter(Boolean));
 
 const progressTitle = computed(() => {
   if (taskState.value === "failed") return "生成失败";
@@ -189,6 +213,10 @@ const completedStateClass = computed(() => (
     ? "translate-y-0 opacity-100"
     : "translate-y-[64rpx] opacity-0 pointer-events-none"
 ));
+
+function rpxToPx(rpx: number) {
+  return (windowWidth.value / 750) * rpx;
+}
 
 onLoad((query) => {
   const id = Number(query?.taskId);
@@ -226,6 +254,7 @@ async function pollTask() {
 
   try {
     const task = await getGenerationTask(taskId.value);
+    applyTaskDetails(task);
 
     if (task.previewImageUrl && task.previewImageUrl !== previewImage.value) {
       previewImage.value = task.previewImageUrl;
@@ -263,6 +292,33 @@ function completeTask(imageUrl: string) {
     taskState.value = "success";
     uni.showToast({ title: "生成完成", icon: "success" });
   }, 500);
+}
+
+function applyTaskDetails(task: GenerationTask) {
+  taskPrompt.value = task.prompt || "";
+  taskModel.value = task.model || "";
+  taskQuality.value = task.quality || "";
+  taskRatio.value = task.ratio || "";
+  taskCreateTime.value = task.createTime || task.finishTime || "";
+}
+
+function formatModel(model: string) {
+  if (model === "gpt-image-2" || model === "g-image-2") return "G Image 2";
+  return model || "";
+}
+
+function formatQuality(quality: string) {
+  const map: Record<string, string> = {
+    low: "1K",
+    medium: "2K",
+    high: "4K",
+  };
+  return map[quality] || quality || "";
+}
+
+function formatCreateTime(value: string) {
+  if (!value) return "";
+  return value.slice(0, 16);
 }
 
 function failTask(message: string) {
@@ -334,6 +390,15 @@ function showUnsupported() {
 <style>
 page {
   background-color: #f9f9f9;
+  height: 100%;
+  overflow: hidden;
+}
+
+.result-prompt {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .orbit-container {

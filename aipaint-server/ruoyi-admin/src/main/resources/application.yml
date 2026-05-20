@@ -109,7 +109,7 @@ ai:
     api-key: ${OPENAI_IMAGE_API_KEY:}
     model: gpt-image-2
     test-mode: ${AI_IMAGE_TEST_MODE:false}
-    test-size: ${AI_IMAGE_TEST_SIZE:256x256}
+    test-size: ${AI_IMAGE_TEST_SIZE:1024x1024}
     partial-images: ${AI_IMAGE_PARTIAL_IMAGES:1}
 
 # MyBatis配置

@@ -99,6 +99,7 @@ const windowWidth = ref(375);
 const copyLabel = ref("复制");
 const template = ref<TemplateItem | null>(null);
 const templateId = ref<string | number>("");
+const selectedTemplateStorageKey = "generate:selectedTemplate";
 
 try {
   const info = uni.getSystemInfoSync();
@@ -145,8 +146,23 @@ function copyPrompt() {
 }
 
 function useTemplate() {
+  const currentTemplate = template.value;
+  if (currentTemplate) {
+    uni.setStorageSync(selectedTemplateStorageKey, {
+      templateId: currentTemplate.templateId,
+      title: currentTemplate.title,
+      prompt: currentTemplate.prompt,
+      aiEngine: currentTemplate.aiEngine,
+      ratio: currentTemplate.ratio,
+      description: currentTemplate.description,
+      categoryName: currentTemplate.categoryName,
+      coverUrl: currentTemplate.coverUrl,
+    });
+  }
+
   navigateTo(routes.generate, {
     templateId: templateId.value,
+    fromTemplate: true,
   });
 }
 

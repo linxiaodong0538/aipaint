@@ -7,7 +7,7 @@ export interface CreateImageGenerationRequest {
   prompt: string;
   model: "g-image-2";
   quality: "low" | "medium" | "high";
-  ratio: "1:1" | "4:3" | "3:2" | "16:9";
+  ratio: "1:1" | "3:4" | "4:3" | "16:9";
   referenceImageUrl?: string;
 }
 
@@ -55,4 +55,15 @@ export function getGenerationTask(taskId: number) {
     resultImageUrl: resolveFileUrl(task.resultImageUrl),
     previewImageUrl: resolveFileUrl(task.previewImageUrl),
   }));
+}
+
+export function listGenerationTasks() {
+  return request<GenerationTask[]>({
+    url: "/mini/generate/tasks",
+    method: "GET",
+  }).then((tasks) => tasks.map((task) => ({
+    ...task,
+    resultImageUrl: resolveFileUrl(task.resultImageUrl),
+    previewImageUrl: resolveFileUrl(task.previewImageUrl),
+  })));
 }

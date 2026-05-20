@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.mini;
 
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,13 +78,21 @@ public class MiniGenerateController extends BaseController
         return task == null ? error("任务不存在") : success(task);
     }
 
+    @GetMapping("/tasks")
+    public AjaxResult listTasks(String status)
+    {
+        String normalizedStatus = normalizeStatus(status);
+        List<AiGenerationTask> tasks = taskService.selectGenerationTasksByUserId(SecurityUtils.getUserId(), normalizedStatus);
+        return success(tasks);
+    }
+
     private String normalizeRatio(String ratio)
     {
-        if ("1:1".equals(ratio) || "4:3".equals(ratio) || "3:2".equals(ratio) || "16:9".equals(ratio))
+        if ("1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio) || "16:9".equals(ratio))
         {
             return ratio;
         }
-        return "4:3";
+        return "1:1";
     }
 
     private String normalizeQuality(String quality)
@@ -103,6 +112,15 @@ public class MiniGenerateController extends BaseController
         return "medium";
     }
 
+    private String normalizeStatus(String status)
+    {
+        if ("pending".equals(status) || "processing".equals(status) || "success".equals(status) || "failed".equals(status))
+        {
+            return status;
+        }
+        return null;
+    }
+
     private String resolveSize(String ratio)
     {
         if (imageProperties.isTestMode() && isValidImageSize(imageProperties.getTestSize()))
@@ -113,19 +131,20 @@ public class MiniGenerateController extends BaseController
         {
             return "1024x1024";
         }
+        if ("3:4".equals(ratio))
+        {
+            return "1024x1536";
+        }
         return "1536x1024";
     }
 
     private boolean isValidImageSize(String size)
     {
-        if (StringUtils.isBlank(size) || !size.matches("\\d+x\\d+"))
+        if (StringUtils.isBlank(size))
         {
             return false;
         }
-        String[] parts = size.split("x");
-        int width = Integer.parseInt(parts[0]);
-        int height = Integer.parseInt(parts[1]);
-        return width > 0 && height > 0 && width % 16 == 0 && height % 16 == 0;
+        return "1024x1024".equals(size) || "1536x1024".equals(size) || "1024x1536".equals(size);
     }
 
     private int resolveCreditCost(String quality)

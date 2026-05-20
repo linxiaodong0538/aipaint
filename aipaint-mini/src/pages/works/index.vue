@@ -1,6 +1,6 @@
 <template>
   <view
-    class="min-h-screen bg-[var(--app-background)] px-[36rpx] pb-[220rpx] pt-[36rpx] text-[var(--app-on-surface)]"
+    class="min-h-screen bg-[var(--app-background)] px-[48rpx] pb-[220rpx] pt-[32rpx] text-[var(--app-on-surface)]"
   >
     <view class="flex flex-wrap gap-[20rpx]">
       <view
@@ -56,76 +56,98 @@
       </button>
     </view>
 
-    <view v-if="userStore.isLogin && showInProgress" class="mt-[48rpx]">
-      <view class="mb-[28rpx] flex items-center gap-[8rpx]">
-        <text class="leading-none iconfont icon-jinhangzhong" style="font-size: 36rpx;"></text>
-        <text class="text-[28rpx] font-semibold text-[#6c6c6c]  leading-none">进行中</text>
-      </view>
-
-      <view class="flex flex-col gap-[28rpx]">
+    <view
+      v-if="userStore.isLogin && hasVisibleWorks"
+      class="mt-[32rpx] grid grid-cols-2 gap-[32rpx]"
+    >
+      <view
+        v-for="item in visibleWorks"
+        :key="`${item.kind}-${item.taskId}`"
+        class="relative flex flex-col"
+        @tap="goTask(item.taskId)"
+      >
         <view
-          v-for="item in inProgressWorks"
-          :key="item.title"
-          class="rounded-[28rpx] bg-white px-[24rpx] py-[24rpx] shadow-[0_24rpx_60rpx_rgba(0,0,0,0.08)]"
+          v-if="item.kind === 'processing'"
+          class="works-shimmer works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[32rpx] bg-[#eeeeee]"
         >
-          <view class="flex items-start justify-between">
-            <view class="flex items-center gap-[24rpx]">
-              <image
-                :src="item.image"
-                mode="aspectFill"
-                class="h-[96rpx] w-[96rpx] rounded-[20rpx] bg-[#dcdcdc]"
-              />
-              <view class="pt-[4rpx]">
-                <text class="block text-[28rpx] font-semibold leading-[36rpx] text-black">
-                  {{ item.title }}
-                </text>
-                <text class="mt-[8rpx] block text-[22rpx] leading-[30rpx] text-[#8e8e8e]">
-                  {{ item.meta }}
-                </text>
+          <view class="absolute inset-0 flex items-center justify-center">
+            <view class="flex flex-col items-center gap-[32rpx]">
+              <view class="relative h-[80rpx] w-[80rpx]">
+                <view class="absolute inset-0 rounded-full border-[4rpx] border-black/10" />
+                <view class="works-spin absolute inset-0 rounded-full border-[4rpx] border-black border-t-transparent" />
               </view>
+              <text class="text-[20rpx] font-semibold uppercase leading-[28rpx] tracking-[4rpx] text-black/60">
+                进行中...
+              </text>
             </view>
+          </view>
+        </view>
 
-            <text class="pt-[4rpx] text-[24rpx] font-semibold leading-[32rpx] text-black">
-              {{ item.progress }}%
+        <view
+          v-else
+          class="works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[32rpx] active:scale-[0.98]"
+        >
+          <image
+            :src="item.image"
+            mode="aspectFill"
+            class="absolute inset-0 block h-full w-full"
+            style="width: 100%; height: 100%;"
+          />
+        </view>
+
+        <view class="px-[16rpx]">
+          <template v-if="item.kind === 'processing'">
+            <view class="works-shimmer mb-[16rpx] h-[32rpx] w-3/4 rounded-full" />
+            <view class="works-shimmer h-[24rpx] w-1/2 rounded-full opacity-50" />
+          </template>
+          <template v-else>
+            <text class="block truncate text-[28rpx] font-semibold leading-[40rpx] text-black">
+              {{ item.title }}
             </text>
-          </view>
-
-          <view class="mt-[22rpx] h-[8rpx] overflow-hidden rounded-full bg-black/10">
-            <view
-              class="h-full rounded-full bg-black"
-              :style="{ width: `${item.progress}%` }"
-            />
-          </view>
+            <text class="mt-[4rpx] block text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]/60">
+              {{ item.timeText }}
+            </text>
+          </template>
         </view>
       </view>
     </view>
 
-    <view v-if="userStore.isLogin && showCompleted" class="mt-[44rpx]">
-      <view class="mb-[28rpx] flex items-center gap-[8rpx]">
-        <text class="iconfont icon-shanshan" style="font-size: 38rpx;"></text>
-        <text class="text-[28rpx] font-semibold text-[#6c6c6c]  leading-none">已完成</text>
-      </view>
+    <view
+      v-if="userStore.isLogin && loading"
+      class="mt-[160rpx] flex flex-col items-center text-center"
+    >
+      <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#d8d8d8] border-t-black" />
+      <text class="mt-[28rpx] text-[26rpx] font-medium leading-[36rpx] text-[#7d7d7d]">加载作品中...</text>
+    </view>
 
-      <view class="grid grid-cols-2 gap-[36rpx]">
-        <view
-          v-for="item in completedWorks"
-          :key="item.title"
-          class="overflow-hidden rounded-[28rpx] bg-white shadow-[0_24rpx_60rpx_rgba(0,0,0,0.08)]"
-        >
-          <image :src="item.image" mode="aspectFill" class="aspect-square w-full" />
-        </view>
+    <view
+      v-if="userStore.isLogin && !loading && !hasVisibleWorks"
+      class="mt-[180rpx] flex flex-col items-center px-[12rpx] py-[64rpx] text-center"
+    >
+      <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
+        <text class="iconfont icon-images text-[96rpx] leading-none text-black/10" />
       </view>
+      <text class="block text-[48rpx] font-semibold leading-[64rpx] text-black">
+        暂无作品
+      </text>
+      <text class="mt-[16rpx] block max-w-[520rpx] text-[32rpx] font-normal leading-[48rpx] text-[#4c4546]/60">
+        您的创意画廊目前还是空的。开始尝试生成您的第一件 AI 艺术作品吧。
+      </text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import { onHide, onPullDownRefresh, onShow } from "@dcloudio/uni-app";
+import { listGenerationTasks, type GenerationTask } from "@/api/generate";
 import { useUserStore } from "@/store/modules/user";
+import { navigateTo, routes } from "@/utils/router";
 
 type TabValue = "all" | "generating" | "completed";
 
 interface ProgressWork {
+  taskId: number;
   title: string;
   meta: string;
   progress: number;
@@ -133,9 +155,15 @@ interface ProgressWork {
 }
 
 interface CompletedWork {
+  taskId: number;
   title: string;
   image: string;
+  timeText: string;
 }
+
+type GalleryWork =
+  | (ProgressWork & { kind: "processing" })
+  | (CompletedWork & { kind: "completed" });
 
 const tabs: Array<{ label: string; value: TabValue }> = [
   { label: "全部", value: "all" },
@@ -145,38 +173,221 @@ const tabs: Array<{ label: string; value: TabValue }> = [
 
 const activeTab = ref<TabValue>("all");
 const userStore = useUserStore();
+const loading = ref(false);
+const tasks = ref<GenerationTask[]>([]);
+const mockProcessingTask: GenerationTask = {
+  taskId: -1,
+  prompt: "未来城市概念图",
+  model: "gpt-image-2",
+  quality: "medium",
+  ratio: "1:1",
+  size: "1024x1024",
+  status: "processing",
+  createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
+};
 
-const inProgressWorks: ProgressWork[] = [
-  {
-    title: "未来城市概念图",
-    meta: "超现实主义 • 4K",
-    progress: 85,
-    image: "/static/works/progress-1.jpg",
+let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
+  [mockProcessingTask, ...tasks.value]
+    .filter((task) => task.status === "pending" || task.status === "processing")
+    .map((task, index) => ({
+      taskId: task.taskId,
+      title: resolveTitle(task.prompt),
+      meta: `${formatModel(task.model)} • ${formatQuality(task.quality)} • ${task.ratio}`,
+      progress: estimateProgress(task),
+      image: task.previewImageUrl || `/static/works/progress-${(index % 2) + 1}.jpg`,
+      kind: "processing" as const,
+    }))
+));
+
+const completedWorks = computed<Array<CompletedWork & { kind: "completed" }>>(() => (
+  tasks.value
+    .filter((task) => task.status === "success" && !!task.resultImageUrl)
+    .map((task) => ({
+      taskId: task.taskId,
+      title: resolveTitle(task.prompt),
+      image: task.resultImageUrl || "",
+      timeText: formatWorkTime(task.finishTime || task.createTime),
+      kind: "completed" as const,
+    }))
+));
+
+const visibleWorks = computed<GalleryWork[]>(() => {
+  if (activeTab.value === "generating") return inProgressWorks.value;
+  if (activeTab.value === "completed") return completedWorks.value;
+
+  const inProgressTaskIds = new Set(inProgressWorks.value.map((item) => item.taskId));
+  const completedTaskIds = new Set(completedWorks.value.map((item) => item.taskId));
+
+  return [mockProcessingTask, ...tasks.value]
+    .filter((task) => inProgressTaskIds.has(task.taskId) || completedTaskIds.has(task.taskId))
+    .map((task) => (
+      inProgressWorks.value.find((item) => item.taskId === task.taskId)
+      || completedWorks.value.find((item) => item.taskId === task.taskId)
+    ))
+    .filter((item): item is GalleryWork => !!item);
+});
+
+const hasVisibleWorks = computed(() => visibleWorks.value.length > 0);
+
+onShow(() => {
+  if (userStore.isLogin) {
+    void loadWorks();
+    startRefreshTimer();
+  }
+});
+
+onHide(() => {
+  stopRefreshTimer();
+});
+
+onPullDownRefresh(() => {
+  void loadWorks().finally(() => uni.stopPullDownRefresh());
+});
+
+watch(
+  () => userStore.isLogin,
+  (isLogin) => {
+    if (isLogin) {
+      void loadWorks();
+      startRefreshTimer();
+      return;
+    }
+    tasks.value = [];
+    stopRefreshTimer();
   },
-  {
-    title: "极简建筑摄影",
-    meta: "包豪斯风格 • 8K",
-    progress: 42,
-    image: "/static/works/progress-2.jpg",
-  },
-];
-
-const completedWorks: CompletedWork[] = [
-  { title: "无尽之梯", image: "/static/works/completed-1.jpg" },
-  { title: "丝绸之舞", image: "/static/works/completed-2.jpg" },
-  { title: "静谧", image: "/static/works/completed-3.jpg" },
-  { title: "折射", image: "/static/works/completed-4.jpg" },
-];
-
-const showInProgress = computed(
-  () => activeTab.value === "all" || activeTab.value === "generating",
 );
 
-const showCompleted = computed(
-  () => activeTab.value === "all" || activeTab.value === "completed",
-);
+async function loadWorks(silent = false) {
+  if (!userStore.isLogin || loading.value) return;
+
+  if (!silent) {
+    loading.value = true;
+  }
+  try {
+    tasks.value = await listGenerationTasks();
+  } catch {
+    tasks.value = [];
+  } finally {
+    if (!silent) {
+      loading.value = false;
+    }
+  }
+}
 
 function handleLogin() {
-  userStore.loginWithWechat().catch(() => undefined);
+  userStore.loginWithWechat()
+    .then(() => loadWorks())
+    .catch(() => undefined);
+}
+
+function resolveTitle(prompt: string) {
+  const title = prompt.trim();
+  if (!title) return "未命名作品";
+  return title.length > 18 ? `${title.slice(0, 18)}...` : title;
+}
+
+function formatModel(model: string) {
+  if (model === "gpt-image-2" || model === "g-image-2") return "G Image 2";
+  return model || "AI";
+}
+
+function formatQuality(quality: string) {
+  const map: Record<string, string> = {
+    low: "1K",
+    medium: "2K",
+    high: "4K",
+  };
+  return map[quality] || quality || "2K";
+}
+
+function estimateProgress(task: GenerationTask) {
+  if (task.previewImageUrl) return 88;
+  if (task.status === "pending") return 12;
+
+  const createdAt = task.createTime ? new Date(task.createTime.replace(/-/g, "/")).getTime() : Date.now();
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - createdAt) / 1000));
+  return Math.min(86, 24 + Math.floor(elapsedSeconds / 3) * 4);
+}
+
+function formatWorkTime(value?: string) {
+  if (!value) return "";
+
+  const timestamp = new Date(value.replace(/-/g, "/")).getTime();
+  if (!Number.isFinite(timestamp)) return value.slice(0, 16);
+
+  const diffMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  if (diffMinutes < 1) return "刚刚";
+  if (diffMinutes < 60) return `${diffMinutes}分钟前`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}小时前`;
+
+  const date = new Date(timestamp);
+  const now = new Date();
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
+  const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  if (dateStart === yesterday) return `昨天 ${hours}:${minutes}`;
+
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${hours}:${minutes}`;
+}
+
+function goTask(taskId: number) {
+  navigateTo(routes.generateResult, { taskId });
+}
+
+function startRefreshTimer() {
+  stopRefreshTimer();
+  refreshTimer = setInterval(() => {
+    if (userStore.isLogin && inProgressWorks.value.length > 0) {
+      void loadWorks(true);
+    }
+  }, 5000);
+}
+
+function stopRefreshTimer() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
 }
 </script>
+
+<style>
+.works-pixel-border {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 40rpx 80rpx rgba(0, 0, 0, 0.05);
+}
+
+.works-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: works-shimmer 1.5s linear infinite;
+}
+
+.works-spin {
+  animation: works-spin 1s linear infinite;
+}
+
+@keyframes works-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes works-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

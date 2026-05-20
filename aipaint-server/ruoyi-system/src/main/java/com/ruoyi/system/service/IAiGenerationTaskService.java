@@ -1,5 +1,6 @@
 package com.ruoyi.system.service;
 
+import java.util.List;
 import com.ruoyi.system.domain.AiGenerationTask;
 
 /**
@@ -10,6 +11,8 @@ public interface IAiGenerationTaskService
     public AiGenerationTask selectGenerationTaskById(Long taskId);
 
     public AiGenerationTask selectGenerationTaskByIdAndUserId(Long taskId, Long userId);
+
+    public List<AiGenerationTask> selectGenerationTasksByUserId(Long userId, String status);
 
     public int insertGenerationTask(AiGenerationTask task);
 

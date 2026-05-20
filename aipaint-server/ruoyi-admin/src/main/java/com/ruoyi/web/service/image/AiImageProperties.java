@@ -19,7 +19,7 @@ public class AiImageProperties
 
     private boolean testMode = false;
 
-    private String testSize = "256x256";
+    private String testSize = "1024x1024";
 
     private Integer partialImages = 1;
 
