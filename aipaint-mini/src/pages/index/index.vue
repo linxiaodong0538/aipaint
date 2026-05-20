@@ -3,7 +3,7 @@
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
       <view class="px-[24rpx] pb-[80rpx] pt-[24rpx]">
         <view
-          class="relative h-[460rpx] overflow-hidden rounded-[46rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          class="relative h-[420rpx] overflow-hidden rounded-[46rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
           <image class="absolute inset-0 h-full w-full opacity-[0.62]" mode="aspectFill" :src="heroImage" />
           <view
@@ -18,11 +18,11 @@
             <text class="mt-[16rpx] text-[56rpx] font-extrabold leading-[76rpx] text-white">
               GPT Image 2
             </text>
-            <text class="mt-[8rpx] max-w-[560rpx] text-[30rpx] font-normal leading-[46rpx] text-white/70">
-              利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。体验前所未有的艺术精确度。
+            <text class="mt-[8rpx] max-w-[600rpx] text-[30rpx] font-normal leading-[46rpx] text-white/70">
+              利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。体验前所未有的艺术精确度
             </text>
             <button
-              class="mt-[32rpx] flex h-[88rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
+              class="mt-[32rpx] flex h-[80rpx] min-w-[212rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-white px-[48rpx] text-[28rpx] font-extrabold leading-[96rpx] text-black"
               @tap="goGenerate"
             >
               <text>开始创作</text>
@@ -33,7 +33,7 @@
 
         <view class="mt-[40rpx] flex items-end justify-between">
           <view>
-            <text class="block text-[48rpx] font-bold leading-[48rpx] text-black">风格探索</text>
+            <text class="block text-[36rpx] font-bold leading-[48rpx] text-black">风格探索</text>
             <text class="mt-[16rpx] block text-[28rpx] leading-[40rpx] text-[#636262]">
               选择一个基调开始您的艺术之旅
             </text>
