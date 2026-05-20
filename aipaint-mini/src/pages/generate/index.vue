@@ -45,7 +45,7 @@
             <textarea
               v-model="prompt"
               class="box-border h-[200rpx] w-full bg-transparent px-[8rpx] text-[24rpx] font-normal leading-[44rpx] text-black"
-              maxlength="1000"
+              maxlength="2000"
               placeholder="描述你想要的画面..."
               placeholder-class="generate-prompt-placeholder"
             />
@@ -171,6 +171,7 @@
             </button>
           </view>
         </view>
+
       </view>
     </scroll-view>
 
@@ -193,9 +194,11 @@
         </view>
         <button
           class="flex h-[96rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-black px-[80rpx] shadow-[0_12rpx_28rpx_rgba(0,0,0,0.16)] active:scale-95"
+          :loading="generating"
+          :disabled="generating"
           @tap="handleGenerate"
         >
-          <text class="text-[30rpx] font-bold leading-none text-white">立即生成</text>
+          <text class="text-[30rpx] font-bold leading-none text-white">{{ generating ? "提交中" : "立即生成" }}</text>
           <text class="iconfont icon-shanshan text-[32rpx] leading-none text-white" style="font-size: 36rpx;"/>
         </button>
       </view>
@@ -205,7 +208,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { navigateBack, routes, switchTab } from "@/utils/router";
+import { navigateTo, routes } from "@/utils/router";
+import { createImageGeneration } from "@/api/generate";
+import { useUserStore } from "@/store/modules/user";
 
 const prompts = [
   "未来城市中的玻璃花园，清晨柔光，电影感构图，高级灰色调",
@@ -213,25 +218,32 @@ const prompts = [
   "赛博街区的雨夜橱窗，霓虹反射，广角摄影，超现实氛围",
 ];
 
-const models = [
+type ModelValue = "g-image-2";
+
+const models: Array<{
+  value: ModelValue;
+  label: string;
+  description: string;
+  iconClass: string;
+}> = [
   {
     value: "g-image-2",
     label: "G Image 2",
     description: "极速通用艺术风格",
     iconClass: "icon-tupian",
   },
-  {
-    value: "pro",
-    label: "Pro Model",
-    description: "顶级写实，高精度",
-    iconClass: "icon-huizhang",
-  },
-  {
-    value: "v2.4",
-    label: "V2.4",
-    description: "二次元插画专属",
-    iconClass: "icon-MaterialSymbolsBrush",
-  },
+  // {
+  //   value: "pro",
+  //   label: "Pro Model",
+  //   description: "顶级写实，高精度",
+  //   iconClass: "icon-huizhang",
+  // },
+  // {
+  //   value: "v2.4",
+  //   label: "V2.4",
+  //   description: "二次元插画专属",
+  //   iconClass: "icon-MaterialSymbolsBrush",
+  // },
 ];
 
 const qualities = ["1K", "2K", "4K"] as const;
@@ -264,10 +276,12 @@ try {
 
 const prompt = ref("");
 const referenceImage = ref("");
-const model = ref<(typeof models)[number]["value"]>("pro");
+const model = ref<ModelValue>("g-image-2");
 const quality = ref<(typeof qualities)[number]>("2K");
 const count = ref<(typeof counts)[number]>(3);
 const ratio = ref<(typeof ratios)[number]["value"]>("4:3");
+const generating = ref(false);
+const userStore = useUserStore();
 
 const creditCost = computed(() => {
   const qualityFactor: Record<(typeof qualities)[number], number> = {
@@ -277,8 +291,6 @@ const creditCost = computed(() => {
   };
   const modelFactor: Record<(typeof models)[number]["value"], number> = {
     "g-image-2": 1,
-    pro: 2,
-    "v2.4": 1,
   };
   return qualityFactor[quality.value] * modelFactor[model.value] + count.value + 1;
 });
@@ -313,17 +325,50 @@ function removeImage() {
   referenceImage.value = "";
 }
 
-function goHistory() {
-  switchTab(routes.works);
+function mapQuality(value: (typeof qualities)[number]) {
+  const map: Record<(typeof qualities)[number], "low" | "medium" | "high"> = {
+    "1K": "low",
+    "2K": "medium",
+    "4K": "high",
+  };
+  return map[value];
 }
 
-function handleGenerate() {
+async function handleGenerate() {
+  if (!userStore.isLogin) {
+    await userStore.loginWithWechat();
+    if (!userStore.isLogin) return;
+  }
+
   if (!prompt.value.trim()) {
     uni.showToast({ title: "请输入画面描述", icon: "none" });
     return;
   }
 
-  uni.showToast({ title: "生成任务已提交", icon: "none" });
+  if (referenceImage.value) {
+    uni.showToast({ title: "参考图生成暂未接入", icon: "none" });
+    return;
+  }
+
+  if (generating.value) return;
+
+  generating.value = true;
+
+  try {
+    const result = await createImageGeneration({
+      prompt: prompt.value.trim(),
+      model: model.value,
+      quality: mapQuality(quality.value),
+      ratio: ratio.value,
+    });
+
+    await navigateTo(routes.generateResult, { taskId: result.taskId });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "图片生成失败";
+    uni.showToast({ title: message, icon: "none" });
+  } finally {
+    generating.value = false;
+  }
 }
 </script>
 

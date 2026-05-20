@@ -103,6 +103,15 @@ wechat:
     appid: "wxea537cd58dc3bea3"
     secret: "63b6e900df411760b62404ec41947a53"
 
+ai:
+  image:
+    base-url: https://dm-fox.rjj.cc/codex/v1
+    api-key: ${OPENAI_IMAGE_API_KEY:}
+    model: gpt-image-2
+    test-mode: ${AI_IMAGE_TEST_MODE:false}
+    test-size: ${AI_IMAGE_TEST_SIZE:256x256}
+    partial-images: ${AI_IMAGE_PARTIAL_IMAGES:1}
+
 # MyBatis配置
 mybatis:
   # 搜索指定包别名

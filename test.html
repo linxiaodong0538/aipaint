@@ -1,236 +1,337 @@
-<!DOCTYPE html><html class="light" lang="zh" style=""><head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>VisionAI - Template Details</title>
-    <!-- Font and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
-            tailwind.config = {
-                darkMode: "class",
-                theme: {
-                    extend: {
-                        "colors": {
-                            "primary": "#000000",
-                            "surface-bright": "#f9f9f9",
-                            "primary-fixed": "#e2e2e2",
-                            "on-primary-fixed-variant": "#474747",
-                            "secondary-fixed": "#e5e2e1",
-                            "on-error-container": "#93000a",
-                            "on-secondary-fixed": "#1c1b1b",
-                            "surface-dim": "#dadada",
-                            "on-primary-container": "#848484",
-                            "primary-fixed-dim": "#c6c6c6",
-                            "inverse-surface": "#2f3131",
-                            "secondary": "#5f5e5e",
-                            "secondary-container": "#e2dfde",
-                            "on-secondary-container": "#636262",
-                            "surface-container": "#eeeeee",
-                            "tertiary-container": "#1a1c1c",
-                            "on-primary": "#ffffff",
-                            "on-surface": "#1a1c1c",
-                            "on-error": "#ffffff",
-                            "surface-tint": "#5e5e5e",
-                            "surface-container-lowest": "#ffffff",
-                            "tertiary": "#000000",
-                            "surface-container-high": "#e8e8e8",
-                            "on-background": "#1a1c1c",
-                            "inverse-on-surface": "#f0f1f1",
-                            "surface": "#f9f9f9",
-                            "surface-variant": "#e2e2e2",
-                            "on-tertiary": "#ffffff",
-                            "error": "#ba1a1a",
-                            "tertiary-fixed": "#e2e2e2",
-                            "surface-container-highest": "#e2e2e2",
-                            "outline-variant": "#cfc4c5",
-                            "tertiary-fixed-dim": "#c6c6c7",
-                            "on-tertiary-container": "#838484",
-                            "on-secondary": "#ffffff",
-                            "on-tertiary-fixed": "#1a1c1c",
-                            "outline": "#7e7576",
-                            "secondary-fixed-dim": "#c8c6c5",
-                            "background": "#f9f9f9",
-                            "primary-container": "#1b1b1b",
-                            "error-container": "#ffdad6",
-                            "surface-container-low": "#f3f3f4",
-                            "on-secondary-fixed-variant": "#474746",
-                            "on-tertiary-fixed-variant": "#454747",
-                            "on-primary-fixed": "#1b1b1b",
-                            "inverse-primary": "#c6c6c6",
-                            "on-surface-variant": "#4c4546"
-                        },
-                        "borderRadius": {
-                            "DEFAULT": "0.25rem",
-                            "lg": "0.5rem",
-                            "xl": "0.75rem",
-                            "2xl": "1.5rem",
-                            "3xl": "2rem",
-                            "full": "9999px"
-                        },
-                        "spacing": {
-                            "container-padding": "32px",
-                            "stack-xl": "64px",
-                            "stack-md": "16px",
-                            "stack-lg": "32px",
-                            "unit": "8px",
-                            "stack-sm": "8px",
-                            "gutter": "24px"
-                        },
-                        "fontFamily": {
-                            "label-lg": ["Plus Jakarta Sans"],
-                            "display": ["Plus Jakarta Sans"],
-                            "headline-md": ["Plus Jakarta Sans"],
-                            "label-sm": ["Plus Jakarta Sans"],
-                            "body-lg": ["Plus Jakarta Sans"],
-                            "headline-lg-mobile": ["Plus Jakarta Sans"],
-                            "headline-lg": ["Plus Jakarta Sans"],
-                            "body-md": ["Plus Jakarta Sans"]
-                        },
-                        "fontSize": {
-                            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
-                            "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                            "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
-                            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                            "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
-                            "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
-                        }
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>VisionAI - Generation Result</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-tint": "#5e5e5e",
+                        "tertiary": "#000000",
+                        "surface-container-highest": "#e2e2e2",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container": "#eeeeee",
+                        "surface-bright": "#f9f9f9",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-tertiary-container": "#838484",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-primary-fixed-variant": "#474747",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2f3131",
+                        "surface": "#f9f9f9",
+                        "primary-container": "#1b1b1b",
+                        "on-primary-fixed": "#1b1b1b",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-container-low": "#f3f3f4",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e2e2e2",
+                        "on-surface-variant": "#4c4546",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dadada",
+                        "on-background": "#1a1c1c",
+                        "outline": "#7e7576",
+                        "secondary-container": "#e2dfde",
+                        "tertiary-container": "#1a1c1c",
+                        "secondary": "#5f5e5e",
+                        "on-surface": "#1a1c1c",
+                        "primary-fixed": "#e2e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#848484",
+                        "on-secondary-container": "#636262",
+                        "on-secondary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#f0f1f1",
+                        "outline-variant": "#cfc4c5",
+                        "primary": "#000000",
+                        "secondary-fixed": "#e5e2e1",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#c6c6c6",
+                        "background": "#f9f9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "stack-xl": "64px",
+                        "container-padding": "32px",
+                        "stack-sm": "8px",
+                        "container-margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "label-sm-mobile": ["11px", {"lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
                     }
                 }
             }
-        </script>
-    <style>
-            .material-symbols-outlined {
-                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-                display: inline-block;
-                vertical-align: middle;
+        }
+    </script>
+<style>
+        body {
+            background-color: #f9f9f9;
+            color: #1a1c1c;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .glass-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* AI Thinking Animation */
+        .ai-pulse {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+            50% { opacity: 0.5; transform: scale(1.1); filter: blur(4px); }
+        }
+
+        .orbit-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+        }
+        .orbit-ring {
+            position: absolute;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .orbit-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: black;
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            margin-left: -4px;
+        }
+        .animate-orbit {
+            animation: spin 8s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
+        .fade-in { opacity: 1; transition: opacity 0.8s ease 0.2s; }
+
+        .shadow-soft {
+            box-shadow: 0px 20px 40px rgba(0,0,0, 0.05);
+        }
+        .inner-glow {
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-background/80 dark:bg-background/80 backdrop-blur-xl flex justify-between items-center px-container-margin h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim tracking-tight">VisionAI</h1>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors active:scale-95" id="close-btn">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</header>
+<main class="relative w-full h-screen flex flex-col items-center justify-center pt-16 pb-24 px-6 overflow-hidden">
+<!-- STATE 1: In Progress -->
+<section class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 ease-in-out" id="progress-state">
+<div class="orbit-container mb-12">
+<div class="orbit-ring w-56 h-56 animate-orbit" style="animation-duration: 12s;">
+<div class="orbit-particle bg-black/20"></div>
+</div>
+<div class="orbit-ring w-40 h-40 animate-orbit" style="animation-duration: 6s; animation-direction: reverse;">
+<div class="orbit-particle bg-black/40"></div>
+</div>
+<div class="orbit-ring w-24 h-24 animate-orbit" style="animation-duration: 4s;">
+<div class="orbit-particle bg-black"></div>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-12 h-12 bg-black rounded-full ai-pulse"></div>
+</div>
+</div>
+<div class="text-center space-y-4 max-w-xs">
+<h2 class="font-headline-md text-headline-md text-primary" id="progress-title">灵感捕捉中...</h2>
+<p class="font-body-md text-body-md text-on-surface-variant opacity-70">您的创意正在转化为现实，请稍候</p>
+</div>
+<div class="w-full max-w-sm mt-12 px-8">
+<div class="flex justify-between mb-2">
+<span class="font-label-sm text-label-sm text-outline">PROCESSING</span>
+<span class="font-label-sm text-label-sm text-primary font-bold" id="percentage-text">0%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary transition-all duration-300 ease-out" id="progress-bar" style="width: 0%;"></div>
+</div>
+</div>
+</section>
+<!-- STATE 2: Completed (Hidden initially) -->
+<section class="opacity-0 pointer-events-none absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out translate-y-8" id="completed-state">
+<div class="relative w-full max-w-md aspect-square px-6">
+<div class="w-full h-full rounded-[32px] overflow-hidden shadow-soft border border-black/5 bg-white p-2">
+<div class="w-full h-full rounded-[24px] overflow-hidden relative group">
+<img alt="Generated AI Art Result" class="w-full h-full object-cover scale-105 transition-transform duration-1000 group-hover:scale-100" src="https://lh3.googleusercontent.com/aida/ADBb0ugEjr50BfrZFUUpvSw5rORTcXg7A1ByxYC9Ro03lQ4he4tJ5LXiXTTrY4d2dwlPPG6LcGOgwh3KAzJ5q11tVvIp-0-d4y3MsfKKi1fQEd8jm37-m-fR5vR_Be7cUIVW4-NRJGz0McWwiOxNnJoRhSI3pn-uP28YcHV1Kj-CZea9ZmUSq8MF-LyEuWyFRgfFq5YZjGHnwKbzajdAsPexAOGsRzyh6sOcsjtM65SyIuQ0emgdbZO-Bcgmfsa-"/>
+<!-- Model Badge -->
+<div class="absolute top-4 right-4 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10">
+<span class="material-symbols-outlined text-[14px] text-white" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-white font-label-sm text-[10px] tracking-wider uppercase">V2.4 Pro Model</span>
+</div>
+</div>
+</div>
+<!-- Secondary Actions -->
+<div class="flex justify-center gap-4 mt-8 opacity-0 translate-y-4 transition-all duration-700 delay-500" id="secondary-actions">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center transition-all group-hover:bg-black group-hover:text-white group-active:scale-90">
+<span class="material-symbols-outlined">share</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">分享</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center transition-all group-hover:bg-black group-hover:text-white group-active:scale-90">
+<span class="material-symbols-outlined">refresh</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">重新生成</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center transition-all group-hover:bg-black group-hover:text-white group-active:scale-90">
+<span class="material-symbols-outlined">edit</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">局部重绘</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Bar -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl px-container-margin pt-4 pb-10 flex flex-col items-center transform translate-y-full transition-transform duration-700 ease-out border-t border-outline-variant/10" id="bottom-bar">
+<button class="w-full max-w-sm bg-primary text-on-primary py-4 rounded-full font-label-lg text-label-lg shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">download</span>
+            保存到相册
+        </button>
+</footer>
+<script>
+        // Simulation Logic
+        const progressState = document.getElementById('progress-state');
+        const completedState = document.getElementById('completed-state');
+        const progressBar = document.getElementById('progress-bar');
+        const percentageText = document.getElementById('percentage-text');
+        const progressTitle = document.getElementById('progress-title');
+        const bottomBar = document.getElementById('bottom-bar');
+        const secondaryActions = document.getElementById('secondary-actions');
+
+        let progress = 0;
+        const titles = ['灵感捕捉中...', '正在编织像素...', '优化光影细节...', '最后一步收尾...'];
+        
+        const updateProgress = () => {
+            if (progress < 100) {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                
+                const rounded = Math.floor(progress);
+                progressBar.style.width = `${rounded}%`;
+                percentageText.innerText = `${rounded}%`;
+                
+                // Change titles occasionally
+                if (rounded > 30 && rounded < 50) progressTitle.innerText = titles[1];
+                if (rounded > 60 && rounded < 80) progressTitle.innerText = titles[2];
+                if (rounded > 90) progressTitle.innerText = titles[3];
+
+                setTimeout(updateProgress, 400 + Math.random() * 800);
+            } else {
+                transitionToComplete();
             }
-            .glass-effect {
-                backdrop-filter: blur(24px);
-                background: rgba(255, 255, 255, 0.8);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            .card-shadow {
-                box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
-            }
-            .soft-stroke {
-                border: 1px solid rgba(0, 0, 0, 0.05);
-            }
-            body {
-                background-color: #f9f9f9;
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                color: #1a1c1c;
-            }
-            .no-scrollbar::-webkit-scrollbar {
-                display: none;
-            }
-        </style>
-    </head>
-    <body class="min-h-screen flex flex-col items-center">
-    <!-- Top Navigation Bar -->
-    <header class="fixed top-0 left-0 w-full z-50 glass-effect flex justify-between items-center px-6 h-16 max-w-screen-xl mx-auto md:px-12">
-    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
-    <span class="material-symbols-outlined text-on-surface">arrow_back</span>
-    </button>
-    <div class="flex-1 px-4">
-    <h1 class="font-headline-md text-headline-md font-bold text-center">VisionAI</h1>
-    </div>
-    <div class="flex gap-2">
-    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
-    <span class="material-symbols-outlined text-on-surface">share</span>
-    </button>
-    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200">
-    <span class="material-symbols-outlined text-on-surface">more_horiz</span>
-    </button>
-    </div>
-    </header>
-    <main class="w-full max-w-screen-md px-6 pb-32 flex flex-col gap-4 pt-20">
-    <!-- Main Preview Section -->
-    <section class="relative group">
-    <div class="aspect-[16/9] w-full rounded-3xl overflow-hidden card-shadow soft-stroke bg-surface-container-highest">
-    <img alt="Cyberpunk night scene" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A sprawling cinematic cyberpunk cityscape at night during a rainstorm. Neon signs in brilliant blue and magenta reflect on the wet asphalt streets. The atmosphere is dense with fog and mist, creating a moody, high-contrast monochrome depth typical of a futuristic noir film. Intricate architectural details of skyscrapers with glowing structural lights fill the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEH7PpBoOnZDssRQ8C-8bNZPmj75CF3UyNy1c0U8d5Os0Yh1_Bl85x0gd4Z6ngnqKUNxL2DWDgkcm7z0fpun_zxlfnP3wCUYh5hSOVtE-otllsjULHoLy-FdRfXYHRzn7pq7qC9Zw4M1QbNH75MboRVgXriOX99GCSzRqcjTwz03lpG-VOJm9Spjcc02lW_iXxe4-YZ-WqgfRyYrvf8Y8iKWwXVsFxOKMj58Pr6a3ilSE3BHpoLmQvxvcckMlUIQENHFTGrp0v-fJd" style="transform: translateY(0px) scale(1);">
-    </div>
-    
-    </section>
-    <!-- Template Info Section -->
-    <section class="flex flex-col gap-4">
-    <div class="flex justify-between items-center">
-    <h2 class="font-extrabold tracking-tight font-headline-md text-headline-md">赛博霓虹之夜</h2>
-    <span class="px-4 py-1.5 bg-primary text-on-primary rounded-full font-label-sm text-label-sm">V2.4 模型</span>
-    </div>
-    <div class="flex gap-2">
-    <span class="px-4 py-1 bg-surface-container text-on-surface-variant rounded-full font-label-sm text-label-sm soft-stroke">赛博朋克</span>
-    <span class="px-4 py-1 bg-surface-container text-on-surface-variant rounded-full font-label-sm text-label-sm soft-stroke">电影感渲染</span>
-    <span class="px-4 py-1 bg-surface-container text-on-surface-variant rounded-full font-label-sm text-label-sm soft-stroke">8K 极致</span>
-    </div>
-    </section>
-    <!-- Prompt Section -->
-    <section class="bg-surface-container-lowest rounded-3xl card-shadow soft-stroke flex flex-col p-6 gap-4">
-    <div class="flex justify-between items-center">
-    <div class="flex items-center gap-2">
-    <span class="material-symbols-outlined text-primary">auto_awesome</span>
-    <span class="font-label-lg text-label-lg uppercase tracking-wider text-outline">PROMPT</span>
-    </div>
-    <button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant/30 hover:bg-surface-container-low transition-colors duration-200" id="copy-btn">
-    <span class="material-symbols-outlined text-sm">content_copy</span>
-    <span class="font-label-sm text-label-sm">COPY</span>
-    </button>
-    </div>
-    <p class="font-body-lg text-body-lg leading-relaxed text-on-surface" id="prompt-text">
-                    masterpiece, best quality, cyberpunk city, neon lights, rainy night, reflections, detailed background, solo, standing, futuristic outfit, glowing accents, dark moody atmosphere, 8k resolution, photorealistic
-                </p>
-    </section>
-    <!-- Generation Parameters -->
-    
-    <!-- More like this (Extra section for richness) -->
-    
-    </main>
-    <!-- Bottom Action Bar -->
-    <div class="fixed bottom-0 left-0 w-full glass-effect flex items-center justify-center z-50 md:px-12 border-t border-outline-variant/20 h-20 px-4">
-    <button class="w-full max-w-screen-md h-14 bg-primary text-on-primary rounded-full font-headline-md text-lg font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200 card-shadow">
-    <span class="material-symbols-outlined">bolt</span>
-                立即使用
-            </button>
-    </div>
-    <script>
-            // Copy functionality
-            document.getElementById('copy-btn').addEventListener('click', function() {
-                const text = document.getElementById('prompt-text').innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    const btnText = this.querySelector('.font-label-sm');
-                    const originalText = btnText.innerText;
-                    btnText.innerText = 'COPIED!';
-                    this.classList.add('bg-primary', 'text-on-primary');
-                    setTimeout(() => {
-                        btnText.innerText = originalText;
-                        this.classList.remove('bg-primary', 'text-on-primary');
-                    }, 2000);
+        };
+
+        const transitionToComplete = () => {
+            // Hide progress state
+            progressState.classList.add('fade-out');
+            progressState.style.transform = 'scale(0.95) translateY(-20px)';
+            
+            setTimeout(() => {
+                progressState.style.display = 'none';
+                
+                // Show completed state
+                completedState.classList.remove('opacity-0', 'pointer-events-none');
+                completedState.classList.add('fade-in');
+                completedState.style.transform = 'translateY(0)';
+                
+                // Show bottom bar
+                bottomBar.style.transform = 'translateY(0)';
+                
+                // Animate secondary actions
+                setTimeout(() => {
+                    secondaryActions.classList.remove('opacity-0', 'translate-y-4');
+                }, 400);
+
+                // Add subtle movement to image on hover or scroll
+                document.querySelector('main').addEventListener('mousemove', (e) => {
+                    const img = document.querySelector('img');
+                    const moveX = (e.clientX - window.innerWidth / 2) / 100;
+                    const moveY = (e.clientY - window.innerHeight / 2) / 100;
+                    img.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
                 });
-            });
-    
-            // Favorite Toggle
-            let isFavorited = false;
-            document.getElementById('favorite-btn').addEventListener('click', function() {
-                isFavorited = !isFavorited;
-                const icon = this.querySelector('.material-symbols-outlined');
-                if (isFavorited) {
-                    icon.style.fontVariationSettings = "'FILL' 1";
-                    icon.classList.add('text-error');
-                } else {
-                    icon.style.fontVariationSettings = "'FILL' 0";
-                    icon.classList.remove('text-error');
-                }
-            });
-    
-            // Simple scroll parallax effect on hero image
-            window.addEventListener('scroll', function() {
-                const hero = document.querySelector('.group img');
-                const scroll = window.pageYOffset;
-                hero.style.transform = `translateY(${scroll * 0.1}px) scale(${1 + scroll * 0.0002})`;
-            });
-        </script>
-    
-    
-    </body></html>
+            }, 800);
+        };
+
+        // Start simulation
+        window.onload = () => {
+            setTimeout(updateProgress, 1000);
+        };
+
+        // Close button mock
+        document.getElementById('close-btn').onclick = () => {
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.reload(), 500);
+        };
+    </script>
+</body></html>

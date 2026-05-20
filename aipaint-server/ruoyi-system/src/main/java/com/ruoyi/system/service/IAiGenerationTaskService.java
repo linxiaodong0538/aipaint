@@ -1,0 +1,25 @@
+package com.ruoyi.system.service;
+
+import com.ruoyi.system.domain.AiGenerationTask;
+
+/**
+ * AI图片生成任务 服务层
+ */
+public interface IAiGenerationTaskService
+{
+    public AiGenerationTask selectGenerationTaskById(Long taskId);
+
+    public AiGenerationTask selectGenerationTaskByIdAndUserId(Long taskId, Long userId);
+
+    public int insertGenerationTask(AiGenerationTask task);
+
+    public int updateGenerationTask(AiGenerationTask task);
+
+    public void markProcessing(Long taskId);
+
+    public void updatePreviewImage(Long taskId, String previewImageUrl);
+
+    public void markSuccess(Long taskId, String resultImageUrl);
+
+    public void markFailed(Long taskId, String errorMessage);
+}

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiGenerationTaskMapper">
+
+    <resultMap type="AiGenerationTask" id="AiGenerationTaskResult">
+        <id     property="taskId"         column="task_id"          />
+        <result property="userId"         column="user_id"          />
+        <result property="prompt"         column="prompt"           />
+        <result property="model"          column="model"            />
+        <result property="quality"        column="quality"          />
+        <result property="ratio"          column="ratio"            />
+        <result property="size"           column="size"             />
+        <result property="status"         column="status"           />
+        <result property="resultImageUrl" column="result_image_url" />
+        <result property="previewImageUrl" column="preview_image_url" />
+        <result property="errorMessage"   column="error_message"    />
+        <result property="creditCost"     column="credit_cost"      />
+        <result property="finishTime"     column="finish_time"      />
+        <result property="createBy"       column="create_by"        />
+        <result property="createTime"     column="create_time"      />
+        <result property="updateBy"       column="update_by"        />
+        <result property="updateTime"     column="update_time"      />
+    </resultMap>
+
+    <sql id="selectGenerationTaskVo">
+        select task_id, user_id, prompt, model, quality, ratio, size, status, result_image_url, preview_image_url, error_message,
+               credit_cost, finish_time, create_by, create_time, update_by, update_time
+        from ai_generation_task
+    </sql>
+
+    <select id="selectGenerationTaskById" parameterType="Long" resultMap="AiGenerationTaskResult">
+        <include refid="selectGenerationTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <select id="selectGenerationTaskByIdAndUserId" resultMap="AiGenerationTaskResult">
+        <include refid="selectGenerationTaskVo"/>
+        where task_id = #{taskId} and user_id = #{userId}
+    </select>
+
+    <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into ai_generation_task(
+            user_id, prompt, model, quality, ratio, size, status, credit_cost, create_by, create_time
+        ) values (
+            #{userId}, #{prompt}, #{model}, #{quality}, #{ratio}, #{size}, #{status}, #{creditCost}, #{createBy}, sysdate()
+        )
+    </insert>
+
+    <update id="updateGenerationTask" parameterType="AiGenerationTask">
+        update ai_generation_task
+        <set>
+            <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="model != null">model = #{model},</if>
+            <if test="quality != null">quality = #{quality},</if>
+            <if test="ratio != null">ratio = #{ratio},</if>
+            <if test="size != null">size = #{size},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="resultImageUrl != null">result_image_url = #{resultImageUrl},</if>
+            <if test="previewImageUrl != null">preview_image_url = #{previewImageUrl},</if>
+            <if test="errorMessage != null">error_message = #{errorMessage},</if>
+            <if test="creditCost != null">credit_cost = #{creditCost},</if>
+            <if test="finishTime != null">finish_time = #{finishTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where task_id = #{taskId}
+    </update>
+</mapper>

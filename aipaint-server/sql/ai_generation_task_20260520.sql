@@ -1,0 +1,22 @@
+create table if not exists ai_generation_task (
+  task_id          bigint(20)      not null auto_increment    comment '任务ID',
+  user_id          bigint(20)      not null                   comment '用户ID',
+  prompt           text            not null                   comment '提示词',
+  model            varchar(64)     not null                   comment '模型',
+  quality          varchar(32)     not null                   comment '质量',
+  ratio            varchar(20)     not null                   comment '画幅比例',
+  size             varchar(32)     not null                   comment '图片尺寸',
+  status           varchar(32)     not null                   comment '任务状态',
+  result_image_url varchar(1000)   default null               comment '结果图片地址',
+  preview_image_url varchar(1000)  default null               comment '预览图片地址',
+  error_message    varchar(1000)   default null               comment '错误信息',
+  credit_cost      int(11)         default 0                  comment '消耗积分',
+  finish_time      datetime        default null               comment '完成时间',
+  create_by        varchar(64)     default ''                 comment '创建者',
+  create_time      datetime                                   comment '创建时间',
+  update_by        varchar(64)     default ''                 comment '更新者',
+  update_time      datetime        default null               comment '更新时间',
+  primary key (task_id),
+  key idx_ai_generation_task_user_status (user_id, status),
+  key idx_ai_generation_task_create_time (create_time)
+) engine=innodb auto_increment=1 comment = 'AI图片生成任务表';
