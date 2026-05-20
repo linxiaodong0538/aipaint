@@ -6,7 +6,7 @@
       >
         <!-- 参考图片 -->
         <view class="mb-[32rpx]">
-          <view class="mb-[24rpx] flex items-end justify-between px-[12rpx]">
+          <view class="mb-[16rpx] flex items-end justify-between px-[12rpx]">
             <text class="text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">参考图片</text>
             <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">1张, 5MB以内</text>
           </view>
@@ -26,7 +26,7 @@
 
         <!-- 画面描述 -->
         <view class="mb-[32rpx]">
-          <text class="mb-[24rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
+          <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
             画面描述
           </text>
           <view class="overflow-hidden rounded-[48rpx] border border-[rgba(255,255,255,0.3)] bg-[rgba(255,255,255,0.8)] p-[24rpx] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)] backdrop-blur-[40rpx]">

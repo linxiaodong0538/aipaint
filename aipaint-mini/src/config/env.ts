@@ -4,7 +4,7 @@ interface EnvironmentConfig {
 
 const baseApi: { [key: string]: EnvironmentConfig } = {
   development: {
-    host: "http://192.168.31.177:8080",
+    host: "http://192.168.124.32:8080",
   },
   trial: {
     host: "https://yourdomian.com",
