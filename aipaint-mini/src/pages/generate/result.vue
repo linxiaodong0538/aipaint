@@ -70,16 +70,22 @@
     </section>
 
     <section
-      class="absolute inset-x-0 top-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out"
+      class="absolute inset-0 flex flex-col items-center transition-all duration-1000 ease-in-out"
       :class="completedStateClass"
+      :style="{ bottom: `${bottomBarHeight}px` }"
     >
-      <view class="relative flex w-full flex-col items-center p-[32rpx]">
-        <view class="aspect-square w-full overflow-hidden border border-[rgba(0,0,0,0.05)] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
+      <view
+        class="relative flex h-full w-full flex-col items-center px-[32rpx] pb-[20rpx] pt-[24rpx]"
+      >
+        <view
+          class="w-full overflow-hidden border border-[rgba(0,0,0,0.05)] bg-[#e2e2e2] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          :style="resultImageFrameStyle"
+        >
           <view class="relative h-full w-full overflow-hidden">
             <image
               v-if="generatedImage"
-              class="h-full w-full scale-[1.05] transition-transform duration-1000"
-              mode="widthFix"
+              class="h-full w-full transition-transform duration-1000"
+              mode="aspectFit"
               :src="generatedImage"
               @tap="previewGeneratedImage"
             />
@@ -88,7 +94,7 @@
         </view>
 
         <view
-          class="mt-[28rpx] w-full rounded-[28rpx] border border-[rgba(0,0,0,0.04)] bg-white/90 px-[28rpx] py-[24rpx] shadow-[0_16rpx_40rpx_rgba(0,0,0,0.05)]"
+          class="mt-[20rpx] w-full rounded-[28rpx] border border-[rgba(0,0,0,0.04)] bg-white/90 px-[28rpx] py-[20rpx] shadow-[0_16rpx_40rpx_rgba(0,0,0,0.05)]"
         >
           <text class="result-prompt block text-[26rpx] font-semibold leading-[38rpx] text-black">
             {{ detailTitle }}
@@ -105,7 +111,7 @@
         </view>
 
         <view
-          class="mt-[36rpx] flex justify-center gap-[32rpx] transition-all delay-500 duration-700"
+          class="mt-[22rpx] flex justify-center gap-[32rpx] transition-all delay-500 duration-700"
           :class="taskState === 'success' ? 'translate-y-0 opacity-100' : 'translate-y-[32rpx] opacity-0'"
         >
           <button class="grid justify-items-center gap-[16rpx] bg-transparent p-0 active:scale-95" open-type="share">
@@ -125,8 +131,9 @@
     </section>
 
     <view
-      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.1)] bg-[rgba(255,255,255,0.9)] px-[48rpx] pt-[32rpx] backdrop-blur-[40rpx] transition-transform duration-700 ease-out"
-      :class="taskState === 'success' ? 'translate-y-0' : 'translate-y-full'"
+      v-if="bottomBarVisible"
+      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.1)] bg-[rgba(255,255,255,0.9)] px-[48rpx] pt-[32rpx] backdrop-blur-[40rpx]"
+      :class="bottomBarClass"
       :style="{ height: `${bottomBarHeight}px`, paddingBottom: footerSafePadding }"
     >
       <button
@@ -142,7 +149,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { onLoad, onUnload } from "@dcloudio/uni-app";
+import { onLoad, onReady, onUnload } from "@dcloudio/uni-app";
 import { getGenerationTask, type GenerationTask } from "@/api/generate";
 import { navigateBack } from "@/utils/router";
 
@@ -161,6 +168,10 @@ const taskRatio = ref("");
 const taskCreateTime = ref("");
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
+const windowHeight = ref(667);
+const isHistoryDetail = ref(false);
+const bottomBarVisible = ref(false);
+const resultDetailStorageKey = "generateResultDetailTask";
 
 let progressTimer: ReturnType<typeof setInterval> | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -171,9 +182,11 @@ try {
   const info = uni.getSystemInfoSync();
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0;
   windowWidth.value = info.windowWidth || 375;
+  windowHeight.value = info.windowHeight || 667;
 } catch {
   safeAreaBottom.value = 0;
   windowWidth.value = 375;
+  windowHeight.value = 667;
 }
 
 const roundedProgress = computed(() => Math.min(100, Math.floor(progress.value)));
@@ -186,6 +199,20 @@ const detailTags = computed(() => [
   taskRatio.value,
   formatCreateTime(taskCreateTime.value),
 ].filter(Boolean));
+const resultImageFrameStyle = computed(() => {
+  const { width, height } = getRatioSize(taskRatio.value);
+  const contentWidth = windowWidth.value - rpxToPx(64);
+  const reservedHeight = bottomBarHeight.value + rpxToPx(450);
+  const maxHeight = Math.max(rpxToPx(300), windowHeight.value - reservedHeight);
+  const widthByHeight = maxHeight * (width / height);
+  const displayWidth = Math.min(contentWidth, widthByHeight);
+  const displayHeight = displayWidth * (height / width);
+
+  return {
+    width: `${Math.round(displayWidth)}px`,
+    height: `${Math.round(displayHeight)}px`,
+  };
+});
 
 const progressTitle = computed(() => {
   if (taskState.value === "failed") return "生成失败";
@@ -213,9 +240,28 @@ const completedStateClass = computed(() => (
     ? "translate-y-0 opacity-100"
     : "translate-y-[64rpx] opacity-0 pointer-events-none"
 ));
+const bottomBarClass = computed(() => {
+  if (taskState.value === "success" && isHistoryDetail.value) return "translate-y-0";
+  return [
+    "transition-transform duration-700 ease-out",
+    taskState.value === "success" ? "translate-y-0" : "translate-y-full",
+  ];
+});
 
 function rpxToPx(rpx: number) {
   return (windowWidth.value / 750) * rpx;
+}
+
+function getRatioSize(ratio?: string) {
+  const [width, height] = (ratio || "1:1")
+    .split(":")
+    .map((value) => Number(value));
+
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return { width: 1, height: 1 };
+  }
+
+  return { width, height };
 }
 
 onLoad((query) => {
@@ -226,11 +272,22 @@ onLoad((query) => {
   }
 
   taskId.value = id;
+
+  if (query?.from === "works" && hydrateCompletedTaskFromStorage(id)) {
+    return;
+  }
+
   startProgress();
   void pollTask();
   pollTimer = setInterval(() => {
     void pollTask();
   }, 2000);
+});
+
+onReady(() => {
+  if (taskState.value === "success") {
+    showBottomBarAfterEnter();
+  }
 });
 
 onUnload(() => {
@@ -284,13 +341,22 @@ async function pollTask() {
   }
 }
 
-function completeTask(imageUrl: string) {
+function completeTask(imageUrl: string, options: { instant?: boolean; toast?: boolean } = {}) {
   generatedImage.value = imageUrl;
   progress.value = 100;
   stopTimers();
+  if (options.instant) {
+    taskState.value = "success";
+    showBottomBarAfterEnter();
+    return;
+  }
+
   setTimeout(() => {
     taskState.value = "success";
-    uni.showToast({ title: "生成完成", icon: "success" });
+    bottomBarVisible.value = true;
+    if (options.toast !== false) {
+      uni.showToast({ title: "生成完成", icon: "success" });
+    }
   }, 500);
 }
 
@@ -300,6 +366,20 @@ function applyTaskDetails(task: GenerationTask) {
   taskQuality.value = task.quality || "";
   taskRatio.value = task.ratio || "";
   taskCreateTime.value = task.createTime || task.finishTime || "";
+}
+
+function hydrateCompletedTaskFromStorage(expectedTaskId: number) {
+  const task = uni.getStorageSync(resultDetailStorageKey) as GenerationTask | "";
+  uni.removeStorageSync(resultDetailStorageKey);
+
+  if (!task || task.taskId !== expectedTaskId || task.status !== "success" || !task.resultImageUrl) {
+    return false;
+  }
+
+  isHistoryDetail.value = true;
+  applyTaskDetails(task);
+  completeTask(task.resultImageUrl, { instant: true, toast: false });
+  return true;
 }
 
 function formatModel(model: string) {
@@ -324,8 +404,22 @@ function formatCreateTime(value: string) {
 function failTask(message: string) {
   errorMessage.value = message;
   stopTimers();
+  bottomBarVisible.value = false;
   taskState.value = "failed";
   uni.showToast({ title: message, icon: "none" });
+}
+
+function showBottomBarAfterEnter() {
+  if (!isHistoryDetail.value) {
+    bottomBarVisible.value = true;
+    return;
+  }
+
+  setTimeout(() => {
+    if (taskState.value === "success") {
+      bottomBarVisible.value = true;
+    }
+  }, 350);
 }
 
 function stopTimers() {

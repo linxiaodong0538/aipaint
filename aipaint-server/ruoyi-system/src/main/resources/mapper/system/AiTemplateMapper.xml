@@ -78,10 +78,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select c.category_id, c.category_name, c.category_code, c.sort, c.status, c.create_by, c.create_time, c.update_by, c.update_time, c.remark
         from ai_template_category c
         where c.status = '0'
-          and exists (
-            select 1 from ai_template t
-            where t.category_id = c.category_id and t.status = '0'
-          )
         order by c.sort asc, c.category_id asc
     </select>
 

@@ -64,7 +64,7 @@
         v-for="item in visibleWorks"
         :key="`${item.kind}-${item.taskId}`"
         class="relative flex flex-col"
-        @tap="goTask(item.taskId)"
+        @tap="goTask(item)"
       >
         <view
           v-if="item.kind === 'processing'"
@@ -72,12 +72,12 @@
         >
           <view class="absolute inset-0 flex items-center justify-center">
             <view class="flex flex-col items-center gap-[32rpx]">
-              <view class="relative h-[80rpx] w-[80rpx]">
-                <view class="absolute inset-0 rounded-full border-[4rpx] border-black/10" />
-                <view class="works-spin absolute inset-0 rounded-full border-[4rpx] border-black border-t-transparent" />
+              <view class="works-loader">
+                <view class="works-loader-core" />
+                <view class="works-loader-core works-loader-core-fast" />
               </view>
-              <text class="text-[20rpx] font-semibold uppercase leading-[28rpx] tracking-[4rpx] text-black/60">
-                进行中...
+              <text class="text-[20rpx] font-semibold uppercase mleading-[28rpx] tracking-[4rpx] text-black/60 pt-[16rpx]">
+                绘制中...
               </text>
             </view>
           </view>
@@ -175,21 +175,12 @@ const activeTab = ref<TabValue>("all");
 const userStore = useUserStore();
 const loading = ref(false);
 const tasks = ref<GenerationTask[]>([]);
-const mockProcessingTask: GenerationTask = {
-  taskId: -1,
-  prompt: "未来城市概念图",
-  model: "gpt-image-2",
-  quality: "medium",
-  ratio: "1:1",
-  size: "1024x1024",
-  status: "processing",
-  createTime: new Date().toISOString().slice(0, 19).replace("T", " "),
-};
+const resultDetailStorageKey = "generateResultDetailTask";
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
-  [mockProcessingTask, ...tasks.value]
+  tasks.value
     .filter((task) => task.status === "pending" || task.status === "processing")
     .map((task, index) => ({
       taskId: task.taskId,
@@ -220,7 +211,7 @@ const visibleWorks = computed<GalleryWork[]>(() => {
   const inProgressTaskIds = new Set(inProgressWorks.value.map((item) => item.taskId));
   const completedTaskIds = new Set(completedWorks.value.map((item) => item.taskId));
 
-  return [mockProcessingTask, ...tasks.value]
+  return tasks.value
     .filter((task) => inProgressTaskIds.has(task.taskId) || completedTaskIds.has(task.taskId))
     .map((task) => (
       inProgressWorks.value.find((item) => item.taskId === task.taskId)
@@ -335,8 +326,16 @@ function formatWorkTime(value?: string) {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${hours}:${minutes}`;
 }
 
-function goTask(taskId: number) {
-  navigateTo(routes.generateResult, { taskId });
+function goTask(work: GalleryWork) {
+  const task = tasks.value.find((item) => item.taskId === work.taskId);
+
+  if (work.kind === "completed" && task) {
+    uni.setStorageSync(resultDetailStorageKey, task);
+    navigateTo(routes.generateResult, { taskId: work.taskId, from: "works" });
+    return;
+  }
+
+  navigateTo(routes.generateResult, { taskId: work.taskId });
 }
 
 function startRefreshTimer() {
@@ -367,8 +366,29 @@ function stopRefreshTimer() {
   animation: works-shimmer 1.5s linear infinite;
 }
 
-.works-spin {
-  animation: works-spin 1s linear infinite;
+.works-loader {
+  display: grid;
+  width: 100rpx;
+  height: 87rpx;
+  color: #000;
+  background:
+    linear-gradient(to bottom left, transparent calc(50% - 1px), currentColor 0 calc(50% + 1px), transparent 0) right / 50% 100%,
+    linear-gradient(to bottom right, transparent calc(50% - 1px), currentColor 0 calc(50% + 1px), transparent 0) left / 50% 100%,
+    linear-gradient(currentColor 0 0) bottom / 100% 2px;
+  background-repeat: no-repeat;
+  transform-origin: 50% 66%;
+  animation: works-loader 8s infinite linear;
+}
+
+.works-loader-core {
+  grid-area: 1 / 1;
+  background: inherit;
+  transform-origin: inherit;
+  animation: inherit;
+}
+
+.works-loader-core-fast {
+  animation-duration: 4s;
 }
 
 @keyframes works-shimmer {
@@ -381,13 +401,9 @@ function stopRefreshTimer() {
   }
 }
 
-@keyframes works-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
+@keyframes works-loader {
+  100% {
+    transform: rotate(1turn);
   }
 }
 </style>

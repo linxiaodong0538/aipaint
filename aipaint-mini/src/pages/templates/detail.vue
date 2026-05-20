@@ -118,7 +118,7 @@ const displayPrompt = computed(() => template.value?.prompt || fallbackPrompt);
 const tags = computed(() => {
   const category = template.value?.categoryName || "赛博朋克";
   const ratio = template.value?.ratio || "8K 极致";
-  return [category, "电影感渲染", ratio];
+  return [category, "占位tag", ratio];
 });
 
 function rpxToPx(rpx: number) {
