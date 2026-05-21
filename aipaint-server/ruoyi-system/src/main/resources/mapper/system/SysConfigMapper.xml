@@ -73,7 +73,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         insert into sys_config (
 			<if test="configName != null and configName != '' ">config_name,</if>
 			<if test="configKey != null and configKey != '' ">config_key,</if>
-			<if test="configValue != null and configValue != '' ">config_value,</if>
+			<if test="configValue != null">config_value,</if>
 			<if test="configType != null and configType != '' ">config_type,</if>
 			<if test="createBy != null and createBy != ''">create_by,</if>
 			<if test="remark != null and remark != ''">remark,</if>
@@ -81,7 +81,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         )values(
 			<if test="configName != null and configName != ''">#{configName},</if>
 			<if test="configKey != null and configKey != ''">#{configKey},</if>
-			<if test="configValue != null and configValue != ''">#{configValue},</if>
+			<if test="configValue != null">#{configValue},</if>
 			<if test="configType != null and configType != ''">#{configType},</if>
 			<if test="createBy != null and createBy != ''">#{createBy},</if>
 			<if test="remark != null and remark != ''">#{remark},</if>
@@ -94,7 +94,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <set>
             <if test="configName != null and configName != ''">config_name = #{configName},</if>
             <if test="configKey != null and configKey != ''">config_key = #{configKey},</if>
-            <if test="configValue != null and configValue != ''">config_value = #{configValue},</if>
+            <if test="configValue != null">config_value = #{configValue},</if>
             <if test="configType != null and configType != ''">config_type = #{configType},</if>
             <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             <if test="remark != null">remark = #{remark},</if>

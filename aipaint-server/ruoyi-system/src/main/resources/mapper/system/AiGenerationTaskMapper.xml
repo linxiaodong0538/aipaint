@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="AiGenerationTask" id="AiGenerationTaskResult">
         <id     property="taskId"         column="task_id"          />
         <result property="userId"         column="user_id"          />
+        <result property="providerCode"   column="provider_code"    />
         <result property="prompt"         column="prompt"           />
         <result property="model"          column="model"            />
         <result property="quality"        column="quality"          />
@@ -25,7 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectGenerationTaskVo">
-        select task_id, user_id, prompt, model, quality, ratio, size, status, result_image_url, preview_image_url, error_message,
+        select task_id, user_id, provider_code, prompt, model, quality, ratio, size, status, result_image_url, preview_image_url, error_message,
                credit_cost, finish_time, create_by, create_time, update_by, update_time
         from ai_generation_task
     </sql>
@@ -49,11 +50,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by create_time desc, task_id desc
     </select>
 
-    <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
+        <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
         insert into ai_generation_task(
-            user_id, prompt, model, quality, ratio, size, status, credit_cost, create_by, create_time
+            user_id, provider_code, prompt, model, quality, ratio, size, status, credit_cost, create_by, create_time
         ) values (
-            #{userId}, #{prompt}, #{model}, #{quality}, #{ratio}, #{size}, #{status}, #{creditCost}, #{createBy}, sysdate()
+            #{userId}, #{providerCode}, #{prompt}, #{model}, #{quality}, #{ratio}, #{size}, #{status}, #{creditCost}, #{createBy}, sysdate()
         )
     </insert>
 
@@ -61,6 +62,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update ai_generation_task
         <set>
             <if test="prompt != null">prompt = #{prompt},</if>
+            <if test="providerCode != null">provider_code = #{providerCode},</if>
             <if test="model != null">model = #{model},</if>
             <if test="quality != null">quality = #{quality},</if>
             <if test="ratio != null">ratio = #{ratio},</if>

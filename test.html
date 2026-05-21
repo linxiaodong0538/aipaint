@@ -1,265 +1,293 @@
-<!DOCTYPE html>
-
-<html class="light" lang="zh-CN"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<title>VisionAI - Technical Blueprint</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-        tailwind.config = {
+<!DOCTYPE html><html class="light" lang="zh" style=""><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>VisionAI - 积分明细</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+          tailwind.config = {
             darkMode: "class",
             theme: {
-                extend: {
-                    "colors": {
-                        "on-secondary": "#ffffff",
-                        "surface-container-high": "#e8e8e8",
-                        "surface-tint": "#5e5e5e",
-                        "tertiary": "#000000",
-                        "surface-container-highest": "#e2e2e2",
-                        "tertiary-fixed": "#e2e2e2",
-                        "surface-container": "#eeeeee",
-                        "surface-bright": "#f9f9f9",
-                        "on-tertiary-fixed-variant": "#454747",
-                        "on-tertiary-container": "#838484",
-                        "error": "#ba1a1a",
-                        "primary-fixed-dim": "#c6c6c6",
-                        "on-secondary-fixed": "#1c1b1b",
+              extend: {
+                "colors": {
                         "on-primary-fixed-variant": "#474747",
-                        "on-error-container": "#93000a",
-                        "on-tertiary-fixed": "#1a1c1c",
-                        "on-error": "#ffffff",
-                        "inverse-surface": "#2f3131",
-                        "surface": "#f9f9f9",
-                        "primary-container": "#1b1b1b",
                         "on-primary-fixed": "#1b1b1b",
-                        "tertiary-fixed-dim": "#c6c6c7",
-                        "surface-container-low": "#f3f3f4",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "inverse-surface": "#2f3131",
+                        "secondary-container": "#e2dfde",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
+                        "tertiary": "#000000",
                         "secondary-fixed-dim": "#c8c6c5",
-                        "on-tertiary": "#ffffff",
-                        "surface-variant": "#e2e2e2",
-                        "on-surface-variant": "#4c4546",
-                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9f9",
+                        "primary-fixed": "#e2e2e2",
+                        "on-surface": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#474746",
+                        "secondary": "#5f5e5e",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeeeee",
+                        "background": "#f9f9f9",
+                        "primary": "#000000",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#e5e2e1",
+                        "surface-tint": "#5e5e5e",
                         "surface-dim": "#dadada",
                         "on-background": "#1a1c1c",
-                        "outline": "#7e7576",
-                        "secondary-container": "#e2dfde",
-                        "tertiary-container": "#1a1c1c",
-                        "secondary": "#5f5e5e",
-                        "on-surface": "#1a1c1c",
-                        "primary-fixed": "#e2e2e2",
-                        "surface-container-lowest": "#ffffff",
-                        "on-primary-container": "#848484",
+                        "surface-container-low": "#f3f3f4",
                         "on-secondary-container": "#636262",
-                        "on-secondary-fixed-variant": "#474746",
-                        "inverse-on-surface": "#f0f1f1",
-                        "outline-variant": "#cfc4c5",
-                        "primary": "#000000",
-                        "secondary-fixed": "#e5e2e1",
-                        "error-container": "#ffdad6",
                         "inverse-primary": "#c6c6c6",
-                        "background": "#f9f9f9"
-                    },
-                    "borderRadius": {
+                        "surface-variant": "#e2e2e2",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-tertiary-container": "#838484",
+                        "outline": "#7e7576",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "outline-variant": "#cfc4c5",
+                        "inverse-on-surface": "#f0f1f1",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-surface-variant": "#4c4546",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#848484",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary-container": "#1b1b1b",
+                        "tertiary-container": "#1a1c1c"
+                },
+                "borderRadius": {
                         "DEFAULT": "0.25rem",
                         "lg": "0.5rem",
                         "xl": "0.75rem",
                         "full": "9999px"
-                    },
-                    "spacing": {
-                        "unit": "8px",
+                },
+                "spacing": {
                         "gutter": "24px",
-                        "stack-md": "16px",
-                        "stack-lg": "32px",
                         "stack-xl": "64px",
-                        "container-padding": "32px",
+                        "stack-lg": "32px",
+                        "unit": "8px",
                         "stack-sm": "8px",
-                        "container-margin": "24px"
-                    },
-                    "fontFamily": {
-                        "body-md": ["Plus Jakarta Sans"],
-                        "label-sm": ["Plus Jakarta Sans"],
+                        "stack-md": "16px",
+                        "container-padding": "32px"
+                },
+                "fontFamily": {
                         "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
                         "body-lg": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
                         "headline-md": ["Plus Jakarta Sans"],
                         "display": ["Plus Jakarta Sans"],
-                        "label-lg": ["Plus Jakarta Sans"],
-                        "headline-lg-mobile": ["Plus Jakarta Sans"],
-                        "mono": ["JetBrains Mono", "monospace"]
-                    },
-                    "fontSize": {
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "label-sm": ["Plus Jakarta Sans"]
+                },
+                "fontSize": {
                         "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
                         "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
                         "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
                         "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
-                        "label-sm-mobile": ["11px", {"lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500"}],
-                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
-                    }
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
                 }
+              },
+            },
+          }
+        </script>
+    <style>
+            body {
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                background-color: #f9f9f9;
             }
-        }
-    </script>
-<style>
-        body {
-            background-color: #f9f9f9;
-            color: #1a1c1c;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        .technical-grid {
-            background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 0);
-            background-size: 20px 20px;
-        }
-
-        .blueprint-line {
-            background: linear-gradient(90deg, transparent 0%, #1a1c1c 50%, transparent 100%);
-            height: 1px;
-            width: 100%;
-            opacity: 0.1;
-        }
-
-        /* AI Thinking Animation */
-        .ai-pulse {
-            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); filter: blur(0px); }
-            50% { opacity: 0.5; transform: scale(1.1); filter: blur(4px); }
-        }
-
-        .orbit-container {
-            position: relative;
-            width: 240px;
-            height: 240px;
-        }
-        .orbit-ring {
-            position: absolute;
-            border: 1px solid rgba(0,0,0,1);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .orbit-particle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: black;
-            border-radius: 50%;
-            top: -4px;
-            left: 50%;
-            margin-left: -4px;
-        }
-        .animate-orbit {
-            animation: spin 8s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        .fade-out { opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
-        .fade-in { opacity: 1; transition: opacity 0.8s ease 0.2s; }
-    </style>
-</head>
-<body class="overflow-x-hidden">
-</header>
-<main class="relative w-full min-h-screen flex flex-col">
-<!-- STATE 1: In Progress -->
-
-<!-- STATE 2: Completed - YOLO Variant -->
-<section class="opacity-1 pointer-events-none w-full flex flex-col transition-all duration-1000 ease-in-out" id="completed-state">
-<!-- Hero Image: Aligned to top, no margin -->
-<div class="w-full aspect-square relative bg-black">
-<img alt="Generated AI Art Result" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ugEjr50BfrZFUUpvSw5rORTcXg7A1ByxYC9Ro03lQ4he4tJ5LXiXTTrY4d2dwlPPG6LcGOgwh3KAzJ5q11tVvIp-0-d4y3MsfKKi1fQEd8jm37-m-fR5vR_Be7cUIVW4-NRJGz0McWwiOxNnJoRhSI3pn-uP28YcHV1Kj-CZea9ZmUSq8MF-LyEuWyFRgfFq5YZjGHnwKbzajdAsPexAOGsRzyh6sOcsjtM65SyIuQ0emgdbZO-Bcgmfsa-"/>
-<!-- Image Overlay Specs (Subtle) -->
-<div class="absolute bottom-4 left-4 font-mono text-[10px] text-white/50 tracking-tighter uppercase">
-                LATENT_SPACE_PROJECTION_V2.4
-            </div>
-</div>
-<!-- Technical Blueprint Content -->
-<div class="flex-1 bg-white px-6 pt-8 pb-32 technical-grid border-t border-black">
-<div class="flex justify-between items-end mb-6">
-<div>
-<h3 class="font-mono text-[10px] text-outline uppercase tracking-[0.2em] mb-1">真实性认证</h3>
-<h2 class="font-headline-md text-[20px] text-primary leading-none uppercase tracking-tight">生成参数</h2>
-</div>
-<div class="text-right">
-<span class="font-mono text-[10px] font-bold text-black border border-black px-2 py-0.5">已验证</span>
-</div>
-</div>
-<!-- Blueprint Grid -->
-<div class="grid grid-cols-2 border-l border-t border-black/10">
-<!-- Cell 1 -->
-<div class="p-4 border-r border-b border-black/10 flex flex-col gap-1">
-<span class="font-mono text-[9px] text-outline uppercase tracking-wider">模型</span>
-<span class="font-mono text-body-md font-medium text-primary">gpt-image-2</span>
-</div>
-<!-- Cell 2 -->
-<div class="p-4 border-r border-b border-black/10 flex flex-col gap-1">
-<span class="font-mono text-[9px] text-outline uppercase tracking-wider">尺寸</span>
-<span class="font-mono text-body-md font-medium text-primary">1254 x 1254</span>
-</div>
-<!-- Cell 3 -->
-<div class="p-4 border-r border-b border-black/10 flex flex-col gap-1">
-<span class="font-mono text-[9px] text-outline uppercase tracking-wider">积分</span>
-<span class="font-mono text-body-md font-medium text-primary">1.94 CREDITS</span>
-</div>
-<!-- Cell 4 -->
-<div class="p-4 border-r border-b border-black/10 flex flex-col gap-1">
-<span class="font-mono text-[9px] text-outline uppercase tracking-wider">状态</span>
-<span class="font-mono text-body-md font-medium text-primary flex items-center gap-1.5">
-<span class="w-1.5 h-1.5 rounded-full bg-black"></span>
-                        已完成
-                    </span>
-</div>
-<!-- Row Span Cell -->
-<div class="col-span-2 p-4 border-r border-b border-black/10 flex flex-col gap-1">
-<span class="font-mono text-[9px] text-outline uppercase tracking-wider">创建时间</span>
-<span class="font-mono text-body-md font-medium text-primary">2026年5月21日 UTC 03:21</span>
-</div>
-</div>
-<!-- Visual Divider Decoration -->
-<div class="mt-8 flex items-center gap-4 overflow-hidden opacity-30">
-<div class="blueprint-line flex-1"></div>
-<div class="font-mono text-[10px] whitespace-nowrap">技术数据结束</div>
-<div class="blueprint-line flex-1"></div>
-</div>
-<!-- Quick Actions -->
-<div class="grid grid-cols-3 gap-0 mt-8 border border-black/10 divide-x divide-black/10">
-<button class="flex flex-col items-center justify-center py-4 hover:bg-black/5 active:bg-black/10 transition-colors">
-<span class="material-symbols-outlined text-primary mb-1">share</span>
-<span class="font-mono text-[10px] text-outline uppercase">分享</span>
-</button>
-<button class="flex flex-col items-center justify-center py-4 hover:bg-black/5 active:bg-black/10 transition-colors">
-<span class="material-symbols-outlined text-primary mb-1">refresh</span>
-<span class="font-mono text-[10px] text-outline uppercase">重试</span>
-</button>
-<button class="flex flex-col items-center justify-center py-4 hover:bg-black/5 active:bg-black/10 transition-colors">
-<span class="material-symbols-outlined text-primary mb-1">edit_square</span>
-<span class="font-mono text-[10px] text-outline uppercase">编辑</span>
-</button>
-</div>
-</div>
-</section>
-</main>
-<!-- Fixed Bottom Bar -->
-<footer class="fixed bottom-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md px-6 pt-4 pb-10 flex flex-col items-center transform translate-y-full transition-transform duration-700 ease-out border-t border-black/5 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]" id="bottom-bar">
-<button class="w-full bg-black text-white py-4 rounded-full font-mono text-[13px] tracking-widest uppercase shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 group">
-<span class="material-symbols-outlined text-[18px]">download</span>
-        保存到相册
+            .material-symbols-outlined {
+                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+            /* Custom Glassmorphism Effect */
+            .glass {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+            }
+            /* Tactile Shadows */
+            .shadow-tactile {
+                box-shadow: 0px 20px 40px rgba(0,0,0, 0.05), inset 0px 1px 0px rgba(255,255,255,0.1);
+            }
+            .inner-glow:active {
+                box-shadow: inset 0px 2px 4px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body class="text-on-background selection:bg-primary selection:text-on-primary overflow-x-hidden">
+    <!-- TopAppBar -->
+    <header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-4 bg-surface/80 dark:bg-background/80 backdrop-blur-xl shadow-sm">
+    <div class="flex items-center gap-4">
+    <button class="transition-all duration-300 ease-in-out active:scale-95 text-primary">
+    
     </button>
-</footer>
-
-</body></html>
+    <h1 class="text-headline-md font-headline-md font-bold text-primary">积分明细</h1>
+    </div>
+    <div class="flex items-center gap-2">
+    
+    </div>
+    </header>
+    <main class="pt-[88px] pb-[100px] px-gutter max-w-2xl mx-auto min-h-screen">
+    <!-- Summary Card -->
+    <section class="mb-stack-lg">
+    <div class="bg-primary p-container-padding rounded-[24px] text-on-primary shadow-tactile relative overflow-hidden group">
+    <!-- Abstract Texture Overlay -->
+    <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/40 via-transparent to-transparent"></div>
+    <div class="relative z-10">
+    <p class="text-label-sm font-label-sm uppercase tracking-widest opacity-70 mb-2">当前可用积分</p>
+    <div class="flex items-baseline gap-2 mb-6">
+    <span class="text-display font-display leading-none">1,240</span>
+    <span class="text-headline-md font-headline-md opacity-60">.50</span>
+    </div>
+    <div class="flex gap-4">
+    <button class="bg-white text-black px-6 py-2.5 rounded-full text-label-lg font-label-lg transition-transform hover:scale-105 active:scale-95">
+                                立即充值
+                            </button>
+    <button class="border border-white/20 hover:bg-white/10 text-white px-6 py-2.5 rounded-full text-label-lg font-label-lg transition-all">
+                                积分兑换
+                            </button>
+    </div>
+    </div>
+    </div>
+    </section>
+    <!-- Transaction Filters -->
+    <div class="flex gap-3 mb-stack-md overflow-x-auto pb-2 scrollbar-hide">
+    <button class="whitespace-nowrap bg-primary text-on-primary px-4 py-2 rounded-full text-label-sm font-label-sm">全部记录</button>
+    <button class="whitespace-nowrap bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-sm font-label-sm hover:bg-surface-container-high">图片生成</button>
+    <button class="whitespace-nowrap bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-sm font-label-sm hover:bg-surface-container-high">每日签到</button>
+    <button class="whitespace-nowrap bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-sm font-label-sm hover:bg-surface-container-high">任务奖励</button>
+    </div>
+    <!-- Transaction List -->
+    <div class="space-y-stack-sm">
+    <!-- Group Header -->
+    <div class="pt-stack-md pb-stack-sm">
+    <h3 class="text-label-sm font-label-sm text-secondary uppercase tracking-widest">2026年5月</h3>
+    </div>
+    <!-- Transaction Item: Deduction -->
+    <div class="bg-surface-container-lowest border border-black/[0.03] p-4 rounded-[20px] shadow-sm hover:shadow-tactile transition-all duration-300 flex items-center justify-between group">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+    <span class="material-symbols-outlined">image</span>
+    </div>
+    <div>
+    <h4 class="text-label-lg font-label-lg text-primary">生成图片</h4>
+    <p class="text-label-sm font-label-sm text-secondary">2026-05-21 14:32:05</p>
+    </div>
+    </div>
+    <div class="text-right">
+    <p class="text-headline-md font-headline-md text-primary">-1.94</p>
+    <p class="text-[10px] text-secondary opacity-50">GPT-Image-2</p>
+    </div>
+    </div>
+    <!-- Transaction Item: Reward -->
+    <div class="bg-surface-container-lowest border border-black/[0.03] p-4 rounded-[20px] shadow-sm hover:shadow-tactile transition-all duration-300 flex items-center justify-between group">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+    <span class="material-symbols-outlined">task_alt</span>
+    </div>
+    <div>
+    <h4 class="text-label-lg font-label-lg text-primary">每日签到</h4>
+    <p class="text-label-sm font-label-sm text-secondary">2026-05-21 08:00:12</p>
+    </div>
+    </div>
+    <div class="text-right">
+    <p class="text-headline-md font-headline-md text-primary">+5.00</p>
+    <p class="text-[10px] text-secondary opacity-50">奖励</p>
+    </div>
+    </div>
+    <!-- Transaction Item: Deduction -->
+    <div class="bg-surface-container-lowest border border-black/[0.03] p-4 rounded-[20px] shadow-sm hover:shadow-tactile transition-all duration-300 flex items-center justify-between group">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+    <span class="material-symbols-outlined">edit_square</span>
+    </div>
+    <div>
+    <h4 class="text-label-lg font-label-lg text-primary">高级扩图</h4>
+    <p class="text-label-sm font-label-sm text-secondary">2026-05-20 22:15:44</p>
+    </div>
+    </div>
+    <div class="text-right">
+    <p class="text-headline-md font-headline-md text-primary">-10.00</p>
+    <p class="text-[10px] text-secondary opacity-50">Ultra-Extend</p>
+    </div>
+    </div>
+    <!-- Transaction Item: Refund -->
+    <div class="bg-surface-container-lowest border border-black/[0.03] p-4 rounded-[20px] shadow-sm hover:shadow-tactile transition-all duration-300 flex items-center justify-between group">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-error-container/30 rounded-xl flex items-center justify-center text-error transition-transform group-hover:scale-110">
+    <span class="material-symbols-outlined">replay_circle_filled</span>
+    </div>
+    <div>
+    <h4 class="text-label-lg font-label-lg text-primary">生成失败退款</h4>
+    <p class="text-label-sm font-label-sm text-secondary">2026-05-20 19:40:22</p>
+    </div>
+    </div>
+    <div class="text-right">
+    <p class="text-headline-md font-headline-md text-primary">+1.31</p>
+    <p class="text-[10px] text-error">超时自动退回</p>
+    </div>
+    </div>
+    <!-- Transaction Item: Referral -->
+    <div class="bg-surface-container-lowest border border-black/[0.03] p-4 rounded-[20px] shadow-sm hover:shadow-tactile transition-all duration-300 flex items-center justify-between group">
+    <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+    <span class="material-symbols-outlined">group_add</span>
+    </div>
+    <div>
+    <h4 class="text-label-lg font-label-lg text-primary">邀请好友奖励</h4>
+    <p class="text-label-sm font-label-sm text-secondary">2026-05-19 11:10:05</p>
+    </div>
+    </div>
+    <div class="text-right">
+    <p class="text-headline-md font-headline-md text-primary">+50.00</p>
+    <p class="text-[10px] text-secondary opacity-50">邀请码: AI_992x</p>
+    </div>
+    </div>
+    </div>
+    <!-- Load More Button -->
+    <div class="mt-stack-lg text-center">
+    
+    </div>
+    </main>
+    <!-- BottomNavBar -->
+    
+    <script>
+            // Micro-interaction for list items
+            document.querySelectorAll('.group').forEach(item => {
+                item.addEventListener('touchstart', () => {
+                    item.style.transform = 'scale(0.98)';
+                });
+                item.addEventListener('touchend', () => {
+                    item.style.transform = 'scale(1)';
+                });
+            });
+    
+            // Sticky header behavior
+            let lastScrollTop = 0;
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollTop > 50) {
+                    header.classList.add('shadow-md');
+                    header.classList.add('bg-white/95');
+                } else {
+                    header.classList.remove('shadow-md');
+                    header.classList.remove('bg-white/95');
+                }
+                lastScrollTop = scrollTop;
+            });
+        </script>
+    
+    
+    </body></html>

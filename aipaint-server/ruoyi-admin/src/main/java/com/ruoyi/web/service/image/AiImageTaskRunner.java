@@ -19,14 +19,14 @@ public class AiImageTaskRunner
 
     private final IAiGenerationTaskService taskService;
 
-    private final AiImageGatewayClient gatewayClient;
+    private final AiImageService aiImageService;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-    public AiImageTaskRunner(IAiGenerationTaskService taskService, AiImageGatewayClient gatewayClient)
+    public AiImageTaskRunner(IAiGenerationTaskService taskService, AiImageService aiImageService)
     {
         this.taskService = taskService;
-        this.gatewayClient = gatewayClient;
+        this.aiImageService = aiImageService;
     }
 
     public void submit(Long taskId)
@@ -45,7 +45,7 @@ public class AiImageTaskRunner
                 return;
             }
 
-            String resultImageUrl = gatewayClient.generateAndSave(task.getPrompt(), task.getSize(), task.getQuality());
+            String resultImageUrl = aiImageService.generateAndSave(task);
             taskService.markSuccess(taskId, resultImageUrl);
         }
         catch (Exception e)

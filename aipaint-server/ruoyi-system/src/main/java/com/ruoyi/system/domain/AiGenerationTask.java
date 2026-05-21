@@ -20,6 +20,10 @@ public class AiGenerationTask extends BaseEntity
     @Excel(name = "用户ID")
     private Long userId;
 
+    /** 提供方编码 */
+    @Excel(name = "提供方编码")
+    private String providerCode;
+
     /** 提示词 */
     @Excel(name = "提示词")
     private String prompt;
@@ -82,6 +86,16 @@ public class AiGenerationTask extends BaseEntity
     public void setUserId(Long userId)
     {
         this.userId = userId;
+    }
+
+    public String getProviderCode()
+    {
+        return providerCode;
+    }
+
+    public void setProviderCode(String providerCode)
+    {
+        this.providerCode = providerCode;
     }
 
     public String getPrompt()

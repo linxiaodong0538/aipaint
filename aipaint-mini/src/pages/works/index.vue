@@ -124,7 +124,7 @@
           v-if="userStore.isLogin && loading"
           class="mt-[128rpx] flex flex-col items-center text-center"
         >
-          <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#d8d8d8] border-t-black" />
+          <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#231818] border-t-black" />
           <text class="mt-[28rpx] text-[26rpx] font-medium leading-[36rpx] text-[#7d7d7d]">加载作品中...</text>
         </view>
 
@@ -133,7 +133,7 @@
           class="mt-[148rpx] flex flex-col items-center px-[12rpx] py-[64rpx] text-center"
         >
           <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
-            <text class="iconfont icon-images text-[96rpx] leading-none text-black/10" />
+            <text class="iconfont icon-images leading-none text-black/10" style="font-size:400rpx"/>
           </view>
           <text class="block text-[40rpx] font-semibold leading-[64rpx] text-black">
             暂无作品

@@ -23,6 +23,17 @@ export interface TemplateItem {
   createTime?: string;
 }
 
+export interface TemplateListParams {
+  categoryId?: string;
+  pageNum?: number;
+  pageSize?: number;
+}
+
+export interface TemplateListResult {
+  rows: TemplateItem[];
+  total: number;
+}
+
 export function getTemplateCategories() {
   return request<TemplateCategory[]>({
     url: "/mini/templates/categories",
@@ -30,12 +41,15 @@ export function getTemplateCategories() {
   });
 }
 
-export function listTemplates(params?: Record<string, string>) {
-  return request<TemplateItem[]>({
+export function listTemplates(params?: TemplateListParams) {
+  return request<TemplateListResult>({
     url: "/mini/templates/list",
     method: "GET",
     params,
-  }).then((list) => list.map((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) })));
+  }).then((result) => ({
+    ...result,
+    rows: (result.rows || []).map((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) })),
+  }));
 }
 
 export function getTemplateDetail(templateId: number | string) {

@@ -1,6 +1,13 @@
 <template>
   <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
-    <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
+    <scroll-view
+      class="h-screen"
+      scroll-y
+      enhanced
+      :show-scrollbar="false"
+      lower-threshold="160"
+      @scrolltolower="handleScrollToLower"
+    >
       <view class="px-[24rpx] pb-[80rpx] pt-[24rpx]">
         <view
           class="relative h-[420rpx] overflow-hidden rounded-[46rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
@@ -47,26 +54,28 @@
           </button>
         </view>
 
-        <scroll-view
-          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+48rpx)] whitespace-nowrap"
-          scroll-x
-          enhanced
-          :show-scrollbar="false"
-        >
-          <view class="flex gap-[16rpx] px-[48rpx] pb-[4rpx]">
-            <button
-              v-for="chip in chipList"
-              :key="chip.categoryId"
-              class="inline-flex w-auto min-w-0 shrink-0 items-center justify-center rounded-full px-[24rpx] py-[12rpx] text-[26rpx] font-semibold leading-[34rpx] active:scale-95"
-              :class="isActiveChip(chip) ? 'bg-black text-white' : 'bg-[#e2e2e2] text-[#1a1c1c]'"
-              @tap="handleCategoryChange(chip)"
-            >
-              {{ chip.categoryName }}
-            </button>
-          </view>
-        </scroll-view>
+        <view class="sticky top-0 z-20 mt-[20rpx] overflow-hidden bg-[#f9f9f9] pb-[24rpx] pt-[24rpx]">
+          <scroll-view
+            class="w-full whitespace-nowrap"
+            scroll-x
+            enhanced
+            :show-scrollbar="false"
+          >
+            <view class="flex gap-[16rpx] pb-[4rpx]">
+              <button
+                v-for="chip in chipList"
+                :key="chip.categoryId"
+                class="inline-flex w-auto min-w-0 shrink-0 items-center justify-center rounded-full px-[24rpx] py-[12rpx] text-[26rpx] font-semibold leading-[34rpx] active:scale-95"
+                :class="isActiveChip(chip) ? 'bg-black text-white' : 'bg-[#e2e2e2] text-[#1a1c1c]'"
+                @tap="handleCategoryChange(chip)"
+              >
+                {{ chip.categoryName }}
+              </button>
+            </view>
+          </scroll-view>
+        </view>
 
-        <view class="mt-[28rpx] columns-2 gap-[24rpx]">
+        <view class="columns-2 gap-[24rpx]">
           <view
             v-for="item in templates"
             :key="item.templateId"
@@ -96,6 +105,12 @@
             </view>
           </view>
         </view>
+
+        <view class="flex items-center justify-center py-[96rpx]">
+          <text class="text-[24rpx] leading-[32rpx] text-[#767676]">
+            {{ loadingMore ? "加载中..." : loadMoreText }}
+          </text>
+        </view>
       </view>
     </scroll-view>
   </view>
@@ -112,6 +127,11 @@ const heroImage =
 const chips = ref<TemplateCategory[]>([]);
 const activeCategoryId = ref<number | "all">("all");
 const templates = ref<TemplateItem[]>([]);
+const pageNum = ref(1);
+const pageSize = 10;
+const total = ref(0);
+const loadingTemplates = ref(false);
+const loadingMore = ref(false);
 
 const defaultChip: TemplateCategory = {
   categoryId: 0,
@@ -120,6 +140,12 @@ const defaultChip: TemplateCategory = {
 };
 
 const chipList = computed(() => [defaultChip, ...chips.value]);
+const hasMore = computed(() => templates.value.length < total.value);
+const loadMoreText = computed(() => {
+  if (!templates.value.length && !loadingTemplates.value) return "暂无模板";
+  if (hasMore.value) return "上滑加载更多";
+  return "已经到底了";
+});
 
 async function loadCategories() {
   const data = await getTemplateCategories();
@@ -127,16 +153,36 @@ async function loadCategories() {
 }
 
 async function loadTemplates() {
+  if (loadingTemplates.value) return;
+
+  loadingTemplates.value = true;
   const params: Record<string, string> = {};
   if (activeCategoryId.value !== "all") {
     params.categoryId = String(activeCategoryId.value);
   }
-  templates.value = await listTemplates(params);
+
+  try {
+    const result = await listTemplates({
+      ...params,
+      pageNum: pageNum.value,
+      pageSize,
+    });
+
+    total.value = result.total || 0;
+    const rows = result.rows || [];
+    templates.value = pageNum.value === 1 ? rows : [...templates.value, ...rows];
+  } finally {
+    loadingTemplates.value = false;
+    loadingMore.value = false;
+  }
 }
 
-function handleCategoryChange(chip: TemplateCategory) {
+async function handleCategoryChange(chip: TemplateCategory) {
   activeCategoryId.value = chip.categoryCode === "all" ? "all" : chip.categoryId;
-  loadTemplates();
+  pageNum.value = 1;
+  total.value = 0;
+  templates.value = [];
+  await loadTemplates();
 }
 
 function isActiveChip(chip: TemplateCategory) {
@@ -164,6 +210,14 @@ function goTemplates() {
 
 function goGenerate() {
   navigateTo(routes.generate);
+}
+
+async function handleScrollToLower() {
+  if (loadingTemplates.value || loadingMore.value || !hasMore.value) return;
+
+  loadingMore.value = true;
+  pageNum.value += 1;
+  await loadTemplates();
 }
 
 onMounted(async () => {

@@ -1,6 +1,7 @@
 create table if not exists ai_generation_task (
   task_id          bigint(20)      not null auto_increment    comment '任务ID',
   user_id          bigint(20)      not null                   comment '用户ID',
+  provider_code    varchar(32)     not null default ''        comment '提供方编码',
   prompt           text            not null                   comment '提示词',
   model            varchar(64)     not null                   comment '模型',
   quality          varchar(32)     not null                   comment '质量',
