@@ -1,8 +1,8 @@
 <template>
   <view class="min-h-screen bg-[#f9f9f9] font-sans text-[#1a1c1c]">
-    <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
+    <scroll-view class="h-screen" scroll-y :show-scrollbar="false">
       <view
-        class="mx-auto flex max-w-[750rpx] flex-col gap-[32rpx] px-[24rpx] pb-[256rpx] pt-[40rpx]"
+        class="mx-auto flex max-w-[750rpx] flex-col gap-[32rpx] px-[24rpx] pb-[256rpx]"
       >
         <view class="relative">
           <view

@@ -20,8 +20,6 @@ public interface IAiGenerationTaskService
 
     public void markProcessing(Long taskId);
 
-    public void updatePreviewImage(Long taskId, String previewImageUrl);
-
     public void markSuccess(Long taskId, String resultImageUrl);
 
     public void markFailed(Long taskId, String errorMessage);

@@ -21,8 +21,6 @@ public class AiImageProperties
 
     private String testSize = "1024x1024";
 
-    private Integer partialImages = 1;
-
     public boolean hasApiKey()
     {
         return StringUtils.isNotBlank(apiKey);
@@ -78,13 +76,4 @@ public class AiImageProperties
         this.testSize = testSize;
     }
 
-    public Integer getPartialImages()
-    {
-        return partialImages;
-    }
-
-    public void setPartialImages(Integer partialImages)
-    {
-        this.partialImages = partialImages;
-    }
 }

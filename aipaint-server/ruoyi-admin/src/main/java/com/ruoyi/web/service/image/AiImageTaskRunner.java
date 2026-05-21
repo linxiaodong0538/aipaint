@@ -45,8 +45,7 @@ public class AiImageTaskRunner
                 return;
             }
 
-            String resultImageUrl = gatewayClient.generateAndSave(task.getPrompt(), task.getSize(), task.getQuality(),
-                    previewImageUrl -> taskService.updatePreviewImage(taskId, previewImageUrl));
+            String resultImageUrl = gatewayClient.generateAndSave(task.getPrompt(), task.getSize(), task.getQuality());
             taskService.markSuccess(taskId, resultImageUrl);
         }
         catch (Exception e)

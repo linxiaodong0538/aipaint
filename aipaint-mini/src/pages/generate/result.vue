@@ -1,6 +1,7 @@
 <template>
   <view class="fixed inset-0 h-screen overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
     <section
+      v-if="showProgressState"
       class="absolute inset-0 flex flex-col items-center justify-center px-[32rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
       :class="progressStateClass"
     >
@@ -48,16 +49,10 @@
       </view>
 
       <view v-if="taskState !== 'failed'" class="mt-[96rpx] w-full max-w-[560rpx] px-[64rpx]">
-        <view class="mb-[16rpx] flex justify-between">
+        <view class="mb-[16rpx] flex justify-start">
           <text class="text-[22rpx] font-medium uppercase leading-[28rpx] tracking-[6rpx] text-[#7e7576]">PROCESSING</text>
-          <text class="text-[22rpx] font-bold leading-[28rpx] tracking-[6rpx] text-black">{{ roundedProgress }}%</text>
         </view>
-        <view class="h-[8rpx] w-full overflow-hidden rounded-full bg-[#e8e8e8]">
-          <view
-            class="h-full rounded-full bg-black transition-all duration-300 ease-out"
-            :style="{ width: `${roundedProgress}%` }"
-          />
-        </view>
+        <view class="infinite-progress-track h-[8rpx] w-full rounded-full" />
       </view>
 
       <button
@@ -70,6 +65,7 @@
     </section>
 
     <section
+      v-if="showCompletedState"
       class="absolute inset-0 flex flex-col items-center transition-all duration-1000 ease-in-out"
       :class="completedStateClass"
       :style="{ bottom: `${bottomBarHeight}px` }"
@@ -78,8 +74,7 @@
         class="relative flex h-full w-full flex-col items-center px-[32rpx] pb-[20rpx] pt-[24rpx]"
       >
         <view
-          class="w-full overflow-hidden border border-[rgba(0,0,0,0.05)] bg-[#e2e2e2] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
-          :style="resultImageFrameStyle"
+          class="w-full h-full max-h-[640rpx] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-[#e2e2e2] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
           <view class="relative h-full w-full overflow-hidden">
             <image
@@ -157,7 +152,6 @@ type TaskState = "processing" | "success" | "failed";
 
 const taskId = ref<number | null>(null);
 const taskState = ref<TaskState>("processing");
-const progress = ref(0);
 const generatedImage = ref("");
 const previewImage = ref("");
 const errorMessage = ref("");
@@ -169,11 +163,12 @@ const taskCreateTime = ref("");
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
 const windowHeight = ref(667);
+const pageInitializing = ref(true);
 const isHistoryDetail = ref(false);
+const historyInitializing = ref(false);
 const bottomBarVisible = ref(false);
 const resultDetailStorageKey = "generateResultDetailTask";
 
-let progressTimer: ReturnType<typeof setInterval> | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let polling = false;
 let pollAttempts = 0;
@@ -189,7 +184,6 @@ try {
   windowHeight.value = 667;
 }
 
-const roundedProgress = computed(() => Math.min(100, Math.floor(progress.value)));
 const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}px`);
 const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const detailTitle = computed(() => taskPrompt.value || "未命名作品");
@@ -199,6 +193,8 @@ const detailTags = computed(() => [
   taskRatio.value,
   formatCreateTime(taskCreateTime.value),
 ].filter(Boolean));
+const showProgressState = computed(() => !pageInitializing.value && taskState.value !== "success");
+const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
 const resultImageFrameStyle = computed(() => {
   const { width, height } = getRatioSize(taskRatio.value);
   const contentWidth = windowWidth.value - rpxToPx(64);
@@ -216,10 +212,7 @@ const resultImageFrameStyle = computed(() => {
 
 const progressTitle = computed(() => {
   if (taskState.value === "failed") return "生成失败";
-  if (previewImage.value && roundedProgress.value < 90) return "预览图生成中...";
-  if (roundedProgress.value > 90) return "最后一步收尾...";
-  if (roundedProgress.value > 60) return "优化光影细节...";
-  if (roundedProgress.value > 30) return "正在编织像素...";
+  if (previewImage.value) return "预览图生成中...";
   return "灵感捕捉中...";
 });
 
@@ -230,6 +223,9 @@ const progressSubtitle = computed(() => (
 ));
 
 const progressStateClass = computed(() => (
+  historyInitializing.value
+    ? "scale-100 translate-y-0 opacity-0 pointer-events-none"
+    :
   taskState.value === "success"
     ? "scale-95 -translate-y-[40rpx] opacity-0 pointer-events-none"
     : "scale-100 translate-y-0 opacity-100"
@@ -273,11 +269,12 @@ onLoad((query) => {
 
   taskId.value = id;
 
-  if (query?.from === "works" && hydrateCompletedTaskFromStorage(id)) {
+  if (query?.from === "works") {
+    void openFromWorks(id);
     return;
   }
 
-  startProgress();
+  pageInitializing.value = false;
   void pollTask();
   pollTimer = setInterval(() => {
     void pollTask();
@@ -294,15 +291,6 @@ onUnload(() => {
   stopTimers();
 });
 
-function startProgress() {
-  stopProgressTimer();
-  progressTimer = setInterval(() => {
-    if (taskState.value !== "processing") return;
-    const next = progress.value + 2 + Math.random() * 7;
-    progress.value = Math.min(96, next);
-  }, 700);
-}
-
 async function pollTask() {
   if (!taskId.value || polling || taskState.value !== "processing") return;
 
@@ -315,7 +303,6 @@ async function pollTask() {
 
     if (task.previewImageUrl && task.previewImageUrl !== previewImage.value) {
       previewImage.value = task.previewImageUrl;
-      progress.value = Math.max(progress.value, 45 + Math.min(40, pollAttempts * 8));
     }
 
     if (task.status === "success") {
@@ -341,18 +328,63 @@ async function pollTask() {
   }
 }
 
+async function openFromWorks(id: number) {
+  isHistoryDetail.value = true;
+  historyInitializing.value = true;
+
+  if (hydrateCompletedTaskFromStorage(id)) {
+    historyInitializing.value = false;
+    pageInitializing.value = false;
+    return;
+  }
+
+  try {
+    const task = await getGenerationTask(id);
+    applyTaskDetails(task);
+
+    if (task.status === "success" && task.resultImageUrl) {
+      completeTask(task.resultImageUrl, { instant: true, toast: false });
+      pageInitializing.value = false;
+      return;
+    }
+
+    if (task.status === "failed") {
+      failTask(task.errorMessage || "图片生成失败");
+      pageInitializing.value = false;
+      return;
+    }
+
+    isHistoryDetail.value = false;
+    if (task.previewImageUrl) {
+      previewImage.value = task.previewImageUrl;
+    }
+    pageInitializing.value = false;
+    void pollTask();
+    pollTimer = setInterval(() => {
+      void pollTask();
+    }, 2000);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "任务加载失败";
+    failTask(message);
+    pageInitializing.value = false;
+  } finally {
+    historyInitializing.value = false;
+  }
+}
+
 function completeTask(imageUrl: string, options: { instant?: boolean; toast?: boolean } = {}) {
   generatedImage.value = imageUrl;
-  progress.value = 100;
   stopTimers();
   if (options.instant) {
     taskState.value = "success";
+    pageInitializing.value = false;
     showBottomBarAfterEnter();
     return;
   }
 
   setTimeout(() => {
     taskState.value = "success";
+    pageInitializing.value = false;
     bottomBarVisible.value = true;
     if (options.toast !== false) {
       uni.showToast({ title: "生成完成", icon: "success" });
@@ -406,6 +438,7 @@ function failTask(message: string) {
   stopTimers();
   bottomBarVisible.value = false;
   taskState.value = "failed";
+  pageInitializing.value = false;
   uni.showToast({ title: message, icon: "none" });
 }
 
@@ -423,17 +456,9 @@ function showBottomBarAfterEnter() {
 }
 
 function stopTimers() {
-  stopProgressTimer();
   if (pollTimer) {
     clearInterval(pollTimer);
     pollTimer = null;
-  }
-}
-
-function stopProgressTimer() {
-  if (progressTimer) {
-    clearInterval(progressTimer);
-    progressTimer = null;
   }
 }
 
@@ -536,6 +561,13 @@ page {
   animation: orbit-spin 4s linear infinite;
 }
 
+.infinite-progress-track {
+  background-image: linear-gradient(90deg, #e8e8e8 0%, #e8e8e8 38%, #000 46%, #000 54%, #e8e8e8 62%, #e8e8e8 100%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  animation: infinite-progress-slide 1.2s linear infinite;
+}
+
 @keyframes ai-pulse {
   0%,
   100% {
@@ -558,6 +590,16 @@ page {
 
   to {
     transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes infinite-progress-slide {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: 0 0;
   }
 }
 </style>

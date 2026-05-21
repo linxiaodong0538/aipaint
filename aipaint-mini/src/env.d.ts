@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 
-declare const process: {
-  env: Record<string, string | undefined>;
-};
+declare const __APP_ENV__: string;
+declare const __API_BASE_URL__: string;
 
 declare module '*.vue' {
   import { DefineComponent } from 'vue'

@@ -57,15 +57,6 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
     }
 
     @Override
-    public void updatePreviewImage(Long taskId, String previewImageUrl)
-    {
-        AiGenerationTask task = new AiGenerationTask();
-        task.setTaskId(taskId);
-        task.setPreviewImageUrl(previewImageUrl);
-        taskMapper.updateGenerationTask(task);
-    }
-
-    @Override
     public void markSuccess(Long taskId, String resultImageUrl)
     {
         AiGenerationTask task = new AiGenerationTask();

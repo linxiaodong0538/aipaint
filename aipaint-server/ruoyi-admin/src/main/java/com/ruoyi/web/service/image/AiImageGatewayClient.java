@@ -7,7 +7,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
@@ -36,11 +35,6 @@ public class AiImageGatewayClient
 
     public String generateAndSave(String prompt, String size, String quality)
     {
-        return generateAndSave(prompt, size, quality, null);
-    }
-
-    public String generateAndSave(String prompt, String size, String quality, Consumer<String> previewConsumer)
-    {
         try
         {
             JSONObject payload = new JSONObject();
@@ -49,30 +43,8 @@ public class AiImageGatewayClient
             payload.put("size", size);
             payload.put("quality", quality);
             payload.put("n", 1);
-            payload.put("stream", true);
-            payload.put("partial_images", normalizePartialImages());
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(trimEnd(properties.getBaseUrl()) + "/images/generations"))
-                    .timeout(Duration.ofMinutes(3))
-                    .header("Authorization", "Bearer " + properties.getApiKey())
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload.toJSONString()))
-                    .build();
-
-            HttpResponse<java.io.InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            if (response.statusCode() < 200 || response.statusCode() >= 300)
-            {
-                throw new ServiceException("图片生成失败：" + readBody(response.body()));
-            }
-
-            String contentType = response.headers().firstValue("content-type").orElse("");
-            if (contentType.contains("text/event-stream"))
-            {
-                return readStreamAndSave(response.body(), previewConsumer);
-            }
-
-            return readJsonAndSave(readBody(response.body()));
+            return sendGenerationRequest(payload);
         }
         catch (ServiceException e)
         {
@@ -84,132 +56,49 @@ public class AiImageGatewayClient
         }
     }
 
-    private String readStreamAndSave(java.io.InputStream inputStream, Consumer<String> previewConsumer) throws IOException
+    private String sendGenerationRequest(JSONObject payload) throws IOException, InterruptedException
     {
-        String resultImageUrl = null;
-        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8)))
+        Exception lastException = null;
+        for (int attempt = 0; attempt < 2; attempt++)
         {
-            StringBuilder eventData = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null)
+            try
             {
-                if (line.isBlank())
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(trimEnd(properties.getBaseUrl()) + "/images/generations"))
+                    .timeout(Duration.ofMinutes(3))
+                    .header("Authorization", "Bearer " + properties.getApiKey())
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toJSONString()))
+                    .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() < 200 || response.statusCode() >= 300)
                 {
-                    resultImageUrl = handleStreamEvent(eventData.toString(), resultImageUrl, previewConsumer);
-                    eventData.setLength(0);
-                    continue;
+                    throw new ServiceException("图片生成失败：" + response.body());
                 }
 
-                String data = normalizeEventData(line);
-                if (data != null)
+                return readJsonAndSave(response.body());
+            }
+            catch (ServiceException e)
+            {
+                throw e;
+            }
+            catch (IOException e)
+            {
+                lastException = e;
+                if (!isRetryableIOException(e) || attempt > 0)
                 {
-                    eventData.append(data);
+                    throw e;
                 }
             }
-
-            if (eventData.length() > 0)
-            {
-                resultImageUrl = handleStreamEvent(eventData.toString(), resultImageUrl, previewConsumer);
-            }
         }
-
-        if (resultImageUrl == null)
-        {
-            throw new ServiceException("图片生成失败：流式返回缺少最终图片");
-        }
-        return resultImageUrl;
+        throw new ServiceException("图片生成失败：" + (lastException == null ? "请求失败" : lastException.getMessage()));
     }
 
-    private String handleStreamEvent(String eventData, String resultImageUrl, Consumer<String> previewConsumer) throws IOException
+    private boolean isRetryableIOException(IOException e)
     {
-        String data = eventData == null ? "" : eventData.trim();
-        if (data.isEmpty() || "[DONE]".equals(data))
-        {
-            return resultImageUrl;
-        }
-
-        JSONObject event;
-        try
-        {
-            event = JSON.parseObject(data);
-        }
-        catch (JSONException e)
-        {
-            if (e.getMessage() != null && e.getMessage().contains("EOF"))
-            {
-                throw new ServiceException("图片生成失败：流式返回中断，请重试");
-            }
-            throw new ServiceException("图片生成失败：流式返回格式异常");
-        }
-
-        JSONObject error = event.getJSONObject("error");
-        if (error != null)
-        {
-            throw new ServiceException("图片生成失败：" + error.getString("message"));
-        }
-
-        String type = event.getString("type");
-        String b64Json = event.getString("b64_json");
-        if (b64Json == null || b64Json.isBlank())
-        {
-            return resultImageUrl;
-        }
-
-        String imageUrl = saveBase64Image(b64Json);
-        if ("image_generation.partial_image".equals(type))
-        {
-            if (previewConsumer != null)
-            {
-                previewConsumer.accept(imageUrl);
-            }
-            return resultImageUrl;
-        }
-        if ("image_generation.completed".equals(type))
-        {
-            if (previewConsumer != null)
-            {
-                previewConsumer.accept(imageUrl);
-            }
-            return imageUrl;
-        }
-
-        return resultImageUrl;
-    }
-
-    private int normalizePartialImages()
-    {
-        Integer partialImages = properties.getPartialImages();
-        if (partialImages == null)
-        {
-            return 1;
-        }
-        return Math.max(0, Math.min(3, partialImages));
-    }
-
-    private String normalizeEventData(String line)
-    {
-        if (line == null)
-        {
-            return null;
-        }
-        String value = line.trim();
-        if (value.isEmpty() || value.startsWith(":"))
-        {
-            return null;
-        }
-        if (value.startsWith("data:"))
-        {
-            value = value.substring(5).trim();
-        }
-        else if (!value.startsWith("{"))
-        {
-            return null;
-        }
-        if ("[DONE]".equals(value) || value.isEmpty())
-        {
-            return null;
-        }
-        return value;
+        String message = e.getMessage();
+        return message != null && (message.contains("EOF") || message.contains("closed") || message.contains("reset"));
     }
 
     private String readJsonAndSave(String responseBody) throws IOException, InterruptedException
@@ -253,11 +142,6 @@ public class AiImageGatewayClient
         }
 
         throw new ServiceException("图片生成失败：返回结果缺少图片数据");
-    }
-
-    private String readBody(java.io.InputStream inputStream) throws IOException
-    {
-        return new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private String saveBase64Image(String b64Json) throws IOException
