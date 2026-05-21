@@ -23,6 +23,7 @@ export const routes = {
   templateDetail: "/pages/templates/detail",
   works: "/pages/works/index",
   me: "/pages/me/index",
+  creditDetail: "/pages/me/credit-detail",
 } as const;
 
 export function navigateTo(path: string, params?: RouteParams) {

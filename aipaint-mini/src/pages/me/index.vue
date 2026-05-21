@@ -134,7 +134,7 @@
                 ? 'border-b border-[rgba(0,0,0,0.06)]'
                 : ''
             "
-            @tap="handleUserAction"
+            @tap="handleMenuClick(item)"
           >
             <view class="flex min-w-0 items-center gap-[22rpx]">
               <text
@@ -174,6 +174,7 @@ import { computed } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { getNavBarLayout } from "@/utils/nav-bar";
 import { useUserStore } from "@/store/modules/user";
+import { navigateTo, routes, switchTab } from "@/utils/router";
 
 interface TaskItem {
   title: string;
@@ -185,6 +186,7 @@ interface TaskItem {
 interface MenuItem {
   title: string;
   iconClass: string;
+  action: "credit-detail" | "works";
 }
 
 const navLayout = getNavBarLayout();
@@ -213,8 +215,8 @@ const tasks: TaskItem[] = [
 ];
 
 const menuItems: MenuItem[] = [
-  { title: "我的积分", iconClass: "icon-jinbi" },
-  { title: "我的作品", iconClass: "icon-images" },
+  { title: "我的积分", iconClass: "icon-jinbi", action: "credit-detail" },
+  { title: "我的作品", iconClass: "icon-images", action: "works" },
 ];
 
 onShow(() => {
@@ -231,6 +233,20 @@ function handleUserAction() {
   if (!userStore.isLogin) {
     handleLogin();
   }
+}
+
+function handleMenuClick(item: MenuItem) {
+  if (!userStore.isLogin) {
+    handleLogin();
+    return;
+  }
+
+  if (item.action === "credit-detail") {
+    navigateTo(routes.creditDetail);
+    return;
+  }
+
+  switchTab(routes.works);
 }
 
 function handleRecharge() {

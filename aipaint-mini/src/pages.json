@@ -46,8 +46,7 @@
       "style": {
         "navigationBarTitleText": "作品库",
         "navigationBarBackgroundColor": "#000000",
-        "navigationBarTextStyle": "white",
-        "enablePullDownRefresh": true
+        "navigationBarTextStyle": "white"
       }
     },
     {
@@ -57,6 +56,14 @@
         "navigationBarTitleText": "我的",
         "navigationBarBackgroundColor": "#000000",
         "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/me/credit-detail",
+      "style": {
+        "navigationBarTitleText": "积分明细",
+        "navigationBarBackgroundColor": "#f9f9f9",
+        "navigationBarTextStyle": "black"
       }
     }
   ],

@@ -50,7 +50,7 @@
 
       <view v-if="taskState !== 'failed'" class="mt-[96rpx] w-full max-w-[560rpx] px-[64rpx]">
         <view class="mb-[16rpx] flex justify-start">
-          <text class="text-[22rpx] font-medium uppercase leading-[28rpx] tracking-[6rpx] text-[#7e7576]">PROCESSING</text>
+          <text class="text-[22rpx] font-medium leading-[28rpx] text-[#7e7576]">{{ processingHintText }}</text>
         </view>
         <view class="infinite-progress-track h-[8rpx] w-full rounded-full" />
       </view>
@@ -150,7 +150,7 @@
             </button>
             <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="showUnsupported">
               <text class="iconfont icon-MaterialSymbolsBrush text-[40rpx] leading-none text-black" />
-              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">编辑</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">作品库</text>
             </button>
           </view>
         </view>
@@ -197,6 +197,7 @@ const pageInitializing = ref(true);
 const isHistoryDetail = ref(false);
 const historyInitializing = ref(false);
 const bottomBarVisible = ref(false);
+const longWaitHintVisible = ref(false);
 const resultDetailStorageKey = "generateResultDetailTask";
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -231,6 +232,11 @@ const progressSubtitle = computed(() => (
   taskState.value === "failed"
     ? errorMessage.value || "图片生成失败，请返回后重试"
     : "您的创意正在转化为现实，请稍候"
+));
+const processingHintText = computed(() => (
+  longWaitHintVisible.value
+    ? "生成耗时较久，您可离开此页面，稍后到作品中查看"
+    : "PROCESSING"
 ));
 
 const progressStateClass = computed(() => (
@@ -310,17 +316,20 @@ async function pollTask() {
     }
 
     if (task.status === "failed") {
+      if (shouldKeepProcessing(task.errorMessage)) {
+        showLongWaitHint();
+        return;
+      }
       failTask(task.errorMessage || "图片生成失败");
       return;
     }
 
     if (pollAttempts >= 45) {
-      failTask("生成耗时较久，请稍后到作品库查看");
+      showLongWaitHint();
     }
   } catch (error) {
     if (pollAttempts >= 45) {
-      const message = error instanceof Error ? error.message : "图片生成失败";
-      failTask(message);
+      showLongWaitHint();
     }
   } finally {
     polling = false;
@@ -348,6 +357,16 @@ async function openFromWorks(id: number) {
     }
 
     if (task.status === "failed") {
+      if (shouldKeepProcessing(task.errorMessage)) {
+        isHistoryDetail.value = false;
+        pageInitializing.value = false;
+        showLongWaitHint();
+        void pollTask();
+        pollTimer = setInterval(() => {
+          void pollTask();
+        }, 2000);
+        return;
+      }
       failTask(task.errorMessage || "图片生成失败");
       pageInitializing.value = false;
       return;
@@ -431,6 +450,20 @@ function failTask(message: string) {
   taskState.value = "failed";
   pageInitializing.value = false;
   uni.showToast({ title: message, icon: "none" });
+}
+
+function showLongWaitHint() {
+  if (longWaitHintVisible.value) {
+    return;
+  }
+  longWaitHintVisible.value = true;
+}
+
+function shouldKeepProcessing(message?: string) {
+  if (!message) {
+    return false;
+  }
+  return message.includes("生成耗时较久") || message.includes("稍后到作品");
 }
 
 function showBottomBarAfterEnter() {

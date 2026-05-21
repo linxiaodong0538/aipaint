@@ -44,6 +44,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             payload.put("size", request.getSize());
             payload.put("quality", request.getQuality());
             payload.put("n", 1);
+            payload.put("response_format", "url");
 
             return sendGenerationRequest(payload, providerConfig);
         }
@@ -59,46 +60,28 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
 
     private String sendGenerationRequest(JSONObject payload, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
-        Exception lastException = null;
-        for (int attempt = 0; attempt < 2; attempt++)
+        try
         {
-            try
-            {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(trimEnd(providerConfig.getBaseUrl()) + "/images/generations"))
-                        .timeout(Duration.ofMinutes(3))
-                        .header("Authorization", "Bearer " + providerConfig.getApiKey())
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(payload.toJSONString()))
-                        .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(trimEnd(providerConfig.getBaseUrl()) + "/images/generations"))
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .timeout(Duration.ofMinutes(3))
+                    .header("Authorization", "Bearer " + providerConfig.getApiKey())
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toJSONString()))
+                    .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() < 200 || response.statusCode() >= 300)
-                {
-                    throw new ServiceException("图片生成失败：" + response.body());
-                }
-                return readJsonAndSave(response.body());
-            }
-            catch (ServiceException e)
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300)
             {
-                throw e;
+                throw new ServiceException("图片生成失败：" + response.body());
             }
-            catch (IOException e)
-            {
-                lastException = e;
-                if (!isRetryableIOException(e) || attempt > 0)
-                {
-                    throw e;
-                }
-            }
+            return readJsonAndSave(response.body());
         }
-        throw new ServiceException("图片生成失败：" + (lastException == null ? "请求失败" : lastException.getMessage()));
-    }
-
-    private boolean isRetryableIOException(IOException e)
-    {
-        String message = e.getMessage();
-        return message != null && (message.contains("EOF") || message.contains("closed") || message.contains("reset"));
+        catch (ServiceException e)
+        {
+            throw e;
+        }
     }
 
     private String readJsonAndSave(String responseBody) throws IOException, InterruptedException
@@ -160,6 +143,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
     {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .version(HttpClient.Version.HTTP_1_1)
                 .timeout(Duration.ofMinutes(2))
                 .GET()
                 .build();
