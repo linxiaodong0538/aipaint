@@ -1,8 +1,8 @@
 <template>
   <view
-    class="min-h-screen bg-(--app-background) px-[32rpx] pb-[220rpx] pt-[32rpx] text-(--app-on-surface)"
+    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[32rpx] pt-[32rpx] text-(--app-on-surface)"
   >
-    <view class="flex flex-wrap gap-[20rpx]">
+    <view class="flex shrink-0 flex-wrap gap-[20rpx]">
       <view
         v-for="tab in tabs"
         :key="tab.value"
@@ -18,123 +18,132 @@
       </view>
     </view>
 
-    <view
-      v-if="!userStore.isLogin"
-      class="mt-[180rpx] flex flex-col items-center px-[12rpx] text-center"
+    <scroll-view
+      scroll-y
+      enhanced
+      class="mt-[32rpx] w-full"
+      :show-scrollbar="false"
+      :style="{ height: `${contentScrollHeight}px` }"
     >
-      <view class="relative flex h-[200rpx] w-[200rpx] items-center justify-center">
+      <view class="pb-[220rpx]">
         <view
-          class="absolute h-[176rpx] w-[176rpx] rounded-full bg-[#efefef]/80"
-        />
-        <view
-          class="relative flex h-[152rpx] w-[152rpx] items-center justify-center rounded-[36rpx] border border-[#ebebeb] bg-white shadow-[0_20rpx_48rpx_rgba(0,0,0,0.06)]"
+          v-if="!userStore.isLogin"
+          class="mt-[148rpx] flex flex-col items-center px-[12rpx] text-center"
         >
+          <view class="relative flex h-[200rpx] w-[200rpx] items-center justify-center">
+            <view
+              class="absolute h-[176rpx] w-[176rpx] rounded-full bg-[#efefef]/80"
+            />
+            <view
+              class="relative flex h-[152rpx] w-[152rpx] items-center justify-center rounded-[36rpx] border border-[#ebebeb] bg-white shadow-[0_20rpx_48rpx_rgba(0,0,0,0.06)]"
+            >
+              <text
+                class="iconfont icon-images text-[72rpx] leading-none text-[#c8c8c8]"
+              />
+            </view>
+          </view>
+
           <text
-            class="iconfont icon-images text-[72rpx] leading-none text-[#c8c8c8]"
-          />
+            class="mt-[48rpx] block text-[36rpx] font-bold leading-[50rpx] text-black"
+          >
+            登录后查看你的作品
+          </text>
+
+          <text
+            class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]"
+          >
+            登录后同步你的创作记录与生成状态
+          </text>
+
+          <button
+            class="mt-[56rpx] flex h-[88rpx] w-full max-w-[520rpx] items-center justify-center rounded-full bg-black px-[48rpx] text-[30rpx] font-bold leading-none text-white"
+            :loading="userStore.loggingIn"
+            @tap="handleLogin"
+          >
+            立即登录
+          </button>
         </view>
-      </view>
 
-      <text
-        class="mt-[48rpx] block text-[36rpx] font-bold leading-[50rpx] text-black"
-      >
-        登录后查看你的作品
-      </text>
-
-      <text
-        class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]"
-      >
-        登录后同步你的创作记录与生成状态
-      </text>
-
-      <button
-        class="mt-[56rpx] flex h-[88rpx] w-full max-w-[520rpx] items-center justify-center rounded-full bg-black px-[48rpx] text-[30rpx] font-bold leading-none text-white"
-        :loading="userStore.loggingIn"
-        @tap="handleLogin"
-      >
-        立即登录
-      </button>
-    </view>
-
-    <view
-      v-if="userStore.isLogin && hasVisibleWorks"
-      class="mt-[32rpx] grid grid-cols-2 gap-[24rpx]"
-    >
-      <view
-        v-for="item in visibleWorks"
-        :key="`${item.kind}-${item.taskId}`"
-        class="relative flex flex-col bg-white border border-[#c8c9d2] break-inside-avoid rounded-[24rpx]"
-        @tap="goTask(item)"
-      >
         <view
-          v-if="item.kind === 'processing'"
-          class="works-shimmer works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[32rpx] bg-[#eeeeee]"
+          v-if="userStore.isLogin && hasVisibleWorks"
+          class="grid grid-cols-2 gap-[24rpx]"
         >
-          <view class="absolute inset-0 flex items-center justify-center">
-            <view class="flex flex-col items-center gap-[32rpx]">
-              <view class="works-loader">
-                <view class="works-loader-core" />
-                <view class="works-loader-core works-loader-core-fast" />
+          <view
+            v-for="item in visibleWorks"
+            :key="`${item.kind}-${item.taskId}`"
+            class="relative flex flex-col bg-white border border-[#c8c9d2] break-inside-avoid rounded-[24rpx]"
+            @tap="goTask(item)"
+          >
+            <view
+              v-if="item.kind === 'processing'"
+              class="works-shimmer works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[32rpx] bg-[#eeeeee]"
+            >
+              <view class="absolute inset-0 flex items-center justify-center">
+                <view class="flex flex-col items-center gap-[32rpx]">
+                  <view class="works-loader">
+                    <view class="works-loader-core" />
+                    <view class="works-loader-core works-loader-core-fast" />
+                  </view>
+                  <text class="text-[20rpx] font-semibold uppercase mleading-[28rpx] tracking-[4rpx] text-black/60 pt-[16rpx]">
+                    绘制中...
+                  </text>
+                </view>
               </view>
-              <text class="text-[20rpx] font-semibold uppercase mleading-[28rpx] tracking-[4rpx] text-black/60 pt-[16rpx]">
-                绘制中...
-              </text>
+            </view>
+
+            <view
+              v-else
+              class="relative aspect-square w-full overflow-hidden rounded-t-[24rpx] rounded-b-none active:scale-[0.98]"
+            >
+              <image
+                :src="item.image"
+                mode="aspectFill"
+                class="absolute inset-0 block h-full w-full"
+                style="width: 100%; height: 100%;"
+              />
+            </view>
+
+            <view class="p-[16rpx]">
+              <template v-if="item.kind === 'processing'">
+                <view class="works-shimmer mb-[16rpx] h-[32rpx] w-3/4 rounded-full" />
+                <view class="works-shimmer h-[24rpx] w-1/2 rounded-full opacity-50" />
+              </template>
+              <template v-else>
+                <text class="block truncate text-[28rpx] font-semibold leading-[40rpx] text-black">
+                  {{ item.title }}
+                </text>
+                <text class="mt-[4rpx] block text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]/60">
+                  {{ item.timeText }}
+                </text>
+              </template>
             </view>
           </view>
         </view>
 
         <view
-          v-else
-          class="relative aspect-square w-full overflow-hidden rounded-t-[24rpx] rounded-b-none active:scale-[0.98]"
-     
+          v-if="userStore.isLogin && loading"
+          class="mt-[128rpx] flex flex-col items-center text-center"
         >
-          <image
-            :src="item.image"
-            mode="aspectFill"
-            class="absolute inset-0 block h-full w-full"
-            style="width: 100%; height: 100%;"
-          />
+          <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#d8d8d8] border-t-black" />
+          <text class="mt-[28rpx] text-[26rpx] font-medium leading-[36rpx] text-[#7d7d7d]">加载作品中...</text>
         </view>
 
-        <view class="p-[16rpx]">
-          <template v-if="item.kind === 'processing'">
-            <view class="works-shimmer mb-[16rpx] h-[32rpx] w-3/4 rounded-full" />
-            <view class="works-shimmer h-[24rpx] w-1/2 rounded-full opacity-50" />
-          </template>
-          <template v-else>
-            <text class="block truncate text-[28rpx] font-semibold leading-[40rpx] text-black">
-              {{ item.title }}
-            </text>
-            <text class="mt-[4rpx] block text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]/60">
-              {{ item.timeText }}
-            </text>
-          </template>
+        <view
+          v-if="userStore.isLogin && !loading && !hasVisibleWorks"
+          class="mt-[148rpx] flex flex-col items-center px-[12rpx] py-[64rpx] text-center"
+        >
+          <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
+            <text class="iconfont icon-images text-[96rpx] leading-none text-black/10" />
+          </view>
+          <text class="block text-[40rpx] font-semibold leading-[64rpx] text-black">
+            暂无作品
+          </text>
+          <text class="mt-[16rpx] block max-w-[520rpx] text-[28rpx] font-normal leading-[48rpx] text-[#4c4546]/60">
+            您的创意画廊目前还是空的。开始尝试生成您的第一件 AI 艺术作品吧
+          </text>
         </view>
       </view>
-    </view>
-
-    <view
-      v-if="userStore.isLogin && loading"
-      class="mt-[160rpx] flex flex-col items-center text-center"
-    >
-      <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#d8d8d8] border-t-black" />
-      <text class="mt-[28rpx] text-[26rpx] font-medium leading-[36rpx] text-[#7d7d7d]">加载作品中...</text>
-    </view>
-
-    <view
-      v-if="userStore.isLogin && !loading && !hasVisibleWorks"
-      class="mt-[180rpx] flex flex-col items-center px-[12rpx] py-[64rpx] text-center"
-    >
-      <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
-        <text class="iconfont icon-images text-[96rpx] leading-none text-black/10" />
-      </view>
-      <text class="block text-[48rpx] font-semibold leading-[64rpx] text-black">
-        暂无作品
-      </text>
-      <text class="mt-[16rpx] block max-w-[520rpx] text-[32rpx] font-normal leading-[48rpx] text-[#4c4546]/60">
-        您的创意画廊目前还是空的。开始尝试生成您的第一件 AI 艺术作品吧。
-      </text>
-    </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -176,9 +185,29 @@ const activeTab = ref<TabValue>("all");
 const userStore = useUserStore();
 const loading = ref(false);
 const tasks = ref<GenerationTask[]>([]);
+const windowHeight = ref(0);
+const windowWidth = ref(375);
 const resultDetailStorageKey = "generateResultDetailTask";
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+try {
+  const info = uni.getSystemInfoSync();
+  windowHeight.value = info.windowHeight || 0;
+  windowWidth.value = info.windowWidth || 375;
+} catch {
+  windowHeight.value = 0;
+  windowWidth.value = 375;
+}
+
+const contentScrollHeight = computed(() => {
+  if (!windowHeight.value) return 0;
+  return Math.max(0, windowHeight.value - rpxToPx(32 + 64 + 32));
+});
+
+function rpxToPx(rpx: number) {
+  return (windowWidth.value / 750) * rpx;
+}
 
 const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
   tasks.value
