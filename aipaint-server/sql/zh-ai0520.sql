@@ -80,6 +80,10 @@ CREATE TABLE `ai_template_category`  (
 INSERT INTO `ai_template_category` VALUES (1, '极简主义', 'minimal', 1, '0', 'admin', '2026-05-19 01:20:05', '', NULL, NULL);
 INSERT INTO `ai_template_category` VALUES (2, '水墨艺术', 'ink', 2, '0', 'admin', '2026-05-19 01:20:05', '', NULL, NULL);
 INSERT INTO `ai_template_category` VALUES (3, '超现实', 'surreal', 3, '0', 'admin', '2026-05-19 01:20:05', '', NULL, NULL);
+INSERT INTO `ai_template_category` VALUES (4, '海报与营销', 'poster_marketing', 4, '0', 'admin', '2026-05-21 00:00:00', '', NULL, NULL);
+INSERT INTO `ai_template_category` VALUES (5, '食物', 'food', 5, '0', 'admin', '2026-05-21 00:00:00', '', NULL, NULL);
+INSERT INTO `ai_template_category` VALUES (6, '动漫', 'anime', 6, '0', 'admin', '2026-05-21 00:00:00', '', NULL, NULL);
+INSERT INTO `ai_template_category` VALUES (7, '产品与广告', 'product_advertising', 7, '0', 'admin', '2026-05-21 00:00:00', '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for gen_table

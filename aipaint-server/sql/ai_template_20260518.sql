@@ -36,7 +36,11 @@ create table ai_template (
 insert into ai_template_category values
 (1, '极简主义', 'minimal', 1, '0', 'admin', sysdate(), '', null, null),
 (2, '水墨艺术', 'ink', 2, '0', 'admin', sysdate(), '', null, null),
-(3, '超现实', 'surreal', 3, '0', 'admin', sysdate(), '', null, null);
+(3, '超现实', 'surreal', 3, '0', 'admin', sysdate(), '', null, null),
+(4, '海报与营销', 'poster_marketing', 4, '0', 'admin', sysdate(), '', null, null),
+(5, '食物', 'food', 5, '0', 'admin', sysdate(), '', null, null),
+(6, '动漫', 'anime', 6, '0', 'admin', sysdate(), '', null, null),
+(7, '产品与广告', 'product_advertising', 7, '0', 'admin', sysdate(), '', null, null);
 
 insert into ai_template values
 (1, 1, '构图几何', '几何建筑风格', 'https://lh3.googleusercontent.com/aida-public/AB6AXuD3axI89PCaiyYvOKhN1Y0L8rUP_5dYHguX_E2SQedMqDNMqel_SuhSzcPMEirrfdFSNyFYpOFGNpPrcK8f-ok_5iZKhv5iZ0Pk0oK1JW0wFuLphL6F9FlzalGmvDLVyVshEGX3dGfxiVKI0Uj-IbHycZS82hs6rCIOUcLyqlAAYaoJi0S6B6Rm3iFGGxI-1b1Q5oBbJ0hHjROU53UyBOlWdKCQvH2j685HqF4oKl_42lyyxHBDbxzTs7T95AWoeBLiQW0KBe-CzJ6Q', 'Minimal geometric architecture composition, clean concrete forms, precise shadows, balanced negative space, muted palette, editorial photography, ultra sharp details.', 'V2.4 模型', '1:1', 1, '0', 'admin', sysdate(), '', null, null),

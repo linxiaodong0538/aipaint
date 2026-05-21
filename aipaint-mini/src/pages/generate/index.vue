@@ -151,15 +151,15 @@
           <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
             画面比例
           </text>
-          <view class="grid grid-cols-4 gap-[16rpx]">
+          <view class="grid grid-cols-4 gap-[12rpx]">
             <button
               v-for="item in ratios"
               :key="item.value"
-              class="flex aspect-square flex-col items-center justify-center gap-[8rpx] rounded-[24rpx] border active:scale-95"
+              class="flex h-[96rpx] flex-col items-center justify-center gap-[16rpx] rounded-[18rpx] border active:scale-95"
               :class="
                 ratio === item.value
-                  ? 'border-[4rpx] border-black bg-[rgba(0,0,0,0.05)]'
-                  : 'border-[#cfc4c5] bg-transparent'
+                  ? 'border-[3rpx] border-black bg-[#f3f3f3]'
+                  : 'border-[#e2ddde] bg-transparent'
               "
               @tap="ratio = item.value"
             >
@@ -167,7 +167,7 @@
                 class="rounded-[4rpx] bg-[#c8c4c5]"
                 :class="item.iconClass"
               />
-              <text class="text-[24rpx] font-bold leading-[24rpx] text-black">{{ item.value }}</text>
+              <text class="text-[24rpx] leading-[22rpx] text-black">{{ item.label }}</text>
             </button>
           </view>
         </view>
@@ -208,8 +208,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
 import { createImageGeneration } from "@/api/generate";
+import { getTemplateDetail, type TemplateItem } from "@/api/template";
 import { useUserStore } from "@/store/modules/user";
 
 const prompts = [
@@ -249,10 +251,10 @@ const models: Array<{
 const qualities = ["1K", "2K", "4K"] as const;
 const counts = [1, 2, 3, 4] as const;
 const ratios = [
-  { value: "1:1", iconClass: "h-[32rpx] w-[32rpx]" },
-  { value: "4:3", iconClass: "h-[28rpx] w-[38rpx]" },
-  { value: "3:2", iconClass: "h-[26rpx] w-[40rpx]" },
-  { value: "16:9", iconClass: "h-[22rpx] w-[48rpx]" },
+  { value: "1:1", label: "1:1", iconClass: "h-[28rpx] w-[28rpx]" },
+  { value: "3:4", label: "3:4", iconClass: "h-[34rpx] w-[20rpx]" },
+  { value: "4:3", label: "4:3", iconClass: "h-[20rpx] w-[34rpx]" },
+  { value: "16:9", label: "16:9", iconClass: "h-[18rpx] w-[36rpx]" },
 ] as const;
 
 const statusBarHeight = ref(0);
@@ -279,9 +281,10 @@ const referenceImage = ref("");
 const model = ref<ModelValue>("g-image-2");
 const quality = ref<(typeof qualities)[number]>("2K");
 const count = ref<(typeof counts)[number]>(3);
-const ratio = ref<(typeof ratios)[number]["value"]>("4:3");
+const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
 const generating = ref(false);
 const userStore = useUserStore();
+const selectedTemplateStorageKey = "generate:selectedTemplate";
 
 const creditCost = computed(() => {
   const qualityFactor: Record<(typeof qualities)[number], number> = {
@@ -308,6 +311,79 @@ function rpxToPx(rpx: number) {
 function useRandomPrompt() {
   const currentIndex = prompts.indexOf(prompt.value);
   prompt.value = prompts[(currentIndex + 1) % prompts.length];
+}
+
+onLoad((query) => {
+  if (query?.fromTemplate || query?.templateId) {
+    void applyTemplateFromQuery(query);
+  }
+});
+
+async function applyTemplateFromQuery(query: Record<string, string | undefined>) {
+  const templateId = query.templateId ? String(query.templateId) : "";
+  const cachedTemplate = getCachedTemplate(templateId);
+
+  if (cachedTemplate) {
+    applyTemplate(cachedTemplate);
+    return;
+  }
+
+  if (!templateId) return;
+
+  try {
+    const detail = await getTemplateDetail(templateId);
+    applyTemplate(detail);
+  } catch {
+    uni.showToast({ title: "模板信息加载失败", icon: "none" });
+  }
+}
+
+function getCachedTemplate(templateId: string) {
+  try {
+    const value = uni.getStorageSync(selectedTemplateStorageKey) as Partial<TemplateItem> | "";
+    if (!value || typeof value !== "object") return null;
+    if (templateId && String(value.templateId || "") !== templateId) {
+      uni.removeStorageSync(selectedTemplateStorageKey);
+      return null;
+    }
+    uni.removeStorageSync(selectedTemplateStorageKey);
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function applyTemplate(value: Partial<TemplateItem>) {
+  if (value.prompt) {
+    prompt.value = value.prompt;
+  }
+  model.value = normalizeTemplateModel(value.aiEngine);
+  ratio.value = normalizeTemplateRatio(value.ratio);
+  quality.value = normalizeTemplateQuality(value);
+}
+
+function normalizeTemplateModel(value?: string): ModelValue {
+  if (!value) return "g-image-2";
+  const normalized = value.toLowerCase();
+  if (normalized.includes("g-image") || normalized.includes("gpt-image")) {
+    return "g-image-2";
+  }
+  return "g-image-2";
+}
+
+function normalizeTemplateRatio(value?: string): (typeof ratios)[number]["value"] {
+  if (!value) return "1:1";
+  const normalized = value.replace(/\s/g, "");
+  const matched = ratios.find((item) => normalized.includes(item.value));
+  return matched?.value || "1:1";
+}
+
+function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualities)[number] {
+  const source = `${value.ratio || ""} ${value.title || ""} ${value.description || ""}`.toLowerCase();
+  if (source.includes("1k")) return "1K";
+  if (source.includes("4k") || source.includes("8k")) return "4K";
+  if (source.includes("2k")) return "2K";
+  return "2K";
 }
 
 function chooseImage() {

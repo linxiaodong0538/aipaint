@@ -40,6 +40,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where task_id = #{taskId} and user_id = #{userId}
     </select>
 
+    <select id="selectGenerationTasksByUserId" resultMap="AiGenerationTaskResult">
+        <include refid="selectGenerationTaskVo"/>
+        where user_id = #{userId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        order by create_time desc, task_id desc
+    </select>
+
     <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
         insert into ai_generation_task(
             user_id, prompt, model, quality, ratio, size, status, credit_cost, create_by, create_time

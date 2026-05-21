@@ -48,7 +48,7 @@
         </view>
 
         <scroll-view
-          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+96rpx)] whitespace-nowrap"
+          class="-mx-[48rpx] mt-[40rpx] w-[calc(100%+48rpx)] whitespace-nowrap"
           scroll-x
           enhanced
           :show-scrollbar="false"
@@ -70,17 +70,29 @@
           <view
             v-for="item in templates"
             :key="item.templateId"
-            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[#c8c9d2] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
             @tap="goTemplateDetail(item.templateId)"
           >
             <image class="block w-full" mode="widthFix" :src="item.coverUrl" />
             <view class="px-[20rpx] py-[18rpx]">
-              <text class="block text-[28rpx] font-semibold leading-[38rpx] text-black">
+              <view class="mb-[10rpx] flex items-center gap-[10rpx]">
+                <text class="iconfont icon-images text-[22rpx] leading-none text-[#767676]" />
+                <text class="text-[24rpx] font-medium leading-[32rpx] text-[#767676]">
+                  {{ getTemplateModelName(item) }}
+                </text>
+              </view>
+              <text class="block truncate text-[28rpx] font-semibold leading-[38rpx] text-black">
                 {{ item.title }}
               </text>
-              <text class="mt-[8rpx] block text-[24rpx] leading-[32rpx] text-[#8a8a8a]">
-                {{ item.description || item.categoryName }}
-              </text>
+              <view class="mt-[12rpx] flex flex-wrap gap-[8rpx]">
+                <text
+                  v-for="tag in getTemplateTags(item)"
+                  :key="tag"
+                  class="rounded-full bg-[#f0f0f0] px-[18rpx] py-[6rpx] text-[22rpx] font-semibold leading-[30rpx] text-[#1a1c1c]"
+                >
+                  {{ tag }}
+                </text>
+              </view>
             </view>
           </view>
         </view>
@@ -132,6 +144,14 @@ function isActiveChip(chip: TemplateCategory) {
     return activeCategoryId.value === "all";
   }
   return activeCategoryId.value === chip.categoryId;
+}
+
+function getTemplateModelName(_item: TemplateItem) {
+  return "OpenAI · ChatGPT";
+}
+
+function getTemplateTags(item: TemplateItem) {
+  return [item.categoryName || "电影感"];
 }
 
 function goTemplateDetail(templateId: number) {

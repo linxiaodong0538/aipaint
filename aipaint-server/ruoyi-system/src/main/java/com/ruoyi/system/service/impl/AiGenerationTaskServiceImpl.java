@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.domain.AiGenerationTask;
@@ -26,6 +27,12 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
     public AiGenerationTask selectGenerationTaskByIdAndUserId(Long taskId, Long userId)
     {
         return taskMapper.selectGenerationTaskByIdAndUserId(taskId, userId);
+    }
+
+    @Override
+    public List<AiGenerationTask> selectGenerationTasksByUserId(Long userId, String status)
+    {
+        return taskMapper.selectGenerationTasksByUserId(userId, status);
     }
 
     @Override

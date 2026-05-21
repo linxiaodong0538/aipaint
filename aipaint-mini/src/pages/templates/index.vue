@@ -27,12 +27,24 @@
           >
             <image class="block w-full" mode="widthFix" :src="template.coverUrl" />
             <view class="px-[20rpx] py-[18rpx]">
-              <text class="block text-[28rpx] font-semibold leading-[38rpx] text-black">
+              <view class="mb-[10rpx] flex items-center gap-[10rpx]">
+                <text class="iconfont icon-images text-[22rpx] leading-none text-[#767676]" />
+                <text class="text-[24rpx] font-medium leading-[32rpx] text-[#767676]">
+                  {{ getTemplateModelName(template) }}
+                </text>
+              </view>
+              <text class="block truncate text-[28rpx] font-semibold leading-[38rpx] text-black">
                 {{ template.title }}
               </text>
-              <text class="mt-[8rpx] block text-[24rpx] leading-[32rpx] text-[#8a8a8a]">
-                {{ template.description || template.categoryName }}
-              </text>
+              <view class="mt-[12rpx] flex flex-wrap gap-[8rpx]">
+                <text
+                  v-for="tag in getTemplateTags(template)"
+                  :key="tag"
+                  class="rounded-full bg-[#f0f0f0] px-[18rpx] py-[6rpx] text-[22rpx] font-semibold leading-[30rpx] text-[#1a1c1c]"
+                >
+                  {{ tag }}
+                </text>
+              </view>
             </view>
           </view>
         </view>
@@ -66,6 +78,14 @@ async function loadTemplates() {
   const selected = chips.value.find((item) => item.categoryName === activeChip.value);
   const params = !selected || selected.categoryCode === "all" ? undefined : { categoryId: String(selected.categoryId) };
   templates.value = await listTemplates(params);
+}
+
+function getTemplateModelName(_template: TemplateItem) {
+  return "OpenAI · ChatGPT";
+}
+
+function getTemplateTags(template: TemplateItem) {
+  return [template.categoryName || "电影感"];
 }
 
 function goDetail(template: TemplateItem) {

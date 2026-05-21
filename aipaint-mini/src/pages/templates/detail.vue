@@ -99,6 +99,7 @@ const windowWidth = ref(375);
 const copyLabel = ref("复制");
 const template = ref<TemplateItem | null>(null);
 const templateId = ref<string | number>("");
+const selectedTemplateStorageKey = "generate:selectedTemplate";
 
 try {
   const info = uni.getSystemInfoSync();
@@ -117,7 +118,7 @@ const displayPrompt = computed(() => template.value?.prompt || fallbackPrompt);
 const tags = computed(() => {
   const category = template.value?.categoryName || "赛博朋克";
   const ratio = template.value?.ratio || "8K 极致";
-  return [category, "电影感渲染", ratio];
+  return [category, "占位tag", ratio];
 });
 
 function rpxToPx(rpx: number) {
@@ -145,8 +146,23 @@ function copyPrompt() {
 }
 
 function useTemplate() {
+  const currentTemplate = template.value;
+  if (currentTemplate) {
+    uni.setStorageSync(selectedTemplateStorageKey, {
+      templateId: currentTemplate.templateId,
+      title: currentTemplate.title,
+      prompt: currentTemplate.prompt,
+      aiEngine: currentTemplate.aiEngine,
+      ratio: currentTemplate.ratio,
+      description: currentTemplate.description,
+      categoryName: currentTemplate.categoryName,
+      coverUrl: currentTemplate.coverUrl,
+    });
+  }
+
   navigateTo(routes.generate, {
     templateId: templateId.value,
+    fromTemplate: true,
   });
 }
 
