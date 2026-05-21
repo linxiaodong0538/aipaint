@@ -70,7 +70,7 @@
           <view
             v-for="item in templates"
             :key="item.templateId"
-            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[#c8c9d2] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[24rpx] border border-[#c8c9d2] bg-white p-0 shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)]"
             @tap="goTemplateDetail(item.templateId)"
           >
             <image class="block w-full" mode="widthFix" :src="item.coverUrl" />

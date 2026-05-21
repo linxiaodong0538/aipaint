@@ -63,7 +63,7 @@
       <view
         v-for="item in visibleWorks"
         :key="`${item.kind}-${item.taskId}`"
-        class="relative flex flex-col"
+        class="relative flex flex-col bg-white border border-[#c8c9d2]/50 break-inside-avoid rounded-[24rpx]"
         @tap="goTask(item)"
       >
         <view
@@ -85,7 +85,8 @@
 
         <view
           v-else
-          class="works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[24rpx] active:scale-[0.98]"
+          class="relative aspect-square w-full overflow-hidden rounded-t-[24rpx] rounded-b-none active:scale-[0.98]"
+     
         >
           <image
             :src="item.image"
@@ -95,7 +96,7 @@
           />
         </view>
 
-        <view class="px-[16rpx]">
+        <view class="p-[16rpx]">
           <template v-if="item.kind === 'processing'">
             <view class="works-shimmer mb-[16rpx] h-[32rpx] w-3/4 rounded-full" />
             <view class="works-shimmer h-[24rpx] w-1/2 rounded-full opacity-50" />
