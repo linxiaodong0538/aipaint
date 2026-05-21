@@ -22,7 +22,7 @@
           <view
             v-for="template in filteredTemplates"
             :key="template.templateId"
-            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[32rpx] border border-[rgba(0,0,0,0.05)] bg-white shadow-[0_24rpx_48rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[24rpx] border border-[#c8c9d2] bg-white active:scale-[0.98]"
             @tap="goDetail(template)"
           >
             <image class="block w-full" mode="widthFix" :src="template.coverUrl" />

@@ -63,7 +63,7 @@
       <view
         v-for="item in visibleWorks"
         :key="`${item.kind}-${item.taskId}`"
-        class="relative flex flex-col bg-white border border-[#c8c9d2]/50 break-inside-avoid rounded-[24rpx]"
+        class="relative flex flex-col bg-white border border-[#c8c9d2] break-inside-avoid rounded-[24rpx]"
         @tap="goTask(item)"
       >
         <view
