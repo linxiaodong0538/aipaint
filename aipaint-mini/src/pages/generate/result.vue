@@ -66,68 +66,100 @@
 
     <section
       v-if="showCompletedState"
-      class="absolute inset-0 flex flex-col items-center transition-all duration-1000 ease-in-out"
+      class="absolute inset-0 transition-all duration-1000 ease-in-out"
       :class="completedStateClass"
-      :style="{ bottom: `${bottomBarHeight}px` }"
     >
-      <view
-        class="relative flex h-full w-full flex-col items-center px-[32rpx] pb-[20rpx] pt-[24rpx]"
+      <scroll-view
+        scroll-y
+        class="h-full w-full"
+        :show-scrollbar="false"
       >
         <view
-          class="w-full h-full max-h-[640rpx] overflow-hidden border border-[rgba(0,0,0,0.05)] bg-[#e2e2e2] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          class="relative aspect-square w-full  bg-white p-[24rpx]"
         >
-          <view class="relative h-full w-full overflow-hidden">
-            <image
-              v-if="generatedImage"
-              class="h-full w-full transition-transform duration-1000"
-              mode="aspectFit"
-              :src="generatedImage"
-              @tap="previewGeneratedImage"
-            />
-            <view v-else class="h-full w-full bg-[#e2e2e2]" />
-          </view>
+          <image
+            v-if="generatedImage"
+            class="h-full w-full"
+            mode="aspectFill"
+            :src="generatedImage"
+            @tap="previewGeneratedImage"
+          />
+          <view v-else class="h-full w-full bg-[#e2e2e2]" />
+          <text class="font-mono absolute bottom-[32rpx] left-[32rpx] text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[2rpx] text-white/50">
+            LATENT_SPACE_PROJECTION_V2.4
+          </text>
         </view>
 
         <view
-          class="mt-[20rpx] w-full rounded-[28rpx] border border-[rgba(0,0,0,0.04)] bg-white/90 px-[28rpx] py-[20rpx] shadow-[0_16rpx_40rpx_rgba(0,0,0,0.05)]"
+          class="technical-grid border-t border-black bg-white px-[24rpx] pb-[260rpx] pt-[44rpx]"
         >
-          <text class="result-prompt block text-[26rpx] font-semibold leading-[38rpx] text-black">
-            {{ detailTitle }}
-          </text>
-          <view class="mt-[18rpx] flex flex-wrap gap-[12rpx]">
-            <text
-              v-for="item in detailTags"
-              :key="item"
-              class="rounded-full bg-[#f1f1f1] px-[18rpx] py-[8rpx] text-[20rpx] font-medium leading-[28rpx] text-[#5f5e5e]"
-            >
-              {{ item }}
+          <view class="mb-[16rpx] flex justify-between items-center">
+            <view class="pl-[8rpx]">
+              <text class="font-mono mb-[8rpx] block text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[6rpx] text-[#7e7576]">
+                真实性认证
+              </text>
+              <text class="block text-[32rpx] font-semibold uppercase leading-[48rpx] text-black">
+                生成参数
+              </text>
+            </view>
+            <text class="font-mono border border-black px-[16rpx] py-[4rpx] text-[20rpx] font-bold leading-[28rpx] text-black">
+              已验证
             </text>
           </view>
-        </view>
 
-        <view
-          class="mt-[22rpx] flex justify-center gap-[32rpx] transition-all delay-500 duration-700"
-          :class="taskState === 'success' ? 'translate-y-0 opacity-100' : 'translate-y-[32rpx] opacity-0'"
-        >
-          <button class="grid justify-items-center gap-[16rpx] bg-transparent p-0 active:scale-95" open-type="share">
-            <view class="flex h-[96rpx] w-[96rpx] items-center justify-center rounded-full border border-[#cfc4c5]">
-              <text class="iconfont icon-a-huaban1fuben37 text-[38rpx] leading-none text-black" />
+          <view class="grid grid-cols-2 border-l border-t border-[rgba(0,0,0,0.1)]">
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">模型</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskModelText }}</text>
             </view>
-            <text class="text-[22rpx] font-medium leading-[28rpx] tracking-[4rpx] text-[#4c4546]">分享</text>
-          </button>
-          <button class="grid justify-items-center gap-[16rpx] bg-transparent p-0 active:scale-95" @tap="goBack">
-            <view class="flex h-[96rpx] w-[96rpx] items-center justify-center rounded-full border border-[#cfc4c5]">
-              <text class="iconfont icon-shanshan text-[38rpx] leading-none text-black" />
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">尺寸</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskSizeText }}</text>
             </view>
-            <text class="text-[22rpx] font-medium leading-[28rpx] tracking-[4rpx] text-[#4c4546]">重新生成</text>
-          </button>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreditText }}</text>
+            </view>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
+              <view class="flex items-center gap-[12rpx]">
+                <view class="h-[12rpx] w-[12rpx] rounded-full bg-black" />
+                <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
+              </view>
+            </view>
+            <view class="col-span-2 flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
+            </view>
+          </view>
+
+          <view class="mt-[64rpx] flex items-center gap-[32rpx] opacity-30">
+            <view class="blueprint-line flex-1" />
+            <text class="font-mono text-[20rpx] font-medium leading-[28rpx] text-black">技术数据结束</text>
+            <view class="blueprint-line flex-1" />
+          </view>
+
+          <view class="result-action-grid mt-[64rpx] grid grid-cols-3 border border-[rgba(0,0,0,0.1)]">
+            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" open-type="share">
+              <text class="iconfont icon-a-huaban1fuben37 text-[40rpx] leading-none text-black" />
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">分享</text>
+            </button>
+            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="goBack">
+              <text class="iconfont icon-shanshan text-[40rpx] leading-none text-black" />
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">重试</text>
+            </button>
+            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="showUnsupported">
+              <text class="iconfont icon-MaterialSymbolsBrush text-[40rpx] leading-none text-black" />
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">编辑</text>
+            </button>
+          </view>
         </view>
-      </view>
+      </scroll-view>
     </section>
 
     <view
       v-if="bottomBarVisible"
-      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.1)] bg-[rgba(255,255,255,0.9)] px-[48rpx] pt-[32rpx] backdrop-blur-[40rpx]"
+      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(0,0,0,0.05)] bg-[rgba(255,255,255,0.95)] px-[48rpx] pt-[32rpx] shadow-[0_-20rpx_60rpx_rgba(0,0,0,0.03)] backdrop-blur-[24rpx]"
       :class="bottomBarClass"
       :style="{ height: `${bottomBarHeight}px`, paddingBottom: footerSafePadding }"
     >
@@ -136,7 +168,7 @@
         @tap="saveImage"
       >
         <text class="iconfont icon-images text-[36rpx] leading-none text-white" />
-        <text class="text-[28rpx] font-semibold leading-[40rpx] tracking-[2rpx] text-white">保存到相册</text>
+        <text class="font-mono text-[28rpx] font-semibold uppercase leading-[40rpx] tracking-[4rpx] text-white">保存到相册</text>
       </button>
     </view>
   </view>
@@ -155,14 +187,12 @@ const taskState = ref<TaskState>("processing");
 const generatedImage = ref("");
 const previewImage = ref("");
 const errorMessage = ref("");
-const taskPrompt = ref("");
 const taskModel = ref("");
-const taskQuality = ref("");
-const taskRatio = ref("");
+const taskSize = ref("");
+const taskCreditCost = ref<number | null>(null);
 const taskCreateTime = ref("");
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
-const windowHeight = ref(667);
 const pageInitializing = ref(true);
 const isHistoryDetail = ref(false);
 const historyInitializing = ref(false);
@@ -177,38 +207,19 @@ try {
   const info = uni.getSystemInfoSync();
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0;
   windowWidth.value = info.windowWidth || 375;
-  windowHeight.value = info.windowHeight || 667;
 } catch {
   safeAreaBottom.value = 0;
   windowWidth.value = 375;
-  windowHeight.value = 667;
 }
 
 const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}px`);
 const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
-const detailTitle = computed(() => taskPrompt.value || "未命名作品");
-const detailTags = computed(() => [
-  formatModel(taskModel.value),
-  formatQuality(taskQuality.value),
-  taskRatio.value,
-  formatCreateTime(taskCreateTime.value),
-].filter(Boolean));
 const showProgressState = computed(() => !pageInitializing.value && taskState.value !== "success");
 const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
-const resultImageFrameStyle = computed(() => {
-  const { width, height } = getRatioSize(taskRatio.value);
-  const contentWidth = windowWidth.value - rpxToPx(64);
-  const reservedHeight = bottomBarHeight.value + rpxToPx(450);
-  const maxHeight = Math.max(rpxToPx(300), windowHeight.value - reservedHeight);
-  const widthByHeight = maxHeight * (width / height);
-  const displayWidth = Math.min(contentWidth, widthByHeight);
-  const displayHeight = displayWidth * (height / width);
-
-  return {
-    width: `${Math.round(displayWidth)}px`,
-    height: `${Math.round(displayHeight)}px`,
-  };
-});
+const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
+const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
+const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
+const taskModelText = computed(() => taskModel.value || "gpt-image-2");
 
 const progressTitle = computed(() => {
   if (taskState.value === "failed") return "生成失败";
@@ -246,18 +257,6 @@ const bottomBarClass = computed(() => {
 
 function rpxToPx(rpx: number) {
   return (windowWidth.value / 750) * rpx;
-}
-
-function getRatioSize(ratio?: string) {
-  const [width, height] = (ratio || "1:1")
-    .split(":")
-    .map((value) => Number(value));
-
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return { width: 1, height: 1 };
-  }
-
-  return { width, height };
 }
 
 onLoad((query) => {
@@ -393,10 +392,9 @@ function completeTask(imageUrl: string, options: { instant?: boolean; toast?: bo
 }
 
 function applyTaskDetails(task: GenerationTask) {
-  taskPrompt.value = task.prompt || "";
   taskModel.value = task.model || "";
-  taskQuality.value = task.quality || "";
-  taskRatio.value = task.ratio || "";
+  taskSize.value = task.size || "";
+  taskCreditCost.value = typeof task.creditCost === "number" ? task.creditCost : null;
   taskCreateTime.value = task.createTime || task.finishTime || "";
 }
 
@@ -414,23 +412,16 @@ function hydrateCompletedTaskFromStorage(expectedTaskId: number) {
   return true;
 }
 
-function formatModel(model: string) {
-  if (model === "gpt-image-2" || model === "g-image-2") return "G Image 2";
-  return model || "";
-}
-
-function formatQuality(quality: string) {
-  const map: Record<string, string> = {
-    low: "1K",
-    medium: "2K",
-    high: "4K",
-  };
-  return map[quality] || quality || "";
-}
-
 function formatCreateTime(value: string) {
   if (!value) return "";
-  return value.slice(0, 16);
+  const timestamp = new Date(value.replace(/-/g, "/")).getTime();
+  if (!Number.isFinite(timestamp)) return value.slice(0, 16);
+  const date = new Date(timestamp);
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${date.getFullYear()}年${month}月${day}日 ${hours}:${minutes}`;
 }
 
 function failTask(message: string) {
@@ -513,13 +504,6 @@ page {
   overflow: hidden;
 }
 
-.result-prompt {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
 .orbit-container {
   position: relative;
   width: 480rpx;
@@ -566,6 +550,36 @@ page {
   background-size: 260% 100%;
   background-position: 100% 0;
   animation: infinite-progress-slide 1.2s linear infinite;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.technical-grid {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 2rpx, transparent 0);
+  background-size: 40rpx 40rpx;
+}
+
+.blueprint-line {
+  width: 100%;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent 0%, #1a1c1c 50%, transparent 100%);
+  opacity: 0.1;
+}
+
+.result-action-button {
+  margin: 0;
+  border-radius: 0;
+  line-height: 1;
+}
+
+.result-action-button::after {
+  border: 0;
+}
+
+.result-action-grid .result-action-button + .result-action-button {
+  border-left: 2rpx solid rgba(0, 0, 0, 0.1);
 }
 
 @keyframes ai-pulse {

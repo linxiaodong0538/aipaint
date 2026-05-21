@@ -1,6 +1,6 @@
 <template>
   <view
-    class="min-h-screen bg-[var(--app-background)] px-[48rpx] pb-[220rpx] pt-[32rpx] text-[var(--app-on-surface)]"
+    class="min-h-screen bg-(--app-background) px-[32rpx] pb-[220rpx] pt-[32rpx] text-(--app-on-surface)"
   >
     <view class="flex flex-wrap gap-[20rpx]">
       <view
@@ -58,7 +58,7 @@
 
     <view
       v-if="userStore.isLogin && hasVisibleWorks"
-      class="mt-[32rpx] grid grid-cols-2 gap-[32rpx]"
+      class="mt-[32rpx] grid grid-cols-2 gap-[24rpx]"
     >
       <view
         v-for="item in visibleWorks"
@@ -85,7 +85,7 @@
 
         <view
           v-else
-          class="works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[32rpx] active:scale-[0.98]"
+          class="works-pixel-border relative mb-[24rpx] aspect-square w-full overflow-hidden rounded-[24rpx] active:scale-[0.98]"
         >
           <image
             :src="item.image"
