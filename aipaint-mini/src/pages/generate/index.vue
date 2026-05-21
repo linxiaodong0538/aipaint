@@ -10,29 +10,26 @@
             <text class="text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">参考图片</text>
             <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">1张, 5MB以内</text>
           </view>
-          <view
-            class="relative flex flex-col items-center justify-center gap-[8rpx] bg-white active:scale-[0.99]"
-            :class="
-              referenceImage
-                ? 'aspect-square border border-[rgba(0,0,0,0.05)] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)] rounded-[24rpx] h-[300rpx] mx-auto '
-                : 'h-[192rpx] border-[4rpx] border-dashed border-[#cfc4c5] rounded-[48rpx]'
-            "
-            @tap="chooseImage"
-          >
-            <image v-if="referenceImage" class="h-full w-full rounded-[24rpx]" mode="aspectFill" :src="referenceImage" />
+          <view class="reference-upload-box flex items-center gap-[24rpx] overflow-hidden rounded-[24rpx] border-[2rpx] border-dashed border-[#cfc4c5] bg-white px-[16rpx] py-[16rpx]">
             <button
               v-if="referenceImage"
-              class="absolute right-[-16rpx] top-[-16rpx] flex h-[48rpx] w-[48rpx] items-center justify-center rounded-full bg-[rgba(0,0,0,0.68)] p-0 active:scale-95"
-              @tap.stop="removeImage"
+              class="relative h-[160rpx] w-[128rpx] shrink-0 overflow-hidden rounded-[12rpx] border border-[rgba(0,0,0,0.08)] bg-[#f3f3f3] p-0 active:opacity-85"
+              @tap="openReferenceImageMenu"
             >
-              <text class="text-[34rpx] font-medium leading-[56rpx] text-white">×</text>
+              <image class="h-full w-full" mode="aspectFill" :src="referenceImage" />
             </button>
-            <view v-else class="flex flex-col items-center">
-              <view class="relative flex h-[40rpx] w-[40rpx] items-center justify-center">
-                <text class="iconfont icon-icon_paizhaoshangchuan leading-none"  style="font-size: 42rpx;"/>
+
+            <button
+              class="flex h-[160rpx] w-[152rpx] shrink-0 flex-col items-center justify-center rounded-[18rpx] border border-dashed border-[#d5d0d1] bg-white p-0 active:bg-[#f3f3f4]"
+              @tap="chooseImage"
+            >
+              <view class="relative flex h-[44rpx] w-[44rpx] items-center justify-center">
+                <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-[#7e7576]" style="font-size: 40rpx;"/>
               </view>
-              <text class="mt-[8rpx] text-[22rpx] font-medium leading-[32rpx] tracking-[2rpx] text-[#4c4546]">点击上传图片</text>
-            </view>
+              <text class="mt-[10rpx] text-[22rpx] font-medium leading-[32rpx] text-[#4c4546]">
+                {{ referenceImage ? "继续添加" : "添加图片" }}
+              </text>
+            </button>
           </view>
         </view>
 
@@ -401,6 +398,21 @@ function removeImage() {
   referenceImage.value = "";
 }
 
+function openReferenceImageMenu() {
+  uni.showActionSheet({
+    itemList: ["更换图片", "删除图片"],
+    success(result) {
+      if (result.tapIndex === 0) {
+        chooseImage();
+        return;
+      }
+      if (result.tapIndex === 1) {
+        removeImage();
+      }
+    },
+  });
+}
+
 function mapQuality(value: (typeof qualities)[number]) {
   const map: Record<(typeof qualities)[number], "low" | "medium" | "high"> = {
     "1K": "low",
@@ -453,5 +465,9 @@ async function handleGenerate() {
   color: #9ca3af !important;
   font-size: 32rpx !important;
   line-height: 48rpx !important;
+}
+
+.reference-upload-box {
+  min-height: 192rpx;
 }
 </style>
