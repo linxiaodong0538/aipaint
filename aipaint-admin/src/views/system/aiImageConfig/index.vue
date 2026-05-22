@@ -61,15 +61,23 @@
           <span class="form-tip">分钟内直接走备用通道</span>
         </el-form-item>
 
-        <el-form-item label="固定尺寸开关" prop="forceSizeEnabled">
-          <el-switch v-model="form.forceSizeEnabled" />
+        <el-form-item label="输出格式" prop="outputFormat">
+          <el-radio-group v-model="form.outputFormat">
+            <el-radio value="jpeg">JPEG</el-radio>
+            <el-radio value="png">PNG</el-radio>
+          </el-radio-group>
+          <span class="form-tip">默认使用 JPEG，文件更小</span>
         </el-form-item>
 
-        <el-form-item label="固定尺寸" prop="forceSize">
-          <el-select v-model="form.forceSize" :disabled="!form.forceSizeEnabled" style="width: 220px">
-            <el-option v-for="item in sizeOptions" :key="item" :label="item" :value="item" />
-          </el-select>
-          <span class="form-tip">关闭后将按前台比例自动映射尺寸</span>
+        <el-form-item label="JPEG 压缩强度" prop="outputCompression">
+          <el-input-number
+            v-model="form.outputCompression"
+            :min="0"
+            :max="100"
+            :disabled="form.outputFormat !== 'jpeg'"
+            controls-position="right"
+          />
+          <span class="form-tip">仅对 JPEG 生效，范围 0-100</span>
         </el-form-item>
       </el-card>
 
@@ -115,7 +123,6 @@ import { getAiImageConfig, updateAiImageConfig } from "@/api/system/aiImageConfi
 
 const { proxy } = getCurrentInstance()
 
-const sizeOptions = ["1024x1024", "1536x1024", "1024x1536"]
 const providerTypes = [
   { label: "OpenAI Compatible", value: "openai-compatible" }
 ]
@@ -146,8 +153,8 @@ function createForm() {
     fallbackStrategy: "fallback",
     circuitBreakerFailureThreshold: 3,
     circuitBreakerCooldownMinutes: 10,
-    forceSizeEnabled: false,
-    forceSize: "1024x1024",
+    outputFormat: "jpeg",
+    outputCompression: 90,
     primaryProvider: createProvider("primary", "主通道"),
     backupProvider: createProvider("backup", "备用通道"),
     healthStats: []
@@ -159,7 +166,8 @@ const form = reactive(createForm())
 const rules = computed(() => ({
   activeProvider: [{ required: true, message: "请选择当前生效通道", trigger: "change" }],
   fallbackStrategy: [{ required: true, message: "请选择切换策略", trigger: "change" }],
-  forceSize: [{ validator: validateForceSize, trigger: "change" }],
+  outputFormat: [{ required: true, message: "请选择输出格式", trigger: "change" }],
+  outputCompression: [{ validator: validateOutputCompression, trigger: "change" }],
   "primaryProvider.providerName": [{ required: true, message: "请输入主通道名称", trigger: "blur" }],
   "primaryProvider.providerType": [{ required: true, message: "请选择主通道类型", trigger: "change" }],
   "primaryProvider.baseUrl": [{ validator: createProviderRequiredValidator("primaryProvider", "Base URL"), trigger: "blur" }],
@@ -190,18 +198,6 @@ const healthRows = computed(() => {
   })
 })
 
-function validateForceSize(rule, value, callback) {
-  if (!form.forceSizeEnabled) {
-    callback()
-    return
-  }
-  if (sizeOptions.includes(value)) {
-    callback()
-    return
-  }
-  callback(new Error("固定尺寸配置无效"))
-}
-
 function createProviderRequiredValidator(providerKey, label) {
   return (rule, value, callback) => {
     const provider = form[providerKey]
@@ -217,6 +213,19 @@ function createProviderRequiredValidator(providerKey, label) {
   }
 }
 
+function validateOutputCompression(rule, value, callback) {
+  if (form.outputFormat !== "jpeg") {
+    callback()
+    return
+  }
+  const compression = Number(value)
+  if (Number.isInteger(compression) && compression >= 0 && compression <= 100) {
+    callback()
+    return
+  }
+  callback(new Error("JPEG 压缩强度需为 0-100 的整数"))
+}
+
 function assignForm(data) {
   const defaults = createForm()
   form.activeProvider = data?.activeProvider || defaults.activeProvider
@@ -224,8 +233,8 @@ function assignForm(data) {
   form.fallbackStrategy = data?.fallbackStrategy || (form.fallbackEnabled ? defaults.fallbackStrategy : "manual")
   form.circuitBreakerFailureThreshold = Number(data?.circuitBreakerFailureThreshold || defaults.circuitBreakerFailureThreshold)
   form.circuitBreakerCooldownMinutes = Number(data?.circuitBreakerCooldownMinutes || defaults.circuitBreakerCooldownMinutes)
-  form.forceSizeEnabled = Boolean(data?.forceSizeEnabled)
-  form.forceSize = data?.forceSize || defaults.forceSize
+  form.outputFormat = data?.outputFormat || defaults.outputFormat
+  form.outputCompression = Number(data?.outputCompression ?? defaults.outputCompression)
   form.primaryProvider = { ...defaults.primaryProvider, ...(data?.primaryProvider || {}), providerCode: "primary" }
   form.backupProvider = { ...defaults.backupProvider, ...(data?.backupProvider || {}), providerCode: "backup" }
   form.healthStats = Array.isArray(data?.healthStats) ? data.healthStats : []

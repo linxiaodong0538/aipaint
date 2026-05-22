@@ -18,9 +18,9 @@ public class AiImageAdminConfig
 
     private Integer circuitBreakerCooldownMinutes;
 
-    private Boolean forceSizeEnabled;
+    private String outputFormat;
 
-    private String forceSize;
+    private Integer outputCompression;
 
     private AiImageProviderConfig primaryProvider;
 
@@ -78,24 +78,24 @@ public class AiImageAdminConfig
         this.circuitBreakerCooldownMinutes = circuitBreakerCooldownMinutes;
     }
 
-    public Boolean getForceSizeEnabled()
+    public String getOutputFormat()
     {
-        return forceSizeEnabled;
+        return outputFormat;
     }
 
-    public void setForceSizeEnabled(Boolean forceSizeEnabled)
+    public void setOutputFormat(String outputFormat)
     {
-        this.forceSizeEnabled = forceSizeEnabled;
+        this.outputFormat = outputFormat;
     }
 
-    public String getForceSize()
+    public Integer getOutputCompression()
     {
-        return forceSize;
+        return outputCompression;
     }
 
-    public void setForceSize(String forceSize)
+    public void setOutputCompression(Integer outputCompression)
     {
-        this.forceSize = forceSize;
+        this.outputCompression = outputCompression;
     }
 
     public AiImageProviderConfig getPrimaryProvider()

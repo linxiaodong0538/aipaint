@@ -1,14 +1,18 @@
 import { request } from "@/utils/request";
 import { baseUrl } from "@/config/env";
+import { useUserStore } from "@/store/modules/user";
 
 export type GenerationStatus = "pending" | "processing" | "success" | "failed";
 
 export interface CreateImageGenerationRequest {
   prompt: string;
-  model: "g-image-2";
-  quality: "low" | "medium" | "high";
+  model: "gpt-image-2";
   ratio: "1:1" | "3:4" | "4:3" | "16:9" | "9:16" | "2:1";
-  referenceImageUrl?: string;
+  size: string;
+  resolution: "1K" | "2K" | "4K";
+  quality: "low" | "medium" | "high";
+  n: 1 | 2 | 3 | 4;
+  image_urls: string[];
 }
 
 export interface CreateImageGenerationResponse {
@@ -22,7 +26,11 @@ export interface GenerationTask {
   quality: string;
   ratio: string;
   size: string;
+  resolution?: string;
+  imageUrls?: string;
+  imageCount?: number;
   status: GenerationStatus;
+  progress?: number;
   resultImageUrl?: string;
   previewImageUrl?: string;
   errorMessage?: string;
@@ -43,6 +51,34 @@ export function createImageGeneration(data: CreateImageGenerationRequest) {
     url: "/mini/generate/image",
     method: "POST",
     data,
+  });
+}
+
+export function uploadImage(filePath: string) {
+  const userStore = useUserStore();
+
+  return new Promise<string>((resolve, reject) => {
+    uni.uploadFile({
+      url: `${baseUrl}/common/upload`,
+      filePath,
+      name: "file",
+      header: userStore.token ? { Authorization: `Bearer ${userStore.token}` } : undefined,
+      success(result) {
+        try {
+          const payload = JSON.parse(result.data || "{}") as { code?: number; msg?: string; url?: string };
+          if (payload.code !== 200 || !payload.url) {
+            reject(new Error(payload.msg || "图片上传失败"));
+            return;
+          }
+          resolve(payload.url);
+        } catch {
+          reject(new Error("图片上传结果解析失败"));
+        }
+      },
+      fail(error) {
+        reject(new Error(error.errMsg || "图片上传失败"));
+      },
+    });
   });
 }
 

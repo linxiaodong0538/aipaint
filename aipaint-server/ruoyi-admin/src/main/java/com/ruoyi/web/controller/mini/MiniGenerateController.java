@@ -1,6 +1,8 @@
 package com.ruoyi.web.controller.mini;
 
+import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,10 +43,6 @@ public class MiniGenerateController extends BaseController
         {
             return error("请输入画面描述");
         }
-        if (StringUtils.isNotBlank(request.getReferenceImageUrl()))
-        {
-            return error("参考图生成暂未接入");
-        }
 
         AiImageProviderConfig providerConfig;
         try
@@ -57,20 +55,32 @@ public class MiniGenerateController extends BaseController
         }
 
         Long userId = SecurityUtils.getUserId();
+        String model = normalizeModel(request.getModel(), providerConfig.getModel());
         String ratio = normalizeRatio(request.getRatio());
+        String resolution = normalizeResolution(request.getResolution());
         String quality = normalizeQuality(request.getQuality());
-        String size = aiImageService.resolveImageSize(ratio);
+        Integer imageCount = normalizeImageCount(request.getN());
+        List<String> imageUrls = normalizeImageUrls(request.getImageUrls(), request.getReferenceImageUrl());
+        String size = normalizeImageSize(ratio, resolution, request.getSize());
+        if ("4K".equals(resolution) && ("1:1".equals(ratio) || "4:3".equals(ratio) || "3:4".equals(ratio)))
+        {
+            return error("4K 分辨率仅支持 16:9、9:16、2:1");
+        }
 
         AiGenerationTask task = new AiGenerationTask();
         task.setUserId(userId);
         task.setProviderCode(providerConfig.getProviderCode());
         task.setPrompt(request.getPrompt().trim());
-        task.setModel(providerConfig.getModel());
+        task.setModel(model);
         task.setQuality(quality);
         task.setRatio(ratio);
         task.setSize(size);
+        task.setResolution(resolution);
+        task.setImageUrls(StringUtils.join(imageUrls, ","));
+        task.setImageCount(imageCount);
         task.setStatus("pending");
-        task.setCreditCost(resolveCreditCost(quality));
+        task.setProgress(0);
+        task.setCreditCost(resolveCreditCost(quality) * imageCount.intValue());
         task.setCreateBy(SecurityUtils.getUsername());
         taskService.insertGenerationTask(task);
 
@@ -104,6 +114,28 @@ public class MiniGenerateController extends BaseController
         return "1:1";
     }
 
+    private String normalizeModel(String model, String defaultModel)
+    {
+        if ("gpt-image-2".equals(model))
+        {
+            return model;
+        }
+        return StringUtils.defaultIfBlank(defaultModel, "gpt-image-2");
+    }
+
+    private String normalizeResolution(String resolution)
+    {
+        if ("1k".equalsIgnoreCase(resolution) || "1K".equals(resolution))
+        {
+            return "1K";
+        }
+        if ("4k".equalsIgnoreCase(resolution) || "4K".equals(resolution))
+        {
+            return "4K";
+        }
+        return "2K";
+    }
+
     private String normalizeQuality(String quality)
     {
         if ("low".equals(quality) || "medium".equals(quality) || "high".equals(quality))
@@ -119,6 +151,74 @@ public class MiniGenerateController extends BaseController
             return "high";
         }
         return "medium";
+    }
+
+    private String normalizeImageSize(String ratio, String resolution, String requestSize)
+    {
+        String expectedSize = resolveExpectedSize(ratio, resolution);
+        if (StringUtils.isBlank(requestSize))
+        {
+            return expectedSize;
+        }
+        return expectedSize.equals(requestSize) ? requestSize : expectedSize;
+    }
+
+    private String resolveExpectedSize(String ratio, String resolution)
+    {
+        if ("1:1".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1024x1024" : "2048x2048";
+        }
+        if ("4:3".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1024x768" : "2048x1536";
+        }
+        if ("3:4".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "768x1024" : "1536x2048";
+        }
+        if ("16:9".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1536x864" : "2K".equals(resolution) ? "2048x1152" : "3840x2160";
+        }
+        if ("9:16".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "864x1536" : "2K".equals(resolution) ? "1152x2048" : "2160x3840";
+        }
+        if ("2:1".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "2048x1024" : "2K".equals(resolution) ? "2688x1344" : "3840x1920";
+        }
+        return "1024x1024";
+    }
+
+    private List<String> normalizeImageUrls(List<String> imageUrls, String referenceImageUrl)
+    {
+        List<String> result = new ArrayList<>();
+        if (imageUrls != null)
+        {
+            for (String imageUrl : imageUrls)
+            {
+                if (StringUtils.isNotBlank(imageUrl) && result.size() < 4)
+                {
+                    result.add(imageUrl.trim());
+                }
+            }
+        }
+        if (result.isEmpty() && StringUtils.isNotBlank(referenceImageUrl))
+        {
+            result.add(referenceImageUrl.trim());
+        }
+        return result;
+    }
+
+    private Integer normalizeImageCount(Integer imageCount)
+    {
+        if (imageCount == null)
+        {
+            return Integer.valueOf(1);
+        }
+        return Integer.valueOf(Math.max(1, Math.min(4, imageCount.intValue())));
     }
 
     private String normalizeStatus(String status)
@@ -149,6 +249,11 @@ public class MiniGenerateController extends BaseController
         private String model;
         private String quality;
         private String ratio;
+        private String size;
+        private String resolution;
+        private Integer n;
+        @JsonProperty("image_urls")
+        private List<String> imageUrls;
         private String referenceImageUrl;
 
         public String getPrompt()
@@ -189,6 +294,46 @@ public class MiniGenerateController extends BaseController
         public void setRatio(String ratio)
         {
             this.ratio = ratio;
+        }
+
+        public String getSize()
+        {
+            return size;
+        }
+
+        public void setSize(String size)
+        {
+            this.size = size;
+        }
+
+        public String getResolution()
+        {
+            return resolution;
+        }
+
+        public void setResolution(String resolution)
+        {
+            this.resolution = resolution;
+        }
+
+        public Integer getN()
+        {
+            return n;
+        }
+
+        public void setN(Integer n)
+        {
+            this.n = n;
+        }
+
+        public List<String> getImageUrls()
+        {
+            return imageUrls;
+        }
+
+        public void setImageUrls(List<String> imageUrls)
+        {
+            this.imageUrls = imageUrls;
         }
 
         public String getReferenceImageUrl()

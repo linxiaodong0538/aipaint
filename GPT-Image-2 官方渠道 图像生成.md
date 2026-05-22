@@ -2,18 +2,17 @@
 > Fetch the complete documentation index at: https://docs.toapis.com/llms.txt
 > Use this file to discover all available pages before exploring further.
 
-# GPT-Image-2 官方渠道 图像生成
+# GPT-Image-2 图像生成
 
-> 使用 OpenAI 官方 gpt-image-2 模型生成图像，支持文生图 / 图生图 / 局部重绘（mask）三合一，1K / 2K / 4K 分辨率档位
+> 使用 gpt-image-2 模型生成图像，支持文生图和 reference_images 图生图
 
-* OpenAI 官方 `gpt-image-2` 模型，通过 `gpt-image-1.5-official` 模型名调用
-* 异步处理模式，返回任务 ID 用于后续查询
-* 支持文生图、多参考图图生图、遮罩局部重绘（inpainting）
-* 支持 13 种宽高比，可选 1K / 2K / 4K 三档分辨率
-* 单次最多生成 4 张图，参考图最多 16 张
+* 统一的图像生成 API 接口
+* 通过 `model` 参数选择 `gpt-image-2`
+* 支持文生图、单图参考和多图参考生成
+* 异步任务管理，通过任务 ID 查询结果
 
 <Warning>
-  **注意**：`gpt-image-1.5-official` 不支持透明背景，传入 `background: "transparent"` 会被静默降级为 `auto`。
+  **重要变更**：为了更好的性能和成本控制，我们不再支持在 `image_urls` / `reference_images` 中直接传入 base64 图片数据。请先使用 [上传图片接口](/docs/cn/api-reference/uploads/images) 上传图片，获取 URL 后再调用本接口。
 </Warning>
 
 ## Authorizations
@@ -32,36 +31,32 @@
 
 ## Body
 
-<ParamField body="model" type="string" default="gpt-image-1.5-official" required>
+<ParamField body="model" type="string" default="gpt-image-2" required>
   图像生成模型名称
 
-  固定填写 `gpt-image-1.5-official`
+  示例：`"gpt-image-2"`
 </ParamField>
 
 <ParamField body="prompt" type="string" required>
   图像生成的文本描述
 
-  支持中英文，建议详细描述场景、风格和构图
+  最长 32,000 个字符（GPT image models 官方上限）
 </ParamField>
 
 <ParamField body="size" type="string" default="1:1">
-  画面宽高比
+  输出图像比例
 
-  支持以下比例，也可传 `auto` 由服务端根据 prompt 自动选择：
+  支持值取决于 `resolution`：
 
-  `1:1` · `3:2` · `2:3` · `4:3` · `3:4` · `5:4` · `4:5` · `16:9` · `9:16` · `2:1` · `1:2` · `21:9` · `9:21`
-
-  <Warning>
-    4K 档仅支持 6 个比例：`16:9` / `9:16` / `2:1` / `1:2` / `21:9` / `9:21`，其余比例请使用 `2K`。
-  </Warning>
+  * `1K`：`1:1`、`3:2`、`2:3`
+  * `2K`：`1:1`、`3:2`、`2:3`、`4:3`、`3:4`、`5:4`、`4:5`、`16:9`、`9:16`、`2:1`、`1:2`、`21:9`、`9:21`
+  * `4K`：`16:9`、`9:16`、`2:1`、`1:2`、`21:9`、`9:21`
 </ParamField>
 
-<ParamField body="resolution" type="string" default="1k">
-  分辨率档位
+<ParamField body="resolution" type="string" default="1K">
+  输出分辨率档位
 
-  * `1k` — 1024 基准，速度快，日常够用（默认）
-  * `2k` — 2048 基准，适合海报 / 高清需求
-  * `4k` — 3840 基准，仅支持上述 6 个比例，`high` 质量下耗时可达 130s
+  支持值：`1K`、`2K`、`4K`
 </ParamField>
 
 ### 尺寸对照表
@@ -71,57 +66,43 @@
 | `1:1`  | `1024x1024` | `2048x2048` | 不支持         |
 | `3:2`  | `1536x1024` | `2048x1360` | 不支持         |
 | `2:3`  | `1024x1536` | `1360x2048` | 不支持         |
-| `4:3`  | `1024x768`  | `2048x1536` | 不支持         |
-| `3:4`  | `768x1024`  | `1536x2048` | 不支持         |
-| `5:4`  | `1280x1024` | `2560x2048` | 不支持         |
-| `4:5`  | `1024x1280` | `2048x2560` | 不支持         |
-| `16:9` | `1536x864`  | `2048x1152` | `3840x2160` |
-| `9:16` | `864x1536`  | `1152x2048` | `2160x3840` |
-| `2:1`  | `2048x1024` | `2688x1344` | `3840x1920` |
-| `1:2`  | `1024x2048` | `1344x2688` | `1920x3840` |
-| `21:9` | `2016x864`  | `2688x1152` | `3840x1648` |
-| `9:21` | `864x2016`  | `1152x2688` | `1648x3840` |
-
-<ParamField body="quality" type="string" default="high">
-  图片质量
-
-  * `low` — 快速省钱，适合草稿/预览
-  * `medium` — 平衡速度与质量
-  * `high` — 最高精度，默认值（4K + high 耗时可达 120s+）
-</ParamField>
-
-<ParamField body="output_format" type="string" default="png">
-  输出格式
-
-  * `png` — 默认
-  * `jpeg` — 文件更小（支持压缩）
-
-  <Note>Azure OpenAI 不支持 `webp` 格式。</Note>
-</ParamField>
-
-<ParamField body="output_compression" type="integer" default={100}>
-  JPEG 压缩强度，范围 `0–100`（`0` 不压缩，`100` 最大压缩，默认 `100`）
-
-  仅对 `output_format: "jpeg"` 有效
-</ParamField>
+| `4:3`  | 不支持         | `2048x1536` | 不支持         |
+| `3:4`  | 不支持         | `1536x2048` | 不支持         |
+| `5:4`  | 不支持         | `2560x2048` | 不支持         |
+| `4:5`  | 不支持         | `2048x2560` | 不支持         |
+| `16:9` | 不支持         | `2048x1152` | `3840x2160` |
+| `9:16` | 不支持         | `1152x2048` | `2160x3840` |
+| `2:1`  | 不支持         | `2688x1344` | `3840x1920` |
+| `1:2`  | 不支持         | `1344x2688` | `1920x3840` |
+| `21:9` | 不支持         | `2688x1152` | `3840x1648` |
+| `9:21` | 不支持         | `1152x2688` | `1648x3840` |
 
 <ParamField body="n" type="integer" default={1}>
-  生成图片张数
+  生成图像的数量
 
-  取值范围：`1 ~ 10`
+  默认：1
+</ParamField>
+
+<ParamField body="response_format" type="string" default="url">
+  返回格式
+
+  固定返回图片 URL，推荐使用 `url`
+</ParamField>
+
+<ParamField body="reference_images" type="string[]">
+  参考图 URL 列表，用于图生图
+
+  **⚠️ 仅支持 URL 格式（不再支持 base64）**
+
+  * 公开可访问的图片 URL（http\:// 或 https\://）
+  * 可使用 [上传图片接口](/docs/cn/api-reference/uploads/images) 上传本地图片获取 URL
+  * 支持单图和多图参考
 </ParamField>
 
 <ParamField body="image_urls" type="string[]">
-  参考图 URL 数组，用于图生图
+  向后兼容的参考图字段
 
-  * 最多 **16 张**，须为公网可访问的稳定 URL
-  * 可先使用 [上传图片接口](/docs/cn/api-reference/uploads/images) 获取 URL
-</ParamField>
-
-<ParamField body="mask_url" type="string">
-  遮罩图 URL，用于局部重绘（inpainting）
-
-  需搭配 `image_urls` 使用，遮罩图尺寸须与首张参考图一致，且需包含 Alpha 通道（透明区域为待重绘区域）
+  在 ToAPIs 中会自动归一化为 `reference_images`
 </ParamField>
 
 ## Response
@@ -141,10 +122,10 @@
 <ResponseField name="status" type="string">
   任务状态
 
-  * `queued` — 排队等待处理
-  * `in_progress` — 处理中
-  * `completed` — 成功完成
-  * `failed` — 失败
+  * `queued` - 排队等待处理
+  * `in_progress` - 处理中
+  * `completed` - 成功完成
+  * `failed` - 失败
 </ResponseField>
 
 <ResponseField name="progress" type="integer">
@@ -156,66 +137,38 @@
 </ResponseField>
 
 <RequestExample>
-  ```bash 文生图 theme={null}
+  ```bash cURL theme={null}
   curl --request POST \
     --url https://toapis.com/v1/images/generations \
     --header 'Authorization: Bearer <token>' \
     --header 'Content-Type: application/json' \
     --data '{
-      "model": "gpt-image-1.5-official",
-      "prompt": "星空下的古老城堡，电影感光影，超写实风格",
-      "size": "16:9",
-      "resolution": "2k",
-      "quality": "high",
-      "n": 1
-    }'
-  ```
-
-  ```bash 4K 壁纸 theme={null}
-  curl --request POST \
-    --url https://toapis.com/v1/images/generations \
-    --header 'Authorization: Bearer <token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-      "model": "gpt-image-1.5-official",
-      "prompt": "雪山日出全景，极致细节",
-      "size": "16:9",
-      "resolution": "4k",
-      "quality": "high",
-      "output_format": "jpeg",
-      "output_compression": 90
-    }'
-  ```
-
-  ```bash 图生图（多参考图） theme={null}
-  curl --request POST \
-    --url https://toapis.com/v1/images/generations \
-    --header 'Authorization: Bearer <token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-      "model": "gpt-image-1.5-official",
-      "prompt": "将两张参考图融合成一张插画海报，保留主体轮廓",
+      "model": "gpt-image-2",
+      "prompt": "生成一张未来城市夜景海报，霓虹灯，电影感构图",
+      "n": 1,
       "size": "1:1",
-      "quality": "high",
+      "resolution": "1K",
+      "response_format": "url"
+    }'
+  ```
+
+  ```bash cURL (图生图) theme={null}
+  curl --request POST \
+    --url https://toapis.com/v1/images/generations \
+    --header 'Authorization: Bearer <token>' \
+    --header 'Content-Type: application/json' \
+    --data '{
+      "model": "gpt-image-2",
+      "prompt": "保留主体结构，把画面改成赛博朋克风格，增强光影和细节",
+      "n": 1,
+      "size": "1:1",
+      "resolution": "1K",
       "image_urls": [
-        "https://example.com/input-a.png",
-        "https://example.com/input-b.png"
-      ]
-    }'
-  ```
-
-  ```bash 局部重绘（mask） theme={null}
-  curl --request POST \
-    --url https://toapis.com/v1/images/generations \
-    --header 'Authorization: Bearer <token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-      "model": "gpt-image-1.5-official",
-      "prompt": "把背景换成沙漠日落",
-      "size": "1:1",
-      "quality": "medium",
-      "image_urls": ["https://example.com/photo.png"],
-      "mask_url": "https://example.com/mask.png"
+        "https://example.com/source.png",
+         "https://example.com/source.png",
+        "https://example.com/source.png"
+      ],
+      "response_format": "url"
     }'
   ```
 
@@ -227,12 +180,12 @@
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-image-1.5-official',
-      prompt: '星空下的古老城堡，电影感光影，超写实风格',
-      size: '16:9',
-      resolution: '2k',
-      quality: 'high',
-      n: 1
+      model: 'gpt-image-2',
+      prompt: 'Generate a futuristic city night poster with neon lighting and cinematic composition',
+      n: 1,
+      size: '1:1',
+      resolution: '1K',
+      response_format: 'url'
     })
   });
 
@@ -244,9 +197,9 @@
 <ResponseExample>
   ```json 200 theme={null}
   {
-    "id": "tsk_img_01KPTXXXXXXXXXXXXXXX",
+    "id": "task_img_abc123def456",
     "object": "generation.task",
-    "model": "gpt-image-1.5-official",
+    "model": "gpt-image-2",
     "status": "queued",
     "progress": 0,
     "created_at": 1703884800,

@@ -166,7 +166,7 @@
         </view>
 
         <!-- 画质选择 -->
-        <view>
+        <view class="mb-[32rpx]">
           <text class="model-section-label font-mono">画质选择</text>
           <view class="segmented-control">
             <button
@@ -177,6 +177,22 @@
               @tap="selectImageQuality(item.value)"
             >
               {{ item.label }}
+            </button>
+          </view>
+        </view>
+
+        <!-- 图片生成张数 -->
+        <view>
+          <text class="model-section-label font-mono">生成数量</text>
+          <view class="segmented-control">
+            <button
+              v-for="item in counts"
+              :key="item"
+              class="segmented-item"
+              :class="{ active: count === item }"
+              @tap="count = item"
+            >
+              {{ item }}
             </button>
           </view>
         </view>
@@ -208,7 +224,7 @@
 import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
-import { createImageGeneration } from "@/api/generate";
+import { createImageGeneration, uploadImage } from "@/api/generate";
 import { getTemplateDetail, type TemplateItem } from "@/api/template";
 import { useUserStore } from "@/store/modules/user";
 
@@ -218,7 +234,7 @@ const prompts = [
   "赛博街区的雨夜橱窗，霓虹反射，广角摄影，超现实氛围",
 ];
 
-type ModelValue = "g-image-2" | "vision-pro";
+type ModelValue = "gpt-image-2" | "xx";
 
 const models: Array<{
   value: ModelValue;
@@ -228,15 +244,15 @@ const models: Array<{
   enabled: boolean;
 }> = [
 {
-    value: "g-image-2",
+    value: "gpt-image-2",
     label: "GPT-image-2",
     description: "全能艺术创作",
     iconClass: "icon-magic",
     enabled: true,
   },
   {
-    value: "vision-pro",
-    label: "Vision Pro",
+    value: "xx",
+    label: "暂定",
     description: "写实摄影风格",
     iconClass: "icon-tupian",
     enabled: false,
@@ -278,7 +294,7 @@ const prompt = ref("");
 const maxReferenceImages = 4;
 const referenceImages = ref<string[]>([]);
 const canAddReferenceImages = computed(() => referenceImages.value.length < maxReferenceImages);
-const model = ref<ModelValue>("g-image-2");
+const model = ref<ModelValue>("gpt-image-2");
 const quality = ref<(typeof qualities)[number]>("2K");
 const imageQualities = [
   { value: "low", label: "低" },
@@ -286,7 +302,7 @@ const imageQualities = [
   { value: "high", label: "高" },
 ] as const;
 const imageQuality = ref<(typeof imageQualities)[number]["value"]>("high");
-const count = ref<(typeof counts)[number]>(3);
+const count = ref<(typeof counts)[number]>(1);
 const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
 const generating = ref(false);
 const userStore = useUserStore();
@@ -299,8 +315,8 @@ const creditCost = computed(() => {
     "4K": 4,
   };
   const modelFactor: Record<ModelValue, number> = {
-    "g-image-2": 1,
-    "vision-pro": 1,
+    "gpt-image-2": 1,
+    xx: 1,
   };
   return qualityFactor[quality.value] * modelFactor[model.value] + count.value + 1;
 });
@@ -381,12 +397,12 @@ function applyTemplate(value: Partial<TemplateItem>) {
 }
 
 function normalizeTemplateModel(value?: string): ModelValue {
-  if (!value) return "g-image-2";
+  if (!value) return "gpt-image-2";
   const normalized = value.toLowerCase();
   if (normalized.includes("g-image") || normalized.includes("gpt-image")) {
-    return "g-image-2";
+    return "gpt-image-2";
   }
-  return "g-image-2";
+  return "gpt-image-2";
 }
 
 function normalizeTemplateRatio(value?: string): (typeof ratios)[number]["value"] {
@@ -436,19 +452,11 @@ function selectModel(item: (typeof models)[number]) {
 
 function selectResolution(value: (typeof qualities)[number]) {
   quality.value = value;
-  imageQuality.value = mapQuality(value);
   ensureRatioForResolution(value);
 }
 
 function selectImageQuality(value: (typeof imageQualities)[number]["value"]) {
   imageQuality.value = value;
-  const resolutionMap: Record<(typeof imageQualities)[number]["value"], (typeof qualities)[number]> = {
-    low: "1K",
-    medium: "2K",
-    high: "4K",
-  };
-  quality.value = resolutionMap[value];
-  ensureRatioForResolution(quality.value);
 }
 
 function ensureRatioForResolution(value: (typeof qualities)[number]) {
@@ -456,7 +464,7 @@ function ensureRatioForResolution(value: (typeof qualities)[number]) {
     return;
   }
   if (hiddenRatiosFor4K.includes(ratio.value as (typeof hiddenRatiosFor4K)[number])) {
-    ratio.value = "16:9";
+    ratio.value = "9:16";
   }
 }
 
@@ -467,6 +475,66 @@ function mapQuality(value: (typeof qualities)[number]) {
     "4K": "high",
   };
   return map[value];
+}
+
+function mapResolution(value: (typeof qualities)[number]) {
+  const map: Record<(typeof qualities)[number], "1K" | "2K" | "4K"> = {
+    "1K": "1K",
+    "2K": "2K",
+    "4K": "4K",
+  };
+  return map[value];
+}
+
+function mapImageSize(
+  ratioValue: (typeof ratios)[number]["value"],
+  resolutionValue: (typeof qualities)[number],
+) {
+  const sizeMap: Record<(typeof ratios)[number]["value"], Partial<Record<(typeof qualities)[number], string>>> = {
+    "1:1": {
+      "1K": "1024x1024",
+      "2K": "2048x2048",
+    },
+    "4:3": {
+      "1K": "1024x768",
+      "2K": "2048x1536",
+    },
+    "3:4": {
+      "1K": "768x1024",
+      "2K": "1536x2048",
+    },
+    "16:9": {
+      "1K": "1536x864",
+      "2K": "2048x1152",
+      "4K": "3840x2160",
+    },
+    "9:16": {
+      "1K": "864x1536",
+      "2K": "1152x2048",
+      "4K": "2160x3840",
+    },
+    "2:1": {
+      "1K": "2048x1024",
+      "2K": "2688x1344",
+      "4K": "3840x1920",
+    },
+  };
+
+  const mapped = sizeMap[ratioValue][resolutionValue];
+  return mapped || sizeMap["1:1"]["1K"] || "1024x1024";
+}
+
+async function uploadReferenceImages() {
+  if (!referenceImages.value.length) {
+    return [];
+  }
+
+  uni.showLoading({ title: "上传参考图..." });
+  try {
+    return await Promise.all(referenceImages.value.map((image) => uploadImage(image)));
+  } finally {
+    uni.hideLoading();
+  }
 }
 
 async function handleGenerate() {
@@ -480,21 +548,21 @@ async function handleGenerate() {
     return;
   }
 
-  if (referenceImages.value.length) {
-    uni.showToast({ title: "参考图生成暂未接入", icon: "none" });
-    return;
-  }
-
   if (generating.value) return;
 
   generating.value = true;
 
   try {
+    const imageUrls = await uploadReferenceImages();
     const result = await createImageGeneration({
       prompt: prompt.value.trim(),
-      model: "g-image-2",
-      quality: mapQuality(quality.value),
+      model: model.value === "gpt-image-2" ? model.value : "gpt-image-2",
       ratio: ratio.value,
+      size: mapImageSize(ratio.value, quality.value),
+      resolution: mapResolution(quality.value),
+      quality: imageQuality.value,
+      n: count.value,
+      image_urls: imageUrls,
     });
 
     await navigateTo(routes.generateResult, { taskId: result.taskId });
@@ -519,6 +587,7 @@ async function handleGenerate() {
   color: #9ca3af !important;
   font-size: 28rpx !important;
   line-height: 48rpx !important;
+  letter-spacing: 8rpx !important;
 }
 
 .reference-upload-box {

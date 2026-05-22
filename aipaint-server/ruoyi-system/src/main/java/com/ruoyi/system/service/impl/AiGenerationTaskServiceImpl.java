@@ -53,6 +53,18 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         AiGenerationTask task = new AiGenerationTask();
         task.setTaskId(taskId);
         task.setStatus("processing");
+        task.setProgress(10);
+        taskMapper.updateGenerationTask(task);
+    }
+
+    @Override
+    public void markProcessingWithMessage(Long taskId, String message)
+    {
+        AiGenerationTask task = new AiGenerationTask();
+        task.setTaskId(taskId);
+        task.setStatus("processing");
+        task.setProgress(95);
+        task.setErrorMessage(message);
         taskMapper.updateGenerationTask(task);
     }
 
@@ -69,6 +81,7 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         task.setTaskId(taskId);
         task.setProviderCode(providerCode);
         task.setStatus("success");
+        task.setProgress(100);
         task.setResultImageUrl(resultImageUrl);
         task.setPreviewImageUrl(resultImageUrl);
         task.setFinishTime(new Date());
@@ -81,6 +94,7 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         AiGenerationTask task = new AiGenerationTask();
         task.setTaskId(taskId);
         task.setStatus("failed");
+        task.setProgress(100);
         task.setErrorMessage(errorMessage);
         task.setFinishTime(new Date());
         taskMapper.updateGenerationTask(task);

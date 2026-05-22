@@ -1,8 +1,11 @@
 package com.ruoyi.web.service.image;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -41,11 +44,6 @@ public class AiImageService
         return aiImageConfigService.resolveActiveProvider();
     }
 
-    public String resolveImageSize(String ratio)
-    {
-        return aiImageConfigService.resolveImageSize(ratio);
-    }
-
     public AiImageGenerateResult generateAndSave(AiGenerationTask task)
     {
         AiImageAdminConfig adminConfig = aiImageConfigService.getAdminConfig();
@@ -53,12 +51,12 @@ public class AiImageService
         if (shouldBypassPrimary(adminConfig, providerConfig))
         {
             AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(AiImageConfigService.SLOT_BACKUP);
-            String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, true);
+            String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, adminConfig, true);
             return new AiImageGenerateResult(resultImageUrl, backupConfig.getProviderCode(), true);
         }
         try
         {
-            String resultImageUrl = generateAndSaveWithProvider(task, providerConfig, false);
+            String resultImageUrl = generateAndSaveWithProvider(task, providerConfig, adminConfig, false);
             return new AiImageGenerateResult(resultImageUrl, providerConfig.getProviderCode(), false);
         }
         catch (Exception e)
@@ -71,7 +69,7 @@ public class AiImageService
             try
             {
                 AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(AiImageConfigService.SLOT_BACKUP);
-                String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, true);
+                String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, adminConfig, true);
                 return new AiImageGenerateResult(resultImageUrl, backupConfig.getProviderCode(), true);
             }
             catch (Exception fallbackException)
@@ -82,7 +80,7 @@ public class AiImageService
         }
     }
 
-    private String generateAndSaveWithProvider(AiGenerationTask task, AiImageProviderConfig providerConfig, boolean fallbackUsed)
+    private String generateAndSaveWithProvider(AiGenerationTask task, AiImageProviderConfig providerConfig, AiImageAdminConfig adminConfig, boolean fallbackUsed)
     {
         AiImageProvider provider = providers.get(providerConfig.getProviderType());
         if (provider == null)
@@ -91,9 +89,16 @@ public class AiImageService
         }
 
         AiImageGenerateRequest request = new AiImageGenerateRequest();
+        request.setModel(task.getModel());
         request.setPrompt(task.getPrompt());
         request.setSize(task.getSize());
+        request.setRatio(task.getRatio());
+        request.setResolution(task.getResolution());
         request.setQuality(task.getQuality());
+        request.setImageCount(task.getImageCount());
+        request.setOutputFormat(adminConfig.getOutputFormat());
+        request.setOutputCompression(adminConfig.getOutputCompression());
+        request.setImageUrls(parseImageUrls(task.getImageUrls()));
 
         long startTime = System.currentTimeMillis();
         try
@@ -153,6 +158,14 @@ public class AiImageService
         {
             return false;
         }
+        if (isAmbiguousSubmitMessage(message))
+        {
+            return false;
+        }
+        if (isMissingUsableResultError(message))
+        {
+            return true;
+        }
         String lower = message.toLowerCase();
         if (lower.contains("400") || lower.contains("401") || lower.contains("403")
                 || message.contains("参数") || message.contains("未配置") || message.contains("套餐")
@@ -163,8 +176,21 @@ public class AiImageService
         }
         return lower.contains("eof") || lower.contains("timeout") || lower.contains("timed out")
                 || lower.contains("reset") || lower.contains("closed") || lower.contains("connection")
+                || lower.contains("no bytes") || lower.contains("header parser")
                 || lower.contains("502") || lower.contains("503") || lower.contains("504")
                 || lower.contains("429") || message.contains("限流") || message.contains("繁忙");
+    }
+
+    private boolean isMissingUsableResultError(String message)
+    {
+        return StringUtils.contains(message, "完成结果缺少图片数据")
+                || StringUtils.contains(message, "返回结果缺少图片数据")
+                || StringUtils.contains(message, "流式返回未包含完成图片");
+    }
+
+    private boolean isAmbiguousSubmitMessage(String message)
+    {
+        return StringUtils.contains(message, "图片生成响应异常");
     }
 
     private void recordCallLog(AiGenerationTask task, AiImageProviderConfig providerConfig, String status,
@@ -174,7 +200,7 @@ public class AiImageService
         callLog.setTaskId(task.getTaskId());
         callLog.setProviderCode(providerConfig.getProviderCode());
         callLog.setProviderName(providerConfig.getProviderName());
-        callLog.setModel(providerConfig.getModel());
+        callLog.setModel(task.getModel());
         callLog.setQuality(task.getQuality());
         callLog.setSize(task.getSize());
         callLog.setStatus(status);
@@ -194,6 +220,18 @@ public class AiImageService
     private String normalizeErrorMessage(Exception e)
     {
         return e == null || StringUtils.isBlank(e.getMessage()) ? "未知错误" : e.getMessage();
+    }
+
+    private List<String> parseImageUrls(String imageUrls)
+    {
+        if (StringUtils.isBlank(imageUrls))
+        {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(imageUrls.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
     }
 
     private String trimMessage(String message)
