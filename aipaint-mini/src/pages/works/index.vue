@@ -50,7 +50,7 @@
               >
                 <text
                   class="iconfont icon-images  leading-none text-[#c8c8c8]"
-                  style="font-size: 72rpx"
+                  style="font-size: 56rpx"
                 />
               </view>
             </view>
