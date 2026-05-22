@@ -141,7 +141,7 @@
       </style>
       </head>
     <body class="bg-surface text-on-surface">
-    <main class="pt-24 pb-32 px-[12px] space-y-stack-lg max-w-md mx-auto">
+    <main class="pt-4 pb-32 px-[12px] space-y-stack-lg max-w-md mx-auto">
     <!-- Prompt Input Section -->
     </section>
     <!-- Reference Image Upload -->
@@ -168,17 +168,34 @@
     </div>
     </section>
 
-    <section class="space-y-stack-sm">
-        <label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
-        <div class="glass-card rounded-full overflow-hidden">
-        <select class="w-full h-12 bg-transparent border-none focus:ring-0 px-4 font-label-lg text-label-lg text-on-surface cursor-pointer">
-        <option selected="" value="gpt-image-2">gpt-image-2</option>
-        <option value="gpt-image-1">gpt-image-1</option>
-        <option value="noir-special">noir-special</option>
-        </select>
-        </div>
-        </section>
-        
+<!-- Model Selection Section -->
+<section class="space-y-stack-sm">
+    <label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
+    <div class="grid grid-cols-2 gap-3 px-1">
+    <button class="relative flex items-center gap-2 p-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-left transition-all active:scale-95" onclick="selectModel(this)">
+    <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+    <span class="material-symbols-outlined text-[20px]">image</span>
+    </div>
+    <div>
+    <div class="text-[13px] font-semibold">Vision Pro</div>
+    <div class="text-[10px] text-on-surface-variant/60">写实摄影风格</div>
+    </div>
+    </button>
+    <button class="relative flex items-center gap-2 p-3 rounded-xl border-2 border-primary bg-primary-container text-left transition-all active:scale-95" onclick="selectModel(this)">
+    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-on-primary">
+    <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+    </div>
+    <div class="text-on-primary">
+    <div class="text-[13px] font-semibold flex items-center gap-1">
+                    GPT-image-2
+                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+    </div>
+    <div class="text-[10px] opacity-70">全能艺术创作</div>
+    </div>
+    </button>
+    </div>
+    </section>
+
     <!-- Resolution Selection -->
     <section class="space-y-stack-sm">
     <label class="font-label-sm text-label-sm text-secondary px-2">分辨率</label>
@@ -227,11 +244,7 @@
     <button class="segmented-item active font-label-lg text-label-lg">高</button>
     </div>
     </section>
-    <!-- Start Button -->
-    <button class="generate-btn w-full h-14 bg-primary text-on-primary rounded-full font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all duration-300" onclick="startGenerating()">
-    <span class="material-symbols-outlined">auto_awesome</span>
-                开始生成
-            </button>
+
     <!-- Loading / Progress State (Hidden by default) -->
     <div class="hidden fixed inset-0 z-[60] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center px-container-padding text-center" id="progress-state">
     <div class="relative w-48 h-48 mb-8">
@@ -272,21 +285,7 @@
     </div>
     </div>
     </main>
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 w-full rounded-t-xl z-50 bg-surface/90 dark:bg-surface-container-lowest/90 backdrop-blur-2xl border-t border-outline-variant/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] flex justify-around items-center h-20 px-gutter pb-safe">
-    <button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
-    <span class="material-symbols-outlined">add_box</span>
-    </button>
-    <button class="flex flex-col items-center justify-center bg-primary dark:bg-on-surface text-on-primary dark:text-surface-container-lowest rounded-full w-12 h-12 active:scale-90 transition-all duration-300 ease-out">
-    <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">auto_awesome</span>
-    </button>
-    <button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
-    <span class="material-symbols-outlined">collections</span>
-    </button>
-    <button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
-    <span class="material-symbols-outlined">person</span>
-    </button>
-    </nav>
+
     <script>
             function toggleRefMode() {
                 const badge = document.getElementById('ref-mode-badge');

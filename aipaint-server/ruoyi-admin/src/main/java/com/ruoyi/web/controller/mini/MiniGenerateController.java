@@ -96,7 +96,8 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeRatio(String ratio)
     {
-        if ("1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio) || "16:9".equals(ratio))
+        if ("1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio)
+                || "16:9".equals(ratio) || "9:16".equals(ratio) || "2:1".equals(ratio))
         {
             return ratio;
         }

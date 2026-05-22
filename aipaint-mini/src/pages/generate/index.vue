@@ -1,14 +1,13 @@
 <template>
-  <view class="min-h-screen bg-[#f8f8f8] font-sans text-[#1a1c1c]">
+  <view class="min-h-screen bg-[#f9f9f9] font-sans text-[#1a1c1c]">
     <scroll-view :style="{ height: `${scrollViewHeight}px` }" scroll-y enhanced :show-scrollbar="false">
       <view
-        class="mx-auto max-w-[750rpx] px-[32rpx] pb-[32rpx] mt-[36rpx]"
+        class="mx-auto max-w-[750rpx] px-[24rpx] pb-[32rpx] pt-[48rpx]"
       >
         <!-- 参考图片 -->
         <view class="mb-[32rpx]">
-          <view class="mb-[16rpx] flex items-end justify-between px-[12rpx]">
-            <text class="text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">参考图片</text>
-            <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">4张, 5MB以内</text>
+          <view class="flex items-end justify-between">
+            <text class="model-section-label font-mono">参考图片（最多4张）</text>
           </view>
           <view
             v-if="referenceImages.length === 0"
@@ -63,10 +62,10 @@
 
         <!-- 画面描述 -->
         <view class="mb-[32rpx]">
-          <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
+          <text class="model-section-label font-mono">
             画面描述
           </text>
-          <view class="overflow-hidden rounded-[48rpx] border border-[rgba(255,255,255,0.3)] bg-[rgba(255,255,255,0.8)] p-[24rpx] shadow-[0_20rpx_40rpx_rgba(0,0,0,0.05)] backdrop-blur-[40rpx]">
+          <view class="glass-card overflow-hidden rounded-[48rpx] p-[24rpx]">
             <textarea
               v-model="prompt"
               class="box-border h-[200rpx] w-full bg-transparent px-[8rpx] text-[24rpx] font-normal leading-[44rpx] text-black"
@@ -75,9 +74,9 @@
               placeholder-class="generate-prompt-placeholder"
             />
             <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
-              <button class="flex items-center gap-[12rpx] bg-transparent p-0 active:opacity-70" @tap="useRandomPrompt">
-                <text class="iconfont icon-shanshan text-[28rpx] leading-none text-black" />
-                <text class="text-[28rpx] font-medium leading-[40rpx] text-black">Prompt</text>
+              <button class="flex items-center gap-[8rpx] bg-transparent p-0 active:opacity-70" @tap="useRandomPrompt">
+                <text class="iconfont icon-shanshan leading-none text-black/50" style="font-size: 28rpx"/>
+                <text class="text-[24rpx] font-serif leading-[40rpx] text-black/50">Prompt</text>
               </button>
               <view class="flex items-center gap-[16rpx]">
                 <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
@@ -87,84 +86,51 @@
           </view>
         </view>
 
-        <!-- AI 模型 -->
+        <!-- 模型选择 -->
         <view class="mb-[32rpx]">
-          <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
-            AI 模型
-          </text>
-          <view class="flex flex-col gap-[18rpx]">
-            <button
+          <text class="model-section-label font-mono">模型选择</text>
+          <view class="model-grid">
+            <view
               v-for="item in models"
               :key="item.value"
-              class="flex items-center justify-between rounded-[24rpx] border py-[18rpx] px-[16rpx] active:scale-[0.99]"
-              :class="
-                model === item.value
-                  ? 'border-black bg-black text-white shadow-[0_16rpx_32rpx_rgba(0,0,0,0.1)]'
-                  : 'border-transparent bg-[#e8e8e8] text-black'
-              "
-              @tap="model = item.value"
+              class="model-card"
+              :class="model === item.value ? 'model-card-active' : 'model-card-default'"
+              @tap="selectModel(item)"
             >
-              <view class="flex items-center gap-[24rpx] text-left">
-                <view
-                  class="flex h-[64rpx] w-[64rpx] shrink-0 items-center justify-center rounded-[16rpx]"
-                  :class="model === item.value ? 'bg-[rgba(255,255,255,0.1)]' : 'bg-white shadow-[0_4rpx_12rpx_rgba(0,0,0,0.04)]'"
-                >
-                  <text
-                    class="iconfont text-[36rpx] leading-none"
-                    style="font-size: 36rpx;"
-                    :class="[item.iconClass, model === item.value ? 'text-white' : 'text-[#5f5e5e]']"
-                  />
-                </view>
-                <view class="grid gap-y-[8rpx]">
-                  <text
-                    class="block text-[26rpx] font-semibold leading-[32rpx]"
-                    :class="model === item.value ? 'text-white' : 'text-black'"
-                  >
-                    {{ item.label }}
-                  </text>
-                  <text
-                    class="block text-[22rpx] leading-[28rpx]"
-                    :class="model === item.value ? 'text-white/70' : 'text-[#7e7576]'"
-                  >
-                    {{ item.description }}
-                  </text>
-                </view>
-              </view>
               <view
-                class="flex h-[36rpx] w-[36rpx] shrink-0 items-center justify-center rounded-full border-[4rpx]"
-                :class="
-                  model === item.value
-                    ? 'border-white bg-transparent'
-                    : 'border-[#7e7576] bg-transparent'
-                "
+                class="model-card-icon"
+                :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
               >
                 <text
-                  v-if="model === item.value"
-                  class="text-[22rpx] font-bold leading-none text-white iconfont icon-gou2x"
-                  style="font-size: 28rpx;"
-                >
-                </text>
+                  class="iconfont leading-none"
+                  :class="item.iconClass"
+                  :style="{ fontSize: '40rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
+                />
               </view>
-            </button>
+              <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
+                <view class="model-card-title-row">
+                  <text class="model-card-title">{{ item.label }}</text>
+                  <text
+                    v-if="model === item.value"
+                    class="iconfont icon-gou2x model-card-check"
+                  />
+                </view>
+                <text class="model-card-desc">{{ item.description }}</text>
+              </view>
+            </view>
           </view>
         </view>
 
-        <!-- 质量 -->
+        <!-- 分辨率 -->
         <view class="mb-[32rpx]">
-          <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
-            质量
-          </text>
-          <view class="flex gap-[16rpx]">
+          <text class="model-section-label font-mono">分辨率</text>
+          <view class="segmented-control">
             <button
               v-for="item in qualities"
               :key="item"
-              class="h-[60rpx] flex-1 rounded-[16rpx] border text-[24rpx] leading-[60rpx] active:scale-95"
-              :class="
-                quality === item
-                  ? 'border-black bg-black text-white'
-                  : 'border-[#d5d0d1] bg-white text-black'
-              "
-              @tap="quality = item"
+              class="segmented-item"
+              :class="{ active: quality === item }"
+              @tap="selectResolution(item)"
             >
               {{ item }}
             </button>
@@ -172,27 +138,45 @@
         </view>
 
         <!-- 画面比例 -->
-        <view>
-          <text class="mb-[16rpx] block px-[8rpx] text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">
-            画面比例
-          </text>
-          <view class="grid grid-cols-4 gap-[12rpx]">
-            <button
-              v-for="item in ratios"
-              :key="item.value"
-              class="flex h-[96rpx] flex-col items-center justify-center gap-[16rpx] rounded-[18rpx] border active:scale-95"
-              :class="
-                ratio === item.value
-                  ? 'border-[3rpx] border-black bg-[#f3f3f3]'
-                  : 'border-[#e2ddde] bg-transparent'
-              "
-              @tap="ratio = item.value"
-            >
+        <view class="mb-[32rpx]">
+          <text class="model-section-label font-mono">画面比例</text>
+          <scroll-view
+            class="ratio-scroll"
+            scroll-x
+            enhanced
+            :bounces="false"
+            :show-scrollbar="false"
+            scroll-with-animation
+            :scroll-into-view="ratioScrollIntoView"
+          >
+            <view class="ratio-scroll-row">
               <view
-                class="rounded-[4rpx] bg-[#c8c4c5]"
-                :class="item.iconClass"
-              />
-              <text class="text-[24rpx] leading-[22rpx] text-black">{{ item.label }}</text>
+                v-for="item in visibleRatios"
+                :id="`ratio-${item.value}`"
+                :key="item.value"
+                class="ratio-chip"
+                :class="{ active: ratio === item.value }"
+                @tap="ratio = item.value"
+              >
+                <view class="ratio-icon" :class="item.iconClass" />
+                <text class="ratio-chip-label">{{ item.label }}</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 画质选择 -->
+        <view>
+          <text class="model-section-label font-mono">画质选择</text>
+          <view class="segmented-control">
+            <button
+              v-for="item in imageQualities"
+              :key="item.value"
+              class="segmented-item"
+              :class="{ active: imageQuality === item.value }"
+              @tap="selectImageQuality(item.value)"
+            >
+              {{ item.label }}
             </button>
           </view>
         </view>
@@ -202,29 +186,18 @@
 
     <!-- 底部操作栏 -->
     <view
-      class="fixed inset-x-0 bottom-0 z-50 bg-[#f8f8f8] p-[32rpx]"
-      :style="{ paddingBottom: `calc(32rpx + ${safeAreaBottom}px)` }"
+      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.15)] bg-[rgba(249,249,249,0.92)] px-[48rpx] pt-[20rpx] shadow-[0_-20rpx_80rpx_rgba(0,0,0,0.05)] backdrop-blur-[40rpx]"
+      :style="{ paddingBottom: `calc(18rpx + ${safeAreaBottom}px)` }"
     >
-      <view
-        class="mx-auto flex max-w-[750rpx] items-center justify-between rounded-[24rpx] border border-[rgba(255,255,255,0.3)] bg-[rgba(255,255,255,0.8)] p-[24rpx] shadow-[0_-30rpx_80rpx_rgba(0,0,0,0.08)] backdrop-blur-[40rpx]"
-      >
-        <view class="grid flex-col  gap-y-[10rpx]">
-          <view class="flex items-center gap-[8rpx]">
-            <text class="iconfont icon-Abstract_mofang_cube-two" style="font-size: 42rpx;"/>
-            <text class="text-[40rpx] font-bold leading-[48rpx] tracking-[-1rpx] text-black">
-              {{ creditCost }}
-            </text>
-          </view>
-          <text class="text-[20rpx] font-medium leading-[28rpx] tracking-[2rpx] text-[#5f5e5e]">预计消耗</text>
-        </view>
+      <view class="mx-auto max-w-[750rpx]">
         <button
-          class="flex h-[96rpx] items-center justify-center gap-[12rpx] rounded-[24rpx] bg-black px-[80rpx] shadow-[0_12rpx_28rpx_rgba(0,0,0,0.16)] active:scale-95"
+          class="generate-btn flex h-[112rpx] w-full items-center justify-center gap-[14rpx] rounded-full bg-black px-[40rpx] shadow-[0_24rpx_46rpx_rgba(0,0,0,0.18)] active:scale-[0.96]"
           :loading="generating"
           :disabled="generating"
           @tap="handleGenerate"
         >
-          <text class="text-[30rpx] font-bold leading-none text-white">{{ generating ? "提交中" : "立即生成" }}</text>
-          <text class="iconfont icon-shanshan text-[32rpx] leading-none text-white" style="font-size: 36rpx;"/>
+          <text class="iconfont icon-shanshan leading-none text-white" style="font-size: 36rpx;"/>
+          <text class="text-[28rpx] font-semibold leading-none text-white">{{ generating ? "提交中" : "开始生成" }}</text>
         </button>
       </view>
     </view>
@@ -245,41 +218,41 @@ const prompts = [
   "赛博街区的雨夜橱窗，霓虹反射，广角摄影，超现实氛围",
 ];
 
-type ModelValue = "g-image-2";
+type ModelValue = "g-image-2" | "vision-pro";
 
 const models: Array<{
   value: ModelValue;
   label: string;
   description: string;
   iconClass: string;
+  enabled: boolean;
 }> = [
-  {
+{
     value: "g-image-2",
-    label: "G Image 2",
-    description: "极速通用艺术风格",
-    iconClass: "icon-tupian",
+    label: "GPT-image-2",
+    description: "全能艺术创作",
+    iconClass: "icon-magic",
+    enabled: true,
   },
-  // {
-  //   value: "pro",
-  //   label: "Pro Model",
-  //   description: "顶级写实，高精度",
-  //   iconClass: "icon-huizhang",
-  // },
-  // {
-  //   value: "v2.4",
-  //   label: "V2.4",
-  //   description: "二次元插画专属",
-  //   iconClass: "icon-MaterialSymbolsBrush",
-  // },
+  {
+    value: "vision-pro",
+    label: "Vision Pro",
+    description: "写实摄影风格",
+    iconClass: "icon-tupian",
+    enabled: false,
+  }
+
 ];
 
 const qualities = ["1K", "2K", "4K"] as const;
 const counts = [1, 2, 3, 4] as const;
 const ratios = [
-  { value: "1:1", label: "1:1", iconClass: "h-[28rpx] w-[28rpx]" },
-  { value: "3:4", label: "3:4", iconClass: "h-[34rpx] w-[20rpx]" },
-  { value: "4:3", label: "4:3", iconClass: "h-[20rpx] w-[34rpx]" },
-  { value: "16:9", label: "16:9", iconClass: "h-[18rpx] w-[36rpx]" },
+  { value: "1:1", label: "1:1", iconClass: "ratio-icon-square" },
+  { value: "4:3", label: "4:3", iconClass: "ratio-icon-landscape" },
+  { value: "3:4", label: "3:4", iconClass: "ratio-icon-portrait" },
+  { value: "16:9", label: "16:9", iconClass: "ratio-icon-wide" },
+  { value: "9:16", label: "9:16", iconClass: "ratio-icon-tall" },
+  { value: "2:1", label: "2:1", iconClass: "ratio-icon-ultrawide" },
 ] as const;
 
 const statusBarHeight = ref(0);
@@ -307,6 +280,12 @@ const referenceImages = ref<string[]>([]);
 const canAddReferenceImages = computed(() => referenceImages.value.length < maxReferenceImages);
 const model = ref<ModelValue>("g-image-2");
 const quality = ref<(typeof qualities)[number]>("2K");
+const imageQualities = [
+  { value: "low", label: "低" },
+  { value: "medium", label: "中" },
+  { value: "high", label: "高" },
+] as const;
+const imageQuality = ref<(typeof imageQualities)[number]["value"]>("high");
 const count = ref<(typeof counts)[number]>(3);
 const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
 const generating = ref(false);
@@ -319,13 +298,23 @@ const creditCost = computed(() => {
     "2K": 2,
     "4K": 4,
   };
-  const modelFactor: Record<(typeof models)[number]["value"], number> = {
+  const modelFactor: Record<ModelValue, number> = {
     "g-image-2": 1,
+    "vision-pro": 1,
   };
   return qualityFactor[quality.value] * modelFactor[model.value] + count.value + 1;
 });
 
-const bottomBarHeight = computed(() => rpxToPx(184) + safeAreaBottom.value);
+const hiddenRatiosFor4K = ["1:1", "4:3", "3:4"] as const;
+const visibleRatios = computed(() => (
+  quality.value === "4K"
+    ? ratios.filter((item) => !hiddenRatiosFor4K.includes(item.value as (typeof hiddenRatiosFor4K)[number]))
+    : ratios
+));
+
+const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
+
+const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
   if (!windowHeight.value) return 0;
   return Math.max(0, windowHeight.value - bottomBarHeight.value);
@@ -387,6 +376,8 @@ function applyTemplate(value: Partial<TemplateItem>) {
   model.value = normalizeTemplateModel(value.aiEngine);
   ratio.value = normalizeTemplateRatio(value.ratio);
   quality.value = normalizeTemplateQuality(value);
+  imageQuality.value = mapQuality(quality.value);
+  ensureRatioForResolution(quality.value);
 }
 
 function normalizeTemplateModel(value?: string): ModelValue {
@@ -435,6 +426,40 @@ function removeImage(index: number) {
   referenceImages.value = referenceImages.value.filter((_, itemIndex) => itemIndex !== index);
 }
 
+function selectModel(item: (typeof models)[number]) {
+  if (!item.enabled) {
+    uni.showToast({ title: "该模型即将上线", icon: "none" });
+    return;
+  }
+  model.value = item.value;
+}
+
+function selectResolution(value: (typeof qualities)[number]) {
+  quality.value = value;
+  imageQuality.value = mapQuality(value);
+  ensureRatioForResolution(value);
+}
+
+function selectImageQuality(value: (typeof imageQualities)[number]["value"]) {
+  imageQuality.value = value;
+  const resolutionMap: Record<(typeof imageQualities)[number]["value"], (typeof qualities)[number]> = {
+    low: "1K",
+    medium: "2K",
+    high: "4K",
+  };
+  quality.value = resolutionMap[value];
+  ensureRatioForResolution(quality.value);
+}
+
+function ensureRatioForResolution(value: (typeof qualities)[number]) {
+  if (value !== "4K") {
+    return;
+  }
+  if (hiddenRatiosFor4K.includes(ratio.value as (typeof hiddenRatiosFor4K)[number])) {
+    ratio.value = "16:9";
+  }
+}
+
 function mapQuality(value: (typeof qualities)[number]) {
   const map: Record<(typeof qualities)[number], "low" | "medium" | "high"> = {
     "1K": "low",
@@ -467,7 +492,7 @@ async function handleGenerate() {
   try {
     const result = await createImageGeneration({
       prompt: prompt.value.trim(),
-      model: model.value,
+      model: "g-image-2",
       quality: mapQuality(quality.value),
       ratio: ratio.value,
     });
@@ -483,13 +508,247 @@ async function handleGenerate() {
 </script>
 
 <style>
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(20px);
+}
+
 .generate-prompt-placeholder {
   color: #9ca3af !important;
-  font-size: 32rpx !important;
+  font-size: 28rpx !important;
   line-height: 48rpx !important;
 }
 
 .reference-upload-box {
   min-height: 192rpx;
 }
+
+.segmented-control {
+  display: flex;
+  border-radius: 9999rpx;
+  background: #f5f5f5;
+  padding: 8rpx;
+}
+
+.segmented-item {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 9999rpx;
+  color: #1a1c1c;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 72rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.segmented-item.active {
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.ratio-scroll {
+  width: 100%;
+}
+
+.ratio-scroll-row {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 16rpx;
+  padding: 8rpx 8rpx 4rpx;
+}
+
+.ratio-chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 120rpx;
+  height: 96rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border: 2rpx solid #cfc4c5;
+  border-radius: 24rpx;
+  color: #1a1c1c;
+  box-sizing: border-box;
+  transition:
+    border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ratio-chip-label {
+  font-size: 22rpx;
+  font-weight: 500;
+  line-height: 28rpx;
+}
+
+.ratio-chip.active {
+  border: 2rpx solid #000000;
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 0 0 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.ratio-icon {
+  box-sizing: border-box;
+  border: 3rpx solid currentColor;
+  border-radius: 6rpx;
+  background: transparent;
+  opacity: 0.85;
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ratio-chip.active .ratio-icon {
+  opacity: 1;
+}
+
+.ratio-icon-square {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.ratio-icon-landscape {
+  width: 36rpx;
+  height: 28rpx;
+}
+
+.ratio-icon-portrait {
+  width: 28rpx;
+  height: 36rpx;
+}
+
+.ratio-icon-wide {
+  width: 40rpx;
+  height: 22rpx;
+}
+
+.ratio-icon-tall {
+  width: 22rpx;
+  height: 40rpx;
+}
+
+.ratio-icon-ultrawide {
+  width: 42rpx;
+  height: 18rpx;
+}
+
+.generate-btn {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.model-section-label {
+  display: block;
+  margin-bottom: 16rpx;
+  padding: 0 16rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 32rpx;
+  letter-spacing: 1rpx;
+  color: #777;
+}
+
+.model-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 24rpx;
+  padding: 0 8rpx;
+}
+
+.model-card {
+  display: flex;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+}
+
+.model-card-default {
+  border: 2rpx solid #cfc4c5;
+  background: #ffffff;
+  color: #1a1c1c;
+}
+
+.model-card-active {
+  border: 4rpx solid #000000;
+  background: #1b1b1b;
+  color: #ffffff;
+}
+
+.model-card-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+}
+
+.model-card-icon-default {
+  background: #eeeeee;
+}
+
+.model-card-icon-active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.model-card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  color: #1a1c1c;
+}
+
+.model-card-text-active {
+  color: #ffffff;
+}
+
+.model-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.model-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 36rpx;
+}
+
+.model-card-check {
+  font-size: 28rpx;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.model-card-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20rpx;
+  line-height: 28rpx;
+  opacity: 0.7;
+}
+
+.model-card-text-active .model-card-desc {
+  color: #ffffff;
+  opacity: 0.7;
+}
+
 </style>

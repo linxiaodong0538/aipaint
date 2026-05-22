@@ -99,7 +99,11 @@ public class AiImageConfigService
         {
             return "1024x1536";
         }
-        if ("4:3".equals(ratio) || "16:9".equals(ratio))
+        if ("9:16".equals(ratio))
+        {
+            return "1024x1536";
+        }
+        if ("4:3".equals(ratio) || "16:9".equals(ratio) || "2:1".equals(ratio))
         {
             return "1536x1024";
         }

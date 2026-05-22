@@ -134,14 +134,6 @@
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1em;
-        }
     </style>
 <style>
     body {
@@ -185,21 +177,37 @@
 </button>
 <!-- Mock uploaded images -->
 <div class="flex-shrink-0 relative group">
-<img class="w-20 h-20 object-cover rounded-xl border border-outline-variant/10 shadow-sm" data-alt="A minimalist abstract artwork with sweeping white architectural lines against a soft grey background. The lighting is diffused and high-key, emphasizing structural elegance and silence. The composition follows the golden ratio, creating a sense of balanced, quiet luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClDk4XCFtW12UXv2AMD98StdRzag2Z8g4xKzzxRj9EpI6J2A0Cpcjkz3ionG7Mlbgk2zjRBqIhuM7OdTMU2rkUZhZK4lmyg_eyEyETu7du0JyNEdmOSkclFKSvY9u-9NPdaMk7mrHVTsskRrQkIADPiNlQTJnAKx5i0lNSjxmmwNaSSEB-KpLfxkNaP-S2Mk2Q-NLua-w8lrG1FdRU38UpbZuY492URwpKmWkqZLFb_Etxguocpby9hmvd5Khuo8b6ccyGG44pmzkF"/>
+<img alt="Reference" class="w-20 h-20 object-cover rounded-xl border border-outline-variant/10 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClDk4XCFtW12UXv2AMD98StdRzag2Z8g4xKzzxRj9EpI6J2A0Cpcjkz3ionG7Mlbgk2zjRBqIhuM7OdTMU2rkUZhZK4lmyg_eyEyETu7du0JyNEdmOSkclFKSvY9u-9NPdaMk7mrHVTsskRrQkIADPiNlQTJnAKx5i0lNSjxmmwNaSSEB-KpLfxkNaP-S2Mk2Q-NLua-w8lrG1FdRU38UpbZuY492URwpKmWkqZLFb_Etxguocpby9hmvd5Khuo8b6ccyGG44pmzkF"/>
 <button class="absolute -top-1 -right-1 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">×</button>
 </div>
 </div>
 </div>
 </section>
-<!-- Model Selection -->
+<!-- Model Selection Section -->
 <section class="space-y-stack-sm">
 <label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
-<div class="glass-card rounded-full overflow-hidden">
-<select class="w-full h-12 bg-transparent border-none focus:ring-0 px-4 font-label-lg text-label-lg text-on-surface cursor-pointer">
-<option selected="" value="gpt-image-2">gpt-image-2</option>
-<option value="gpt-image-1">gpt-image-1</option>
-<option value="noir-special">noir-special</option>
-</select>
+<div class="grid grid-cols-2 gap-3 px-1">
+<button class="relative flex items-center gap-2 p-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-left transition-all active:scale-95" onclick="selectModel(this)">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</div>
+<div>
+<div class="text-[13px] font-semibold">Vision Pro</div>
+<div class="text-[10px] text-on-surface-variant/60">写实摄影风格</div>
+</div>
+</button>
+<button class="relative flex items-center gap-2 p-3 rounded-xl border-2 border-primary bg-primary-container text-left transition-all active:scale-95" onclick="selectModel(this)">
+<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<div class="text-on-primary">
+<div class="text-[13px] font-semibold flex items-center gap-1">
+                GPT-image-2
+                <span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+<div class="text-[10px] opacity-70">全能艺术创作</div>
+</div>
+</button>
 </div>
 </section>
 <!-- Resolution Selection -->
@@ -279,7 +287,7 @@
 </div>
 <div class="flex-grow flex flex-col justify-center gap-6">
 <div class="rounded-[32px] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative group">
-<img class="w-full h-full object-cover" data-alt="A breathtaking landscape of minimalist sand dunes at dawn. The light is extremely soft and directional, creating smooth transitions between deep obsidian shadows and brilliant white crests. The entire scene is monochromatic, exuding a sense of vast emptiness, luxury, and cinematic precision. Ultra-high definition texture in every grain of sand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4QKn4jDpY7FBfGQKy5NkUYMV6iQJvKfoCp5d6c9tOMCFUjTM-Ft0FNhnr7d_zqGDNNvXEZJzim64gKCwLBaWgL4tFjEWqu9WsXDQZrerp7YVBWA5uzkT7TvPoabNv8ikH5dWTu1N6WNEbkeH6mJR6lQ-Rn1ywmt1UmGZv00VzdxyiHI0IZYfPhOfbBKYJpCOs10zf920wM5rTqqu8HJRIk_F0_qDcvHyZK0LG82JQ50KJglYMHcKq8sAgeqjMT26PzWkP07C8MeAr"/>
+<img alt="Generated result" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4QKn4jDpY7FBfGQKy5NkUYMV6iQJvKfoCp5d6c9tOMCFUjTM-Ft0FNhnr7d_zqGDNNvXEZJzim64gKCwLBaWgL4tFjEWqu9WsXDQZrerp7YVBWA5uzkT7TvPoabNv8ikH5dWTu1N6WNEbkeH6mJR6lQ-Rn1ywmt1UmGZv00VzdxyiHI0IZYfPhOfbBKYJpCOs10zf920wM5rTqqu8HJRIk_F0_qDcvHyZK0LG82JQ50KJglYMHcKq8sAgeqjMT26PzWkP07C8MeAr"/>
 <div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
 </div>
 <div class="flex gap-3">
@@ -316,6 +324,30 @@
             badge.classList.toggle('hidden');
         }
 
+        function selectModel(target) {
+            // Simplified model selection logic for UI demonstration
+            const container = target.parentElement;
+            container.querySelectorAll('button').forEach(btn => {
+                btn.className = "relative flex items-center gap-2 p-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-left transition-all active:scale-95";
+                const iconContainer = btn.querySelector('div');
+                iconContainer.className = "w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary";
+                const textContainer = btn.querySelector('div:last-child');
+                textContainer.className = "";
+                const check = textContainer.querySelector('.material-symbols-outlined');
+                if(check && check.innerText === 'check_circle') check.remove();
+            });
+            
+            target.className = "relative flex items-center gap-2 p-3 rounded-xl border-2 border-primary bg-primary-container text-left transition-all active:scale-95";
+            const iconCont = target.querySelector('div');
+            iconCont.className = "w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-on-primary";
+            const textCont = target.querySelector('div:last-child');
+            textCont.className = "text-on-primary";
+            const title = textCont.querySelector('.text-[13px]');
+            if(!title.querySelector('span')) {
+                title.innerHTML += ' <span class="material-symbols-outlined text-[14px]">check_circle</span>';
+            }
+        }
+
         function setResolution(res) {
             const btns = document.querySelectorAll('#res-selector button');
             btns.forEach(b => b.classList.remove('active'));
@@ -325,25 +357,18 @@
             const ratioBtns = container.querySelectorAll('.ratio-btn');
             
             if (res === '4K') {
-                // Hide 1:1, 4:3, 3:4
                 ratioBtns.forEach(btn => {
                     const text = btn.innerText;
-                    if (['1:1', '4:3', '3:4'].includes(text)) {
+                    if (['1:1', '4:3', '3:4'].includes(text.trim())) {
                         btn.style.display = 'none';
                     }
                 });
-                // Default to 16:9 if current is hidden
                 const currentActive = container.querySelector('.bg-primary');
-                if (currentActive && ['1:1', '4:3', '3:4'].includes(currentActive.innerText)) {
+                if (currentActive && ['1:1', '4:3', '3:4'].includes(currentActive.innerText.trim())) {
                     setActiveRatio(ratioBtns[3]); // 16:9
                 }
             } else {
                 ratioBtns.forEach(btn => btn.style.display = 'block');
-            }
-
-            // UI feedback for premium modal placeholder
-            if (res === '1K') {
-                console.log("Pre-fetching high quality assets...");
             }
         }
 
@@ -380,7 +405,6 @@
                 }
                 percent.innerText = `${p}%`;
                 fill.style.width = `${p}%`;
-                // Simple rotate animation for circle clip-path
                 document.getElementById('progress-circle').style.transform = `rotate(${p * 3.6}deg)`;
             }, 100);
         }

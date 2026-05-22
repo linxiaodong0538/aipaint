@@ -7,7 +7,7 @@ export interface CreateImageGenerationRequest {
   prompt: string;
   model: "g-image-2";
   quality: "low" | "medium" | "high";
-  ratio: "1:1" | "3:4" | "4:3" | "16:9";
+  ratio: "1:1" | "3:4" | "4:3" | "16:9" | "9:16" | "2:1";
   referenceImageUrl?: string;
 }
 
