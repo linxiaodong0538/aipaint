@@ -1,11 +1,22 @@
 package com.ruoyi.web.service.image;
 
+import java.util.List;
+import com.ruoyi.system.domain.AiImageProviderHealthStats;
+
 /**
  * AI 生图后台配置
  */
 public class AiImageAdminConfig
 {
     private String activeProvider;
+
+    private Boolean fallbackEnabled;
+
+    private String fallbackStrategy;
+
+    private Integer circuitBreakerFailureThreshold;
+
+    private Integer circuitBreakerCooldownMinutes;
 
     private Boolean forceSizeEnabled;
 
@@ -15,6 +26,8 @@ public class AiImageAdminConfig
 
     private AiImageProviderConfig backupProvider;
 
+    private List<AiImageProviderHealthStats> healthStats;
+
     public String getActiveProvider()
     {
         return activeProvider;
@@ -23,6 +36,46 @@ public class AiImageAdminConfig
     public void setActiveProvider(String activeProvider)
     {
         this.activeProvider = activeProvider;
+    }
+
+    public Boolean getFallbackEnabled()
+    {
+        return fallbackEnabled;
+    }
+
+    public void setFallbackEnabled(Boolean fallbackEnabled)
+    {
+        this.fallbackEnabled = fallbackEnabled;
+    }
+
+    public String getFallbackStrategy()
+    {
+        return fallbackStrategy;
+    }
+
+    public void setFallbackStrategy(String fallbackStrategy)
+    {
+        this.fallbackStrategy = fallbackStrategy;
+    }
+
+    public Integer getCircuitBreakerFailureThreshold()
+    {
+        return circuitBreakerFailureThreshold;
+    }
+
+    public void setCircuitBreakerFailureThreshold(Integer circuitBreakerFailureThreshold)
+    {
+        this.circuitBreakerFailureThreshold = circuitBreakerFailureThreshold;
+    }
+
+    public Integer getCircuitBreakerCooldownMinutes()
+    {
+        return circuitBreakerCooldownMinutes;
+    }
+
+    public void setCircuitBreakerCooldownMinutes(Integer circuitBreakerCooldownMinutes)
+    {
+        this.circuitBreakerCooldownMinutes = circuitBreakerCooldownMinutes;
     }
 
     public Boolean getForceSizeEnabled()
@@ -63,5 +116,15 @@ public class AiImageAdminConfig
     public void setBackupProvider(AiImageProviderConfig backupProvider)
     {
         this.backupProvider = backupProvider;
+    }
+
+    public List<AiImageProviderHealthStats> getHealthStats()
+    {
+        return healthStats;
+    }
+
+    public void setHealthStats(List<AiImageProviderHealthStats> healthStats)
+    {
+        this.healthStats = healthStats;
     }
 }

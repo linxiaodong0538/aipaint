@@ -25,7 +25,7 @@
 
           <view
             v-else
-            class="reference-upload-box h-[196rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white px-[24rpx] py-[20rpx]"
+            class="reference-upload-box h-[200rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white px-[24rpx] py-[20rpx]"
           >
             <scroll-view
               class="h-full whitespace-nowrap"

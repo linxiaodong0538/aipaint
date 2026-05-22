@@ -103,7 +103,7 @@
                 生成参数
               </text>
             </view>
-            <text class="font-mono border border-black px-[16rpx] py-[4rpx] text-[20rpx] font-bold leading-[28rpx] text-black">
+            <text class="font-mono border border-black px-[16rpx] py-[4rpx] text-[20rpx] font-bold leading-[1.4] text-black">
               已验证
             </text>
           </view>

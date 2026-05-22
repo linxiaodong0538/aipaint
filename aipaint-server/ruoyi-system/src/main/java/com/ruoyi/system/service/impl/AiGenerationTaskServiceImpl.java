@@ -59,8 +59,15 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
     @Override
     public void markSuccess(Long taskId, String resultImageUrl)
     {
+        markSuccess(taskId, resultImageUrl, null);
+    }
+
+    @Override
+    public void markSuccess(Long taskId, String resultImageUrl, String providerCode)
+    {
         AiGenerationTask task = new AiGenerationTask();
         task.setTaskId(taskId);
+        task.setProviderCode(providerCode);
         task.setStatus("success");
         task.setResultImageUrl(resultImageUrl);
         task.setPreviewImageUrl(resultImageUrl);

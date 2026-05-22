@@ -161,11 +161,14 @@
               </view>
             </view>
 
-            <text class="mt-[48rpx] block text-[36rpx] font-bold leading-[50rpx] text-black">
-              暂无作品
+            <text class="mt-[48rpx] block text-[24rpx] font-bold leading-[50rpx] text-black/50 font-serif">
+              {{ emptyTitle }}
             </text>
-            <text class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]">
-              开始尝试生成您的第一件 AI 艺术作品吧
+            <text
+              v-if="emptyDescription"
+              class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]"
+            >
+              {{ emptyDescription }}
             </text>
           </view>
         </template>
@@ -276,6 +279,16 @@ const visibleWorks = computed<GalleryWork[]>(() => {
 });
 
 const hasVisibleWorks = computed(() => visibleWorks.value.length > 0);
+const emptyTitle = computed(() => {
+  if (activeTab.value === "generating") return "暂无生成中作品";
+  if (activeTab.value === "completed") return "暂无已完成作品";
+  return "暂无作品";
+});
+const emptyDescription = computed(() => {
+  if (activeTab.value === "generating") return "";
+  if (activeTab.value === "completed") return "完成后的作品会展示在这里";
+  return "开始尝试生成您的第一件 AI 艺术作品吧";
+});
 
 function getPaging() {
   return instance?.proxy?.$refs?.paging as PagingRef | undefined;

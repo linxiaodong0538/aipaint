@@ -1,10 +1,12 @@
 package com.ruoyi.web.service.image;
 
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.SysConfig;
+import com.ruoyi.system.mapper.AiImageProviderCallLogMapper;
 import com.ruoyi.system.mapper.SysConfigMapper;
 import com.ruoyi.system.service.ISysConfigService;
 
@@ -20,11 +22,25 @@ public class AiImageConfigService
 
     public static final String TYPE_OPENAI_COMPATIBLE = "openai-compatible";
 
+    public static final String STRATEGY_MANUAL = "manual";
+
+    public static final String STRATEGY_FALLBACK = "fallback";
+
+    public static final String STRATEGY_CIRCUIT_BREAKER = "circuit-breaker";
+
     private static final String DEFAULT_BACKUP_BASE_URL = "https://dm-fox.rjj.cc/codex/v1";
 
     private static final String DEFAULT_MODEL = "gpt-image-2";
 
     private static final String KEY_ACTIVE_PROVIDER = "ai.image.activeProvider";
+
+    private static final String KEY_FALLBACK_ENABLED = "ai.image.fallbackEnabled";
+
+    private static final String KEY_FALLBACK_STRATEGY = "ai.image.fallbackStrategy";
+
+    private static final String KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD = "ai.image.circuitBreaker.failureThreshold";
+
+    private static final String KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES = "ai.image.circuitBreaker.cooldownMinutes";
 
     private static final String KEY_FORCE_SIZE_ENABLED = "ai.image.forceSizeEnabled";
 
@@ -36,14 +52,24 @@ public class AiImageConfigService
     @Autowired
     private SysConfigMapper sysConfigMapper;
 
+    @Autowired
+    private AiImageProviderCallLogMapper callLogMapper;
+
     public AiImageAdminConfig getAdminConfig()
     {
         AiImageAdminConfig config = new AiImageAdminConfig();
         config.setActiveProvider(normalizeProviderCode(readString(KEY_ACTIVE_PROVIDER, SLOT_BACKUP)));
+        config.setFallbackEnabled(Boolean.valueOf(readBoolean(KEY_FALLBACK_ENABLED, true)));
+        config.setFallbackStrategy(readFallbackStrategy(config.getFallbackEnabled()));
+        config.setCircuitBreakerFailureThreshold(readInt(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, 3, 1, 20));
+        config.setCircuitBreakerCooldownMinutes(readInt(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, 10, 1, 1440));
         config.setForceSizeEnabled(Boolean.valueOf(readBoolean(KEY_FORCE_SIZE_ENABLED, false)));
         config.setForceSize(readString(KEY_FORCE_SIZE, "1024x1024"));
         config.setPrimaryProvider(buildProviderConfig(SLOT_PRIMARY, "主通道"));
         config.setBackupProvider(buildProviderConfig(SLOT_BACKUP, "备用通道"));
+        config.setHealthStats(Arrays.asList(
+                callLogMapper.selectProviderHealthStats(SLOT_PRIMARY, 50),
+                callLogMapper.selectProviderHealthStats(SLOT_BACKUP, 50)));
         return config;
     }
 
@@ -85,6 +111,10 @@ public class AiImageConfigService
         AiImageAdminConfig normalized = normalizeForSave(config);
 
         upsert(KEY_ACTIVE_PROVIDER, "AI生图-当前生效通道", normalized.getActiveProvider(), "primary=主通道，backup=备用通道", operator);
+        upsert(KEY_FALLBACK_ENABLED, "AI生图-失败自动切备用", String.valueOf(Boolean.TRUE.equals(normalized.getFallbackEnabled())), "true 开启主通道失败自动尝试备用通道，false 关闭", operator);
+        upsert(KEY_FALLBACK_STRATEGY, "AI生图-切换策略", normalized.getFallbackStrategy(), "manual=仅手动切换，fallback=失败自动切备用，circuit-breaker=连续失败熔断主通道", operator);
+        upsert(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, "AI生图-熔断失败阈值", String.valueOf(normalized.getCircuitBreakerFailureThreshold()), "连续失败达到该次数后临时熔断主通道", operator);
+        upsert(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, "AI生图-熔断冷却分钟", String.valueOf(normalized.getCircuitBreakerCooldownMinutes()), "只统计冷却窗口内的连续失败", operator);
         upsert(KEY_FORCE_SIZE_ENABLED, "AI生图-强制尺寸开关", String.valueOf(Boolean.TRUE.equals(normalized.getForceSizeEnabled())), "true 开启固定尺寸，false 按比例自动推导", operator);
         upsert(KEY_FORCE_SIZE, "AI生图-强制尺寸", blankToEmpty(normalized.getForceSize()), "可选值：1024x1024、1536x1024、1024x1536", operator);
 
@@ -98,6 +128,10 @@ public class AiImageConfigService
     {
         AiImageAdminConfig config = input == null ? new AiImageAdminConfig() : input;
         config.setActiveProvider(normalizeProviderCode(config.getActiveProvider()));
+        config.setFallbackStrategy(normalizeFallbackStrategy(config.getFallbackStrategy(), config.getFallbackEnabled()));
+        config.setFallbackEnabled(Boolean.valueOf(!STRATEGY_MANUAL.equals(config.getFallbackStrategy())));
+        config.setCircuitBreakerFailureThreshold(normalizeInt(config.getCircuitBreakerFailureThreshold(), 3, 1, 20));
+        config.setCircuitBreakerCooldownMinutes(normalizeInt(config.getCircuitBreakerCooldownMinutes(), 10, 1, 1440));
         config.setForceSizeEnabled(Boolean.valueOf(Boolean.TRUE.equals(config.getForceSizeEnabled())));
         config.setForceSize(blankToEmpty(config.getForceSize()));
 
@@ -221,6 +255,46 @@ public class AiImageConfigService
             return defaultValue;
         }
         return Boolean.parseBoolean(value);
+    }
+
+    private int readInt(String key, int defaultValue, int min, int max)
+    {
+        String value = sysConfigService.selectConfigByKey(key);
+        if (StringUtils.isBlank(value))
+        {
+            return defaultValue;
+        }
+        try
+        {
+            return normalizeInt(Integer.valueOf(value.trim()), defaultValue, min, max);
+        }
+        catch (NumberFormatException e)
+        {
+            return defaultValue;
+        }
+    }
+
+    private int normalizeInt(Integer value, int defaultValue, int min, int max)
+    {
+        if (value == null)
+        {
+            return defaultValue;
+        }
+        return Math.max(min, Math.min(max, value.intValue()));
+    }
+
+    private String readFallbackStrategy(Boolean fallbackEnabled)
+    {
+        return normalizeFallbackStrategy(readString(KEY_FALLBACK_STRATEGY, ""), fallbackEnabled);
+    }
+
+    private String normalizeFallbackStrategy(String strategy, Boolean fallbackEnabled)
+    {
+        if (STRATEGY_MANUAL.equals(strategy) || STRATEGY_FALLBACK.equals(strategy) || STRATEGY_CIRCUIT_BREAKER.equals(strategy))
+        {
+            return strategy;
+        }
+        return Boolean.FALSE.equals(fallbackEnabled) ? STRATEGY_MANUAL : STRATEGY_FALLBACK;
     }
 
     private boolean isValidImageSize(String size)

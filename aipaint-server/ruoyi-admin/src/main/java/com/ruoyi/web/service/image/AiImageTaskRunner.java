@@ -45,8 +45,8 @@ public class AiImageTaskRunner
                 return;
             }
 
-            String resultImageUrl = aiImageService.generateAndSave(task);
-            taskService.markSuccess(taskId, resultImageUrl);
+            AiImageGenerateResult result = aiImageService.generateAndSave(task);
+            taskService.markSuccess(taskId, result.getResultImageUrl(), result.getProviderCode());
         }
         catch (Exception e)
         {
