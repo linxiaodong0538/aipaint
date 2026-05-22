@@ -26,6 +26,7 @@
         :fixed="false"
         :default-page-size="pageSize"
         :loading-more-enabled="false"
+        :show-scrollbar="false"
         refresher-default-text="下拉刷新"
         refresher-pulling-text="释放刷新"
         refresher-refreshing-text=" "
