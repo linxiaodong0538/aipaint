@@ -7,7 +7,6 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -135,6 +134,14 @@
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
     </style>
 <style>
     body {
@@ -184,40 +191,51 @@
 </div>
 </div>
 </section>
+<!-- Model Selection -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
+<div class="glass-card rounded-full overflow-hidden">
+<select class="w-full h-12 bg-transparent border-none focus:ring-0 px-4 font-label-lg text-label-lg text-on-surface cursor-pointer">
+<option selected="" value="gpt-image-2">gpt-image-2</option>
+<option value="gpt-image-1">gpt-image-1</option>
+<option value="noir-special">noir-special</option>
+</select>
+</div>
+</section>
 <!-- Resolution Selection -->
 <section class="space-y-stack-sm">
 <label class="font-label-sm text-label-sm text-secondary px-2">分辨率</label>
-<div class="segmented-control" id="res-selector"><button class="segmented-item active flex flex-col items-center py-2" data-res="1K" onclick="setResolution('1K')"><span class="font-label-lg text-label-lg">1K</span><span class="text-[10px] text-secondary/60 leading-tight font-normal">速度快，日常够用</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="2K" onclick="setResolution('2K')"><span class="font-label-lg text-label-lg">2K</span><span class="text-[10px] text-secondary/60 leading-tight font-normal">高清海报，细节更清晰</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="4K" onclick="setResolution('4K')"><span class="font-label-lg text-label-lg">4K</span><span class="text-[10px] text-secondary/60 leading-tight font-normal">超清壁纸，仅支持部分比例</span></button></div>
+<div class="segmented-control" id="res-selector"><button class="segmented-item flex flex-col items-center py-2 active" data-res="1K" onclick="setResolution('1K')"><span class="font-label-lg text-label-lg">1K</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="2K" onclick="setResolution('2K')"><span class="font-label-lg text-label-lg">2K</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="4K" onclick="setResolution('4K')"><span class="font-label-lg text-label-lg">4K</span></button></div>
 </section>
 <!-- Aspect Ratio Selection -->
 <section class="space-y-stack-sm">
 <label class="font-label-sm text-label-sm text-secondary px-2">画面比例</label>
-<div class="flex flex-wrap gap-2 px-1" id="ratio-container"><button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm active:bg-primary active:text-on-primary transition-colors">
+<div class="flex flex-wrap gap-2 px-1" id="ratio-container"><button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm active:bg-primary active:text-on-primary transition-colors" style="display: block;">
 <svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="18" rx="2" width="18" x="3" y="3"></rect></svg>
 <span class="text-[11px] font-semibold">1:1</span>
 <span class="text-[9px] opacity-60 font-normal">头像 / 配图</span>
 </button>
-<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm">
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
 <svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="14" rx="2" width="18" x="3" y="5"></rect></svg>
 <span class="text-[11px] font-semibold">4:3</span>
 <span class="text-[9px] opacity-60 font-normal">传统照片</span>
 </button>
-<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm">
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
 <svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="18" rx="2" width="14" x="5" y="3"></rect></svg>
 <span class="text-[11px] font-semibold">3:4</span>
 <span class="text-[9px] opacity-60 font-normal">杂志封面</span>
 </button>
-<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm">
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
 <svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="10" rx="2" width="20" x="2" y="7"></rect></svg>
 <span class="text-[11px] font-semibold">16:9</span>
 <span class="text-[9px] opacity-60 font-normal">电脑 / 横版</span>
 </button>
-<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl bg-primary text-on-primary text-label-sm font-label-sm ring-4 ring-primary/10">
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl bg-primary text-on-primary text-label-sm font-label-sm ring-4 ring-primary/10" style="display: block;">
 <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="20" rx="2" width="10" x="7" y="2"></rect></svg>
 <span class="text-[11px] font-semibold">9:16</span>
 <span class="text-[9px] font-normal">手机壁纸</span>
 </button>
-<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm">
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
 <svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="8" rx="1" width="20" x="2" y="8"></rect></svg>
 <span class="text-[11px] font-semibold">2:1</span>
 <span class="text-[9px] opacity-60 font-normal">长横幅</span>

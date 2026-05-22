@@ -147,7 +147,7 @@
     <!-- Reference Image Upload -->
     <section class="space-y-stack-sm">
     <div class="flex items-center justify-between px-2">
-    <label class="font-label-sm text-label-sm text-secondary">参考图 (最多 16 张)</label>
+    <label class="font-label-sm text-label-sm text-secondary">参考图 (最多 4 张)</label>
     <span class="hidden font-label-sm text-label-sm text-primary font-semibold flex items-center gap-1" id="ref-mode-badge">
     <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
                         已开启参考图创作模式
@@ -165,6 +165,18 @@
     <button class="absolute -top-1 -right-1 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">×</button>
     </div>
     </div>
+    </div>
+    </section>
+
+    <!-- Model Selection -->
+<section class="space-y-stack-sm">
+    <label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
+    <div class="glass-card rounded-full overflow-hidden">
+    <select class="w-full h-12 bg-transparent border-none focus:ring-0 px-4 font-label-lg text-label-lg text-on-surface cursor-pointer">
+    <option selected="" value="gpt-image-2">gpt-image-2</option>
+    <option value="gpt-image-1">gpt-image-1</option>
+    <option value="noir-special">noir-special</option>
+    </select>
     </div>
     </section>
     <!-- Resolution Selection -->
