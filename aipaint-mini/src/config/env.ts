@@ -4,7 +4,7 @@ interface EnvironmentConfig {
 
 const baseApi: { [key: string]: EnvironmentConfig } = {
   development: {
-    host: "http://192.168.31.177:8080",
+    host: "http://192.168.124.32:8080",
   },
   trial: {
     host: "https://yourdomian.com",
@@ -17,7 +17,6 @@ const baseApi: { [key: string]: EnvironmentConfig } = {
   },
 };
 
-const mode = __APP_ENV__ || "development";
+const mode =  "development";
 
-export const env = (mode in baseApi ? mode : "development") as keyof typeof baseApi;
-export const baseUrl = __API_BASE_URL__ || baseApi[env].host;
+export const baseUrl = baseApi[mode].host;
