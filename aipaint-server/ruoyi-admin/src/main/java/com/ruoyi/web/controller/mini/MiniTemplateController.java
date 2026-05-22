@@ -30,8 +30,9 @@ public class MiniTemplateController extends BaseController
     @GetMapping("/list")
     public AjaxResult list(AiTemplate template)
     {
+        startPage();
         List<AiTemplate> list = templateService.selectEnabledTemplateList(template);
-        return success(list);
+        return success(getDataTable(list));
     }
 
     @GetMapping("/{templateId}")

@@ -12,6 +12,7 @@
               class="block w-full"
               mode="widthFix"
               :src="displayCover"
+              @tap="previewCoverImage"
             />
           </view>
         </view>
@@ -142,6 +143,15 @@ function copyPrompt() {
         copyLabel.value = "复制";
       }, 2000);
     },
+  });
+}
+
+function previewCoverImage() {
+  if (!displayCover.value) return;
+
+  uni.previewImage({
+    urls: [displayCover.value],
+    current: displayCover.value,
   });
 }
 

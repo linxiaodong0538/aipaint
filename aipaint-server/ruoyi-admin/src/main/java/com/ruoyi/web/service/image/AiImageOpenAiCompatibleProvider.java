@@ -14,37 +14,39 @@ import com.alibaba.fastjson2.JSONException;
 import com.alibaba.fastjson2.JSONObject;
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.file.FileUtils;
 
 /**
- * 中转站图片生成客户端
+ * OpenAI 兼容图片接口 Provider
  */
 @Component
-public class AiImageGatewayClient
+public class AiImageOpenAiCompatibleProvider implements AiImageProvider
 {
-    private final AiImageProperties properties;
-
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
             .build();
 
-    public AiImageGatewayClient(AiImageProperties properties)
+    @Override
+    public String getProviderType()
     {
-        this.properties = properties;
+        return AiImageConfigService.TYPE_OPENAI_COMPATIBLE;
     }
 
-    public String generateAndSave(String prompt, String size, String quality)
+    @Override
+    public String generateAndSave(AiImageGenerateRequest request, AiImageProviderConfig providerConfig)
     {
         try
         {
             JSONObject payload = new JSONObject();
-            payload.put("model", properties.getModel());
-            payload.put("prompt", prompt);
-            payload.put("size", size);
-            payload.put("quality", quality);
+            payload.put("model", providerConfig.getModel());
+            payload.put("prompt", request.getPrompt());
+            payload.put("size", request.getSize());
+            payload.put("quality", request.getQuality());
             payload.put("n", 1);
+            payload.put("response_format", "url");
 
-            return sendGenerationRequest(payload);
+            return sendGenerationRequest(payload, providerConfig);
         }
         catch (ServiceException e)
         {
@@ -56,49 +58,30 @@ public class AiImageGatewayClient
         }
     }
 
-    private String sendGenerationRequest(JSONObject payload) throws IOException, InterruptedException
+    private String sendGenerationRequest(JSONObject payload, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
-        Exception lastException = null;
-        for (int attempt = 0; attempt < 2; attempt++)
+        try
         {
-            try
-            {
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(trimEnd(properties.getBaseUrl()) + "/images/generations"))
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(trimEnd(providerConfig.getBaseUrl()) + "/images/generations"))
+                    .version(HttpClient.Version.HTTP_1_1)
                     .timeout(Duration.ofMinutes(3))
-                    .header("Authorization", "Bearer " + properties.getApiKey())
+                    .header("Authorization", "Bearer " + providerConfig.getApiKey())
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(payload.toJSONString()))
                     .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() < 200 || response.statusCode() >= 300)
-                {
-                    throw new ServiceException("图片生成失败：" + response.body());
-                }
-
-                return readJsonAndSave(response.body());
-            }
-            catch (ServiceException e)
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300)
             {
-                throw e;
+                throw new ServiceException("图片生成失败：" + response.body());
             }
-            catch (IOException e)
-            {
-                lastException = e;
-                if (!isRetryableIOException(e) || attempt > 0)
-                {
-                    throw e;
-                }
-            }
+            return readJsonAndSave(response.body());
         }
-        throw new ServiceException("图片生成失败：" + (lastException == null ? "请求失败" : lastException.getMessage()));
-    }
-
-    private boolean isRetryableIOException(IOException e)
-    {
-        String message = e.getMessage();
-        return message != null && (message.contains("EOF") || message.contains("closed") || message.contains("reset"));
+        catch (ServiceException e)
+        {
+            throw e;
+        }
     }
 
     private String readJsonAndSave(String responseBody) throws IOException, InterruptedException
@@ -130,13 +113,13 @@ public class AiImageGatewayClient
 
         JSONObject first = data.getJSONObject(0);
         String b64Json = first.getString("b64_json");
-        if (b64Json != null && !b64Json.isBlank())
+        if (StringUtils.isNotBlank(b64Json))
         {
             return saveBase64Image(b64Json);
         }
 
         String url = first.getString("url");
-        if (url != null && !url.isBlank())
+        if (StringUtils.isNotBlank(url))
         {
             return saveRemoteImage(url);
         }
@@ -160,6 +143,7 @@ public class AiImageGatewayClient
     {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .version(HttpClient.Version.HTTP_1_1)
                 .timeout(Duration.ofMinutes(2))
                 .GET()
                 .build();

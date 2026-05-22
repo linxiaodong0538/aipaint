@@ -76,8 +76,11 @@ async function loadCategories() {
 
 async function loadTemplates() {
   const selected = chips.value.find((item) => item.categoryName === activeChip.value);
-  const params = !selected || selected.categoryCode === "all" ? undefined : { categoryId: String(selected.categoryId) };
-  templates.value = await listTemplates(params);
+  const params = !selected || selected.categoryCode === "all"
+    ? { pageNum: 1, pageSize: 1000 }
+    : { categoryId: String(selected.categoryId), pageNum: 1, pageSize: 1000 };
+  const result = await listTemplates(params);
+  templates.value = result.rows || [];
 }
 
 function getTemplateModelName(_template: TemplateItem) {

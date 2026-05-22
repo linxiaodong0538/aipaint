@@ -14,7 +14,8 @@ import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.AiGenerationTask;
 import com.ruoyi.system.service.IAiGenerationTaskService;
-import com.ruoyi.web.service.image.AiImageProperties;
+import com.ruoyi.web.service.image.AiImageProviderConfig;
+import com.ruoyi.web.service.image.AiImageService;
 import com.ruoyi.web.service.image.AiImageTaskRunner;
 
 /**
@@ -31,15 +32,11 @@ public class MiniGenerateController extends BaseController
     private AiImageTaskRunner imageTaskRunner;
 
     @Autowired
-    private AiImageProperties imageProperties;
+    private AiImageService aiImageService;
 
     @PostMapping("/image")
     public AjaxResult createImage(@RequestBody GenerateImageRequest request)
     {
-        if (!imageProperties.hasApiKey())
-        {
-            return error("图片生成服务未配置 OPENAI_IMAGE_API_KEY");
-        }
         if (request == null || StringUtils.isBlank(request.getPrompt()))
         {
             return error("请输入画面描述");
@@ -49,15 +46,26 @@ public class MiniGenerateController extends BaseController
             return error("参考图生成暂未接入");
         }
 
+        AiImageProviderConfig providerConfig;
+        try
+        {
+            providerConfig = aiImageService.resolveActiveProvider();
+        }
+        catch (Exception e)
+        {
+            return error(e.getMessage());
+        }
+
         Long userId = SecurityUtils.getUserId();
         String ratio = normalizeRatio(request.getRatio());
         String quality = normalizeQuality(request.getQuality());
-        String size = resolveSize(ratio);
+        String size = aiImageService.resolveImageSize(ratio);
 
         AiGenerationTask task = new AiGenerationTask();
         task.setUserId(userId);
+        task.setProviderCode(providerConfig.getProviderCode());
         task.setPrompt(request.getPrompt().trim());
-        task.setModel(imageProperties.getModel());
+        task.setModel(providerConfig.getModel());
         task.setQuality(quality);
         task.setRatio(ratio);
         task.setSize(size);
@@ -119,32 +127,6 @@ public class MiniGenerateController extends BaseController
             return status;
         }
         return null;
-    }
-
-    private String resolveSize(String ratio)
-    {
-        if (imageProperties.isTestMode() && isValidImageSize(imageProperties.getTestSize()))
-        {
-            return imageProperties.getTestSize();
-        }
-        if ("1:1".equals(ratio))
-        {
-            return "1024x1024";
-        }
-        if ("3:4".equals(ratio))
-        {
-            return "1024x1536";
-        }
-        return "1536x1024";
-    }
-
-    private boolean isValidImageSize(String size)
-    {
-        if (StringUtils.isBlank(size))
-        {
-            return false;
-        }
-        return "1024x1024".equals(size) || "1536x1024".equals(size) || "1024x1536".equals(size);
     }
 
     private int resolveCreditCost(String quality)

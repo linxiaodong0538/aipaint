@@ -8,10 +8,10 @@
         <view class="mb-[32rpx]">
           <view class="mb-[16rpx] flex items-end justify-between px-[12rpx]">
             <text class="text-[26rpx] font-semibold leading-[32rpx] tracking-[4rpx] text-[#5f5e5e]">参考图片</text>
-            <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">1张, 5MB以内</text>
+            <text class="text-[24rpx] leading-[28rpx] text-[#7e7576]">4张, 5MB以内</text>
           </view>
           <view
-            v-if="!referenceImage"
+            v-if="referenceImages.length === 0"
             class="relative flex h-[192rpx] flex-col items-center justify-center gap-[8rpx] rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white active:scale-[0.99]"
             @tap="chooseImage"
           >
@@ -25,27 +25,39 @@
 
           <view
             v-else
-            class="reference-upload-box flex h-[192rpx] items-center gap-[24rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white px-[24rpx] py-[20rpx]"
+            class="reference-upload-box h-[196rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white px-[24rpx] py-[20rpx]"
           >
-            <view class="relative h-[156rpx] w-[128rpx] shrink-0 rounded-[18rpx] border border-[rgba(0,0,0,0.08)] bg-white p-[10rpx]">
-              <image class="h-full w-full rounded-[8rpx]" mode="aspectFill" :src="referenceImage" />
-              <button
-                class="absolute right-[-16rpx] top-[-16rpx] flex h-[48rpx] w-[48rpx] items-center justify-center rounded-full bg-white p-0 shadow-[0_8rpx_20rpx_rgba(0,0,0,0.12)] active:scale-95"
-                @tap.stop="removeImage"
-              >
-                <text class="text-[34rpx] font-light leading-[48rpx] text-black">×</text>
-              </button>
-            </view>
-
-            <button
-              class="flex h-[156rpx] w-[152rpx] shrink-0 flex-col items-center justify-center rounded-[18rpx] border border-dashed border-[#d5d0d1] bg-white p-0 active:bg-[#f3f3f4]"
-              @tap="chooseImage"
+            <scroll-view
+              class="h-full whitespace-nowrap"
+              scroll-x
+              enhanced
+              :show-scrollbar="false"
             >
-              <view class="relative flex h-[44rpx] w-[44rpx] items-center justify-center">
-                <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-[#7e7576]" style="font-size: 40rpx;"/>
+              <view
+                v-for="(image, index) in referenceImages"
+                :key="`${image}-${index}`"
+                class="relative mr-[24rpx] inline-block h-[156rpx] w-[128rpx] rounded-[18rpx] border border-[rgba(0,0,0,0.08)] bg-white p-[10rpx] align-top"
+              >
+                <image class="h-full w-full rounded-[8rpx]" mode="aspectFill" :src="image" />
+                <button
+                  class="absolute right-[-16rpx] top-[-16rpx] flex h-[48rpx] w-[48rpx] items-center justify-center rounded-full bg-white p-0 shadow-[0_8rpx_20rpx_rgba(0,0,0,0.12)] active:scale-95"
+                  @tap.stop="removeImage(index)"
+                >
+                  <text class="text-[34rpx] font-light leading-[48rpx] text-black">×</text>
+                </button>
               </view>
-              <text class="mt-[10rpx] text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]">继续添加</text>
-            </button>
+
+              <button
+                v-if="canAddReferenceImages"
+                class="inline-flex h-[156rpx] w-[152rpx] shrink-0 flex-col items-center justify-center rounded-[18rpx] border border-dashed border-[#d5d0d1] bg-white p-0 align-top active:bg-[#f3f3f4]"
+                @tap="chooseImage"
+              >
+                <view class="relative flex h-[44rpx] w-[44rpx] items-center justify-center">
+                  <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-[#7e7576]" style="font-size: 40rpx;"/>
+                </view>
+                <text class="mt-[10rpx] text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]">继续添加</text>
+              </button>
+            </scroll-view>
           </view>
         </view>
 
@@ -290,7 +302,9 @@ try {
 }
 
 const prompt = ref("");
-const referenceImage = ref("");
+const maxReferenceImages = 4;
+const referenceImages = ref<string[]>([]);
+const canAddReferenceImages = computed(() => referenceImages.value.length < maxReferenceImages);
 const model = ref<ModelValue>("g-image-2");
 const quality = ref<(typeof qualities)[number]>("2K");
 const count = ref<(typeof counts)[number]>(3);
@@ -400,18 +414,25 @@ function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualiti
 }
 
 function chooseImage() {
+  const remainingCount = maxReferenceImages - referenceImages.value.length;
+
+  if (remainingCount <= 0) {
+    uni.showToast({ title: "最多上传4张参考图", icon: "none" });
+    return;
+  }
+
   uni.chooseImage({
-    count: 1,
+    count: remainingCount,
     sizeType: ["compressed"],
     sourceType: ["album", "camera"],
     success(result) {
-      referenceImage.value = result.tempFilePaths[0] || "";
+      referenceImages.value = [...referenceImages.value, ...result.tempFilePaths].slice(0, maxReferenceImages);
     },
   });
 }
 
-function removeImage() {
-  referenceImage.value = "";
+function removeImage(index: number) {
+  referenceImages.value = referenceImages.value.filter((_, itemIndex) => itemIndex !== index);
 }
 
 function mapQuality(value: (typeof qualities)[number]) {
@@ -434,7 +455,7 @@ async function handleGenerate() {
     return;
   }
 
-  if (referenceImage.value) {
+  if (referenceImages.value.length) {
     uni.showToast({ title: "参考图生成暂未接入", icon: "none" });
     return;
   }
