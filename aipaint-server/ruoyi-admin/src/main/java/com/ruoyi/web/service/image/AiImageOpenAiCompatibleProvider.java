@@ -520,7 +520,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
                         sleepBeforeRetry(transientFailureCount);
                         continue;
                     }
-                    if (isProviderHostedUrl(uri, providerConfig))
+                    if (isHttpUrl(uri))
                     {
                         return url;
                     }
@@ -540,6 +540,10 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
                     transientFailureCount++;
                     sleepBeforeRetry(transientFailureCount);
                     continue;
+                }
+                if (isHttpUrl(url))
+                {
+                    return url;
                 }
                 throw e;
             }
@@ -561,6 +565,27 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         {
             URI baseUri = URI.create(providerConfig.getBaseUrl());
             return StringUtils.equalsIgnoreCase(uri.getHost(), baseUri.getHost());
+        }
+        catch (IllegalArgumentException e)
+        {
+            return false;
+        }
+    }
+
+    private boolean isHttpUrl(URI uri)
+    {
+        if (uri == null)
+        {
+            return false;
+        }
+        return "http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme());
+    }
+
+    private boolean isHttpUrl(String url)
+    {
+        try
+        {
+            return isHttpUrl(URI.create(url));
         }
         catch (IllegalArgumentException e)
         {
