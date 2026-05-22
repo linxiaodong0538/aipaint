@@ -15,9 +15,9 @@
       :show-loading-more-no-more-line="true"
       @query="queryTemplates"
     >
-      <view class="px-[24rpx] pt-[24rpx]">
+      <view class="px-[16rpx] pt-[16rpx]">
         <view
-          class="relative h-[420rpx] overflow-hidden rounded-[46rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          class="relative h-[380rpx] overflow-hidden rounded-[32rpx] bg-black shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
           <image class="absolute inset-0 h-full w-full opacity-[0.62]" mode="aspectFill" :src="heroImage" />
           <view
@@ -29,10 +29,10 @@
             >
               NEW RELEASE
             </text>
-            <text class="mt-[16rpx] text-[56rpx] font-extrabold leading-[76rpx] text-white">
+            <text class="mt-[16rpx] text-[48rpx] font-bold text-white font-serif">
               GPT Image 2
             </text>
-            <text class="mt-[8rpx] max-w-[600rpx] text-[30rpx] font-normal leading-[46rpx] text-white/70">
+            <text class="mt-[8rpx] max-w-[600rpx] text-[26rpx] font-normal leading-[38rpx] text-white/70 font-mono">
               利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。体验前所未有的艺术精确度
             </text>
             <button
@@ -44,23 +44,6 @@
             </button>
           </view>
         </view>
-
-        <view class="mt-[40rpx] flex items-end justify-between">
-          <view>
-            <text class="block text-[36rpx] font-bold leading-[48rpx] text-black">风格探索</text>
-            <text class="mt-[16rpx] block text-[28rpx] leading-[40rpx] text-[#636262]">
-              选择一个基调开始您的艺术之旅
-            </text>
-          </view>
-          <button
-            class="flex h-[44rpx] min-w-[144rpx] items-center justify-end gap-[4rpx] bg-transparent p-0 text-[28rpx] font-bold leading-[44rpx] text-black"
-            @tap="goTemplates"
-          >
-            <text>查看全部</text>
-            <text class="text-[34rpx] leading-[38rpx]">›</text>
-          </button>
-        </view>
-
         <view class="sticky top-0 z-20 mt-[20rpx] overflow-hidden bg-[#f9f9f9] pb-[24rpx] pt-[24rpx]">
           <scroll-view
             class="w-full whitespace-nowrap"
@@ -82,16 +65,16 @@
           </scroll-view>
         </view>
 
-        <view class="grid grid-cols-2 gap-[24rpx] pb-[48rpx]">
+        <view class="grid grid-cols-2 gap-[16rpx] pb-[48rpx]">
           <view
             v-for="(column, columnIndex) in templateColumns"
             :key="columnIndex"
-            class="flex flex-col gap-[24rpx]"
+            class="flex flex-col gap-[16rpx]"
           >
             <view
               v-for="item in column"
               :key="item.templateId"
-              class="overflow-hidden rounded-[24rpx] border border-[#c8c9d2] bg-white"
+              class="masonry-item bg-white rounded-[8rpx] overflow-hidden soft-shadow border border-gray-100"
               @tap="goTemplateDetail(item.templateId)"
             >
               <image class="block w-full" mode="widthFix" :src="item.coverUrl" />

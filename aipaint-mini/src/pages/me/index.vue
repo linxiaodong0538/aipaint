@@ -1,6 +1,6 @@
 <template>
   <view
-    class="relative min-h-screen overflow-hidden bg-[#f7f7f7] text-[var(--app-on-surface)]"
+    class="relative min-h-screen overflow-hidden bg-[#f7f7f7] text-(--app-on-surface)"
   >
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[520rpx] overflow-hidden"
@@ -11,7 +11,7 @@
         class="h-full w-full"
       />
       <view
-        class="absolute inset-0 bg-gradient-to-b from-[rgba(247,247,247,0)] via-[rgba(247,247,247,0.35)] to-[#f7f7f7]"
+        class="absolute inset-0 bg-linear-to-b from-[rgba(247,247,247,0)] via-[rgba(247,247,247,0.35)] to-[#f7f7f7]"
       />
     </view>
 
@@ -33,21 +33,21 @@
               class="h-[176rpx] w-[176rpx] overflow-hidden rounded-full border-[4rpx] border-[rgba(255,255,255,0.72)] bg-white shadow-[0_20rpx_40rpx_rgba(0,0,0,0.14)]"
             />
             <view
-              class="absolute bottom-[2rpx] right-[2rpx] flex h-[44rpx] w-[44rpx] items-center justify-center rounded-full border-[4rpx] border-[#f7f7f7] bg-[var(--app-primary)]"
+              class="absolute bottom-[8rpx] right-[2rpx] flex h-[44rpx] w-[44rpx] items-center justify-center rounded-full border-[4rpx] border-[#f7f7f7] bg-[var(--app-primary)]"
             >
-              <text class="text-[20rpx] font-bold leading-none text-white"
-                >✓</text
+              <text class="text-[20rpx] font-bold leading-none text-white icon-gou2x iconfont" style="font-size: 24rpx;"
+                ></text
               >
             </view>
           </view>
 
           <text
-            class="mt-[28rpx] text-center text-[44rpx] font-bold leading-[56rpx] tracking-[-0.5rpx] text-[var(--app-primary)]"
+            class="mt-[28rpx] text-center text-[44rpx] font-bold leading-[56rpx] tracking-[-0.5rpx] text-(--app-primary)"
           >
             {{ displayName }}
           </text>
           <text
-            class="mt-[8rpx] text-center text-[24rpx] leading-[32rpx] text-[var(--app-on-surface-variant)]"
+            class="mt-[8rpx] text-center text-[24rpx] leading-[32rpx] text-(--app-on-surface-variant)"
           >
             ID:{{ displayId }}
           </text>

@@ -1,6 +1,6 @@
 <template>
   <view
-    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[32rpx] pt-[32rpx] text-(--app-on-surface)"
+    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[16rpx] pt-[16rpx] text-(--app-on-surface)"
   >
     <view class="flex shrink-0 flex-wrap gap-[20rpx]">
       <view
@@ -34,9 +34,10 @@
         refresher-threshold="120rpx"
         :refresher-title-style="refresherTitleStyle"
         empty-view-text="暂无作品"
+        @scrollTopChange="handleScrollTopChange"
         @query="queryWorks"
       >
-        <view class="pb-[220rpx]">
+        <view class="pb-[120rpx]">
           <view
             v-if="!userStore.isLogin"
             class="mt-[148rpx] flex flex-col items-center px-[12rpx] text-center"
@@ -78,12 +79,12 @@
 
           <view
             v-if="userStore.isLogin && hasVisibleWorks"
-            class="grid grid-cols-2 gap-[24rpx]"
+            class="grid grid-cols-2 gap-[16rpx]"
           >
             <view
               v-for="item in visibleWorks"
               :key="`${item.kind}-${item.taskId}`"
-              class="relative flex flex-col bg-white border border-[#c8c9d2] break-inside-avoid rounded-[24rpx]"
+              class="relative flex flex-col bg-white border border-gray-100 break-inside-avoid rounded-[8rpx]"
               @tap="goTask(item)"
             >
               <view
@@ -105,7 +106,7 @@
 
               <view
                 v-else
-                class="relative aspect-square w-full overflow-hidden rounded-t-[24rpx] rounded-b-none active:scale-[0.98]"
+                class="relative aspect-square w-full overflow-hidden rounded-t-[8rpx] rounded-b-none active:scale-[0.98]"
               >
                 <image
                   :src="item.image"
@@ -143,10 +144,10 @@
         <template #empty>
           <view
             v-if="userStore.isLogin && !loading"
-            class="mt-[148rpx] flex flex-col items-center px-[12rpx] py-[64rpx] text-center"
+            class="flex flex-col items-center px-[12rpx] text-center"
           >
             <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
-              <text class="iconfont icon-images leading-none text-black/10"/>
+              <text class="iconfont icon-images leading-none text-black/10" style="font-size: 48rpx;"/>
             </view>
             <text class="block text-[40rpx] font-semibold leading-[64rpx] text-black">
               暂无作品
@@ -201,6 +202,7 @@ const userStore = useUserStore();
 const loading = ref(false);
 const tasks = ref<GenerationTask[]>([]);
 const pagingWorks = ref<GalleryWork[]>([]);
+const savedScrollTop = ref(0);
 const resultDetailStorageKey = "generateResultDetailTask";
 const pageSize = 999;
 const instance = getCurrentInstance();
@@ -211,10 +213,13 @@ const refresherTitleStyle = {
 };
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let hasLoadedOnce = false;
+let pendingRestoreScrollTop = false;
 
 interface PagingRef {
   complete(data?: GalleryWork[] | false, success?: boolean): Promise<unknown>;
   reload(animate?: boolean): Promise<unknown>;
+  updateScrollViewScrollTop(scrollTop: number, animate?: boolean): void;
 }
 
 const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
@@ -270,7 +275,14 @@ function syncPagingWorks() {
 
 onShow(() => {
   if (userStore.isLogin) {
-    void nextTick(() => getPaging()?.reload());
+    if (!hasLoadedOnce) {
+      hasLoadedOnce = true;
+      void nextTick(() => getPaging()?.reload());
+    } else {
+      pendingRestoreScrollTop = true;
+      void nextTick(() => restoreScrollPosition());
+      void loadWorks(true);
+    }
     startRefreshTimer();
   }
 });
@@ -283,12 +295,16 @@ watch(
   () => userStore.isLogin,
   (isLogin) => {
     if (isLogin) {
+      hasLoadedOnce = true;
       void nextTick(() => getPaging()?.reload());
       startRefreshTimer();
       return;
     }
     tasks.value = [];
     pagingWorks.value = [];
+    savedScrollTop.value = 0;
+    hasLoadedOnce = false;
+    pendingRestoreScrollTop = false;
     stopRefreshTimer();
   },
 );
@@ -326,6 +342,10 @@ async function queryWorks() {
   } catch {
     await getPaging()?.complete(false);
   }
+}
+
+function handleScrollTopChange(scrollTop: number) {
+  savedScrollTop.value = scrollTop;
 }
 
 function handleLogin() {
@@ -397,6 +417,15 @@ function goTask(work: GalleryWork) {
   }
 
   navigateTo(routes.generateResult, { taskId: work.taskId });
+}
+
+function restoreScrollPosition() {
+  if (!pendingRestoreScrollTop) return;
+
+  pendingRestoreScrollTop = false;
+  if (savedScrollTop.value <= 0) return;
+
+  getPaging()?.updateScrollViewScrollTop(savedScrollTop.value, false);
 }
 
 function startRefreshTimer() {

@@ -1,5 +1,5 @@
 <template>
-  <view class="min-h-screen bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="min-h-screen bg-[#f8f8f8] font-sans text-[#1a1c1c]">
     <scroll-view :style="{ height: `${scrollViewHeight}px` }" scroll-y enhanced :show-scrollbar="false">
       <view
         class="mx-auto max-w-[750rpx] px-[32rpx] pb-[32rpx] mt-[36rpx]"
@@ -202,7 +202,7 @@
 
     <!-- 底部操作栏 -->
     <view
-      class="fixed inset-x-0 bottom-0 z-50 bg-[#f9f9f9] p-[32rpx]"
+      class="fixed inset-x-0 bottom-0 z-50 bg-[#f8f8f8] p-[32rpx]"
       :style="{ paddingBottom: `calc(32rpx + ${safeAreaBottom}px)` }"
     >
       <view

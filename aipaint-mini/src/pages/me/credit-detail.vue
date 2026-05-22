@@ -1,5 +1,5 @@
 <template>
-  <view class="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
+  <view class="min-h-screen bg-[#f8f8f8] text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
       <view class="mx-auto min-h-screen max-w-[750rpx] px-[48rpx] pb-[200rpx] pt-[24rpx]">
         <section class="mb-[64rpx]">

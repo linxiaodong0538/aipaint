@@ -1,5 +1,5 @@
 <template>
-  <view class="flex h-screen flex-col overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="flex h-screen flex-col overflow-hidden bg-[#f8f8f8] font-sans text-[#1a1c1c]">
     <view class="shrink-0 px-[36rpx] pt-[36rpx]">
       <scroll-view class="w-full whitespace-nowrap" scroll-x enhanced :show-scrollbar="false">
         <view class="flex gap-[16rpx] pb-[24rpx]">
@@ -17,12 +17,12 @@
     </view>
 
     <scroll-view class="min-h-0 flex-1" scroll-y enhanced :show-scrollbar="false">
-      <view class="px-[24rpx] pb-[224rpx]">
-        <view class="columns-2 gap-[24rpx] pb-[36rpx]">
+      <view class="px-[16rpx] pb-[224rpx]">
+        <view class="columns-2 gap-[16rpx] pb-[36rpx]">
           <view
             v-for="template in filteredTemplates"
             :key="template.templateId"
-            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[24rpx] border border-[#c8c9d2] bg-white active:scale-[0.98]"
+            class="mb-[24rpx] break-inside-avoid border border-gray-100 overflow-hidden rounded-[8rpx] bg-white active:scale-[0.98]"
             @tap="goDetail(template)"
           >
             <image class="block w-full" mode="widthFix" :src="template.coverUrl" />

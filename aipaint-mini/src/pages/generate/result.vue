@@ -1,5 +1,5 @@
 <template>
-  <view class="fixed inset-0 h-screen overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+  <view class="fixed inset-0 h-screen overflow-hidden bg-[#f8f8f8] text-[#1a1c1c]">
     <section
       v-if="showProgressState"
       class="absolute inset-0 flex flex-col items-center justify-center px-[32rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
@@ -91,7 +91,8 @@
         </view>
 
         <view
-          class="technical-grid border-t border-black bg-white px-[24rpx] pb-[260rpx] pt-[44rpx]"
+          class="technical-grid border-t border-[#ddd] border-dashed bg-white px-[24rpx] pb-[260rpx] pt-[44rpx]"
+     
         >
           <view class="mb-[16rpx] flex justify-between items-center">
             <view class="pl-[8rpx]">
@@ -109,26 +110,26 @@
 
           <view class="grid grid-cols-2 border-l border-t border-[rgba(0,0,0,0.1)]">
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">模型</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">模型</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskModelText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">尺寸</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">尺寸</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskSizeText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreditText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
               <view class="flex items-center gap-[12rpx]">
                 <view class="h-[12rpx] w-[12rpx] rounded-full bg-black" />
                 <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
               </view>
             </view>
             <view class="col-span-2 flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[18rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
             </view>
           </view>
@@ -140,17 +141,17 @@
           </view>
 
           <view class="result-action-grid mt-[64rpx] grid grid-cols-3 border border-[rgba(0,0,0,0.1)]">
-            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" open-type="share">
-              <text class="iconfont icon-a-huaban1fuben37 text-[40rpx] leading-none text-black" />
-              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">分享</text>
+            <button class="result-action-button flex flex-col items-center justify-center gap-[12rpx] bg-transparent py-[32rpx] active:bg-black/10" open-type="share">
+              <text class="iconfont icon-a-huaban1fuben37 text-[40rpx] leading-none text-black" style="font-size: 40rpx;"/>
+              <text class="font-mono text-[24rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">分享</text>
             </button>
-            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="goBack">
-              <text class="iconfont icon-shanshan text-[40rpx] leading-none text-black" />
-              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">重试</text>
+            <button class="result-action-button flex flex-col items-center justify-center gap-[12rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="goBack">
+              <text class="iconfont icon-shanshan text-[40rpx] leading-none text-black" style="font-size: 40rpx;"/>
+              <text class="font-mono text-[24rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">重试</text>
             </button>
-            <button class="result-action-button flex flex-col items-center justify-center gap-[8rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="showUnsupported">
-              <text class="iconfont icon-MaterialSymbolsBrush text-[40rpx] leading-none text-black" />
-              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">作品库</text>
+            <button class="result-action-button flex flex-col items-center justify-center gap-[12rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="showUnsupported">
+              <text class="iconfont icon-tupian text-[40rpx] leading-none text-black" style="font-size: 40rpx;"/>
+              <text class="font-mono text-[24rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">作品库</text>
             </button>
           </view>
         </view>
@@ -532,7 +533,7 @@ function showUnsupported() {
 
 <style>
 page {
-  background-color: #f9f9f9;
+  background-color: #f8f8f8;
   height: 100%;
   overflow: hidden;
 }

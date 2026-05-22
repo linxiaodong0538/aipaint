@@ -62,7 +62,7 @@
       "path": "pages/me/credit-detail",
       "style": {
         "navigationBarTitleText": "积分明细",
-        "navigationBarBackgroundColor": "#f9f9f9",
+        "navigationBarBackgroundColor": "#f8f8f8",
         "navigationBarTextStyle": "black"
       }
     }
@@ -71,7 +71,7 @@
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "AI智绘",
     "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#f9f9f9"
+    "backgroundColor": "#f8f8f8"
   },
   "tabBar": {
     "color": "#4c4546",

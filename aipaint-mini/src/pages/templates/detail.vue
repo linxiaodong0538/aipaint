@@ -1,5 +1,5 @@
 <template>
-  <view class="min-h-screen bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="min-h-screen bg-[#f8f8f8] font-sans text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y :show-scrollbar="false">
       <view
         class="mx-auto flex max-w-[750rpx] flex-col gap-[32rpx] px-[24rpx] pb-[256rpx]"
@@ -62,7 +62,7 @@
             </button>
           </view>
 
-          <text class="text-[36rpx] font-normal leading-[56rpx] text-[#1a1c1c]">
+          <text class="text-[24rpx] font-normal leading-[40rpx] font-serif text-[#1a1c1c]">
             {{ displayPrompt }}
           </text>
         </view>
