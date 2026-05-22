@@ -41,18 +41,18 @@
         </view>
 
         <view
-          class="flex flex-col gap-[32rpx] rounded-[64rpx] border border-[rgba(0,0,0,0.05)] bg-white p-[24rpx] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
+          class="flex flex-col gap-[16rpx] rounded-[48rpx] border border-[rgba(0,0,0,0.05)] bg-white p-[24rpx] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]"
         >
           <view class="flex items-center justify-between gap-[24rpx] pb-[20rpx] border-b border-dashed border-[#8d8b8863]">
     
             <view class="flex items-center gap-[8rpx]">
               <text class="text-[34rpx] leading-none text-[#7e7576]">✦</text>
-              <text class="text-[28rpx] font-semibold uppercase leading-[40rpx] tracking-[4rpx] text-[#7e7576]">
+              <text class="text-[26rpx] font-semibold uppercase  tracking-[4rpx] text-[#7e7576]">
                 提示词
               </text>
             </view>
             <button
-              class="flex h-[64rpx] items-center justify-center gap-[12rpx] rounded-full border border-[rgba(207,196,197,0.3)] bg-transparent px-[32rpx] active:bg-[#f3f3f4]"
+              class="flex h-[56rpx] items-center justify-center gap-[12rpx] rounded-full border border-[rgba(207,196,197,0.3)] bg-transparent px-[26rpx] active:bg-[#f3f3f4]"
               @tap="copyPrompt"
             >
               <text class="text-[24rpx] font-bold leading-[32rpx] text-[#1a1c1c]">⧉</text>
