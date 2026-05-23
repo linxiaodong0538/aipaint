@@ -160,6 +160,10 @@
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
             </view>
+            <view class="col-span-2 flex flex-col gap-[12rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">提示词</text>
+              <text class="text-[26rpx] font-medium leading-[44rpx] text-black">{{ taskPromptText }}</text>
+            </view>
           </view>
 
           <view class="mt-[64rpx] flex items-center gap-[32rpx] opacity-30">
@@ -217,6 +221,7 @@ const generatedImages = ref<string[]>([]);
 const activeGeneratedImageIndex = ref(0);
 const previewImage = ref("");
 const errorMessage = ref("");
+const taskPrompt = ref("");
 const taskModel = ref("");
 const taskSize = ref("");
 const taskImageCount = ref<number | null>(null);
@@ -252,6 +257,7 @@ const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未�
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
+const taskPromptText = computed(() => taskPrompt.value || "未填写");
 const taskModelText = computed(() => taskModel.value || "gpt-image-2");
 const activeGeneratedImage = computed(() => generatedImages.value[activeGeneratedImageIndex.value] || "");
 
@@ -445,6 +451,7 @@ function completeTask(imageUrls: string[], options: { instant?: boolean; toast?:
 }
 
 function applyTaskDetails(task: GenerationTask) {
+  taskPrompt.value = task.prompt || "";
   taskModel.value = task.model || "";
   taskSize.value = task.size || "";
   taskImageCount.value = typeof task.imageCount === "number" ? task.imageCount : null;
