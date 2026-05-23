@@ -80,7 +80,7 @@ public class MiniGenerateController extends BaseController
         task.setImageCount(imageCount);
         task.setStatus("pending");
         task.setProgress(0);
-        task.setCreditCost(resolveCreditCost(quality) * imageCount.intValue());
+        task.setCreditCost(calculateCreditCost(size, imageCount));
         task.setCreateBy(SecurityUtils.getUsername());
         taskService.insertGenerationTask(task);
 
@@ -230,17 +230,33 @@ public class MiniGenerateController extends BaseController
         return null;
     }
 
-    private int resolveCreditCost(String quality)
+    private int calculateCreditCost(String size, Integer imageCount)
     {
-        if ("high".equals(quality))
+        int singleCost = calculateSingleCreditCost(size);
+        int count = imageCount == null ? 1 : Math.max(1, imageCount.intValue());
+        return singleCost * count;
+    }
+
+    private int calculateSingleCreditCost(String size)
+    {
+        String[] parts = StringUtils.defaultString(size).toLowerCase().split("x");
+        if (parts.length != 2)
         {
-            return 6;
+            return 5;
         }
-        if ("low".equals(quality))
+
+        try
         {
-            return 2;
+            long width = Long.parseLong(parts[0].trim());
+            long height = Long.parseLong(parts[1].trim());
+            long pixels = width * height;
+            int cost = (int) Math.ceil((pixels / 8294400.0D) * 30.0D);
+            return Math.max(5, cost);
         }
-        return 4;
+        catch (NumberFormatException e)
+        {
+            return 5;
+        }
     }
 
     public static class GenerateImageRequest

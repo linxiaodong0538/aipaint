@@ -186,7 +186,7 @@ interface TaskItem {
 interface MenuItem {
   title: string;
   iconClass: string;
-  action: "credit-detail" | "works";
+  action: "credit-detail" | "recharge" | "works";
 }
 
 const navLayout = getNavBarLayout();
@@ -215,6 +215,7 @@ const tasks: TaskItem[] = [
 ];
 
 const menuItems: MenuItem[] = [
+  { title: "积分充值", iconClass: "icon-jinbi", action: "recharge" },
   { title: "我的积分", iconClass: "icon-jinbi", action: "credit-detail" },
   { title: "我的作品", iconClass: "icon-images", action: "works" },
 ];
@@ -246,6 +247,11 @@ function handleMenuClick(item: MenuItem) {
     return;
   }
 
+  if (item.action === "recharge") {
+    navigateTo(routes.recharge);
+    return;
+  }
+
   switchTab(routes.works);
 }
 
@@ -254,7 +260,7 @@ function handleRecharge() {
     handleLogin();
     return;
   }
-  uni.showToast({ title: "立即充值", icon: "none" });
+  navigateTo(routes.recharge);
 }
 
 function handleLogout() {

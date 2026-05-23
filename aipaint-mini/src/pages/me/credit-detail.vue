@@ -17,19 +17,15 @@
                   .50
                 </text>
               </view>
-              <view class="flex gap-[24rpx]">
-                <button
-                  class="flex h-[84rpx] min-w-[212rpx] items-center justify-center rounded-full bg-white px-[48rpx] text-[28rpx] font-semibold leading-none text-black active:scale-95"
-                  @tap="handleRecharge"
-                >
-                  立即充值
-                </button>
-                <button
-                  class="flex h-[84rpx] min-w-[212rpx] items-center justify-center rounded-full border border-white/20 bg-transparent px-[48rpx] text-[28rpx] font-semibold leading-none text-white active:scale-95"
-                  @tap="handleRedeem"
-                >
-                  积分兑换
-                </button>
+              <view class="grid grid-cols-2 gap-[16rpx]">
+                <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
+                  <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月消耗</text>
+                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">46</text>
+                </view>
+                <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
+                  <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月返还</text>
+                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">16</text>
+                </view>
               </view>
             </view>
           </view>
@@ -133,7 +129,7 @@ const records: CreditRecord[] = [
     month: "2026年5月",
     title: "生成图片",
     time: "2026-05-21 14:32:05",
-    amount: "-1.94",
+    amount: "-30",
     meta: "GPT-Image-2",
     iconClass: "icon-images",
     iconBackgroundClass: "bg-[#eeeeee]",
@@ -146,7 +142,7 @@ const records: CreditRecord[] = [
     month: "2026年5月",
     title: "每日签到",
     time: "2026-05-21 08:00:12",
-    amount: "+5.00",
+    amount: "+5",
     meta: "奖励",
     iconClass: "icon-qiandao",
     iconBackgroundClass: "bg-[#eeeeee]",
@@ -159,7 +155,7 @@ const records: CreditRecord[] = [
     month: "2026年5月",
     title: "高级扩图",
     time: "2026-05-20 22:15:44",
-    amount: "-10.00",
+    amount: "-16",
     meta: "Ultra-Extend",
     iconClass: "icon-MaterialSymbolsBrush",
     iconBackgroundClass: "bg-[#eeeeee]",
@@ -172,7 +168,7 @@ const records: CreditRecord[] = [
     month: "2026年5月",
     title: "生成失败退款",
     time: "2026-05-20 19:40:22",
-    amount: "+1.31",
+    amount: "+16",
     meta: "超时自动退回",
     iconClass: "icon-shanshan",
     iconBackgroundClass: "bg-[#ffdad6]/60",
@@ -185,7 +181,7 @@ const records: CreditRecord[] = [
     month: "2026年5月",
     title: "邀请好友奖励",
     time: "2026-05-19 11:10:05",
-    amount: "+50.00",
+    amount: "+50",
     meta: "邀请码: AI_992x",
     iconClass: "icon-jinbi",
     iconBackgroundClass: "bg-[#eeeeee]",
@@ -212,11 +208,4 @@ const groupedRecords = computed(() => {
   return groups;
 });
 
-function handleRecharge() {
-  uni.showToast({ title: "立即充值", icon: "none" });
-}
-
-function handleRedeem() {
-  uni.showToast({ title: "积分兑换", icon: "none" });
-}
 </script>

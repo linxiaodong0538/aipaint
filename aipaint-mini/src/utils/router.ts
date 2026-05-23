@@ -24,6 +24,7 @@ export const routes = {
   works: "/pages/works/index",
   me: "/pages/me/index",
   creditDetail: "/pages/me/credit-detail",
+  recharge: "/pages/me/recharge",
 } as const;
 
 export function navigateTo(path: string, params?: RouteParams) {

@@ -65,6 +65,14 @@
         "navigationBarBackgroundColor": "#f8f8f8",
         "navigationBarTextStyle": "black"
       }
+    },
+    {
+      "path": "pages/me/recharge",
+      "style": {
+        "navigationBarTitleText": "积分充值",
+        "navigationBarBackgroundColor": "#f8f8f8",
+        "navigationBarTextStyle": "black"
+      }
     }
   ],
   "globalStyle": {

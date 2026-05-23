@@ -140,7 +140,10 @@
 
         <!-- 画面比例 -->
         <view class="mb-[32rpx]">
-          <text class="model-section-label font-mono">画面比例</text>
+          <view class="flex items-center justify-between">
+            <text class="model-section-label font-mono">画面比例</text>
+            <text class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
+          </view>
           <scroll-view
             class="ratio-scroll"
             scroll-x
@@ -208,13 +211,15 @@
     >
       <view class="mx-auto max-w-[750rpx]">
         <button
-          class="generate-btn flex h-[112rpx] w-full items-center justify-center gap-[14rpx] rounded-full bg-black px-[40rpx] shadow-[0_24rpx_46rpx_rgba(0,0,0,0.18)] active:scale-[0.96]"
+          class="generate-btn flex h-[112rpx] w-full items-center justify-center rounded-full bg-black px-[40rpx] shadow-[0_24rpx_46rpx_rgba(0,0,0,0.18)] active:scale-[0.96]"
           :loading="generating"
           :disabled="generating"
           @tap="handleGenerate"
         >
-          <text class="iconfont icon-shanshan leading-none text-white" style="font-size: 36rpx;"/>
-          <text class="text-[28rpx] font-semibold leading-none text-white">{{ generating ? "提交中" : "开始生成" }}</text>
+          <view class="inline-flex items-center justify-center gap-[14rpx]">
+            <text class="iconfont icon-shanshan leading-none text-white" style="font-size: 36rpx;"/>
+            <text class="text-[28rpx] font-semibold leading-none text-white">{{ generating ? "提交中" : `开始生成 · ${creditCost}积分` }}</text>
+          </view>
         </button>
       </view>
     </view>
@@ -296,13 +301,13 @@ const maxReferenceImages = 4;
 const referenceImages = ref<string[]>([]);
 const canAddReferenceImages = computed(() => referenceImages.value.length < maxReferenceImages);
 const model = ref<ModelValue>("gpt-image-2");
-const quality = ref<(typeof qualities)[number]>("2K");
+const quality = ref<(typeof qualities)[number]>("1K");
 const imageQualities = [
   { value: "low", label: "低" },
   { value: "medium", label: "中" },
   { value: "high", label: "高" },
 ] as const;
-const imageQuality = ref<(typeof imageQualities)[number]["value"]>("high");
+const imageQuality = ref<(typeof imageQualities)[number]["value"]>("medium");
 const count = ref<(typeof counts)[number]>(1);
 const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
 const generating = ref(false);
@@ -320,16 +325,7 @@ interface RetryParams {
 }
 
 const creditCost = computed(() => {
-  const qualityFactor: Record<(typeof qualities)[number], number> = {
-    "1K": 1,
-    "2K": 2,
-    "4K": 4,
-  };
-  const modelFactor: Record<ModelValue, number> = {
-    "gpt-image-2": 1,
-    xx: 1,
-  };
-  return qualityFactor[quality.value] * modelFactor[model.value] + count.value + 1;
+  return calculateCreditCost(mapImageSize(ratio.value, quality.value), count.value);
 });
 
 const hiddenRatiosFor4K = ["1:1", "4:3", "3:4"] as const;
@@ -340,6 +336,7 @@ const visibleRatios = computed(() => (
 ));
 
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
+const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
 
 const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
@@ -599,6 +596,13 @@ function mapImageSize(
   return mapped || sizeMap["1:1"]["1K"] || "1024x1024";
 }
 
+function calculateCreditCost(size: string, imageCount: number) {
+  const [width = 0, height = 0] = size.split("x").map((value) => Number(value));
+  const pixels = width * height;
+  const singleCost = Math.max(5, Math.ceil((pixels / 8294400) * 30));
+  return singleCost * imageCount;
+}
+
 async function uploadReferenceImages() {
   if (!referenceImages.value.length) {
     return [];
@@ -742,7 +746,7 @@ async function handleGenerate() {
 .ratio-icon {
   box-sizing: border-box;
   border: 3rpx solid currentColor;
-  border-radius: 6rpx;
+  border-radius: 4rpx;
   background: transparent;
   opacity: 0.85;
   transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -788,8 +792,7 @@ async function handleGenerate() {
 
 .model-section-label {
   display: block;
-  margin-bottom: 16rpx;
-  padding: 0 16rpx;
+  padding: 16rpx;
   font-size: 24rpx;
   font-weight: 500;
   line-height: 32rpx;
