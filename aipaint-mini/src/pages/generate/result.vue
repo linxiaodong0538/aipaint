@@ -48,9 +48,15 @@
         </text>
       </view>
 
-      <view v-if="taskState !== 'failed'" class="mt-[96rpx] w-full max-w-[560rpx] px-[64rpx]">
-        <view class="mb-[16rpx] flex justify-start">
-          <text class="text-[22rpx] font-medium leading-[28rpx] text-[#7e7576]">{{ processingHintText }}</text>
+      <view v-if="taskState !== 'failed'" class="mt-[78rpx] w-full max-w-[560rpx]">
+        <view class="mb-[28rpx] flex justify-center">
+          <view
+            class="processing-hint-pill"
+            :class="{ 'processing-hint-pill-long': longWaitHintVisible }"
+          >
+            <view class="processing-hint-dot" />
+            <text class="processing-hint-text">{{ processingHintText }}</text>
+          </view>
         </view>
         <view class="infinite-progress-track h-[8rpx] w-full rounded-full" />
       </view>
@@ -74,17 +80,35 @@
         class="h-full w-full"
         :show-scrollbar="false"
       >
-        <view
-          class="relative aspect-square w-full  bg-white p-[24rpx]"
-        >
-          <image
-            v-if="generatedImage"
+        <view class="relative aspect-square w-full bg-white p-[24rpx]">
+          <swiper
+            v-if="generatedImages.length"
             class="h-full w-full"
-            mode="aspectFill"
-            :src="generatedImage"
-            @tap="previewGeneratedImage"
-          />
+            :current="activeGeneratedImageIndex"
+            :indicator-dots="false"
+            @change="handleGeneratedImageChange"
+          >
+            <swiper-item
+              v-for="(image, index) in generatedImages"
+              :key="`${image}-${index}`"
+            >
+              <image
+                class="h-full w-full"
+                mode="aspectFill"
+                :src="image"
+                @tap="previewGeneratedImage"
+              />
+            </swiper-item>
+          </swiper>
           <view v-else class="h-full w-full bg-[#e2e2e2]" />
+          <view
+            v-if="generatedImages.length > 1"
+            class="absolute right-[40rpx] top-[40rpx] rounded-full bg-black/65 px-[18rpx] pb-[8rpx] backdrop-blur-[12rpx]"
+          >
+            <text class="font-mono text-[22rpx] font-semibold leading-[28rpx] text-white">
+              {{ activeGeneratedImageIndex + 1 }}/{{ generatedImages.length }}
+            </text>
+          </view>
           <text class="font-mono absolute bottom-[32rpx] left-[32rpx] text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[2rpx] text-white/50">
             LATENT_SPACE_PROJECTION_V2.4
           </text>
@@ -118,16 +142,20 @@
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskSizeText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">生成张数</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskImageCountText }}</text>
+            </view>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreditText }}</text>
             </view>
-            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+            <!-- <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
               <view class="flex items-center gap-[12rpx]">
                 <view class="h-[12rpx] w-[12rpx] rounded-full bg-black" />
                 <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
               </view>
-            </view>
+            </view> -->
             <view class="col-span-2 flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
@@ -185,11 +213,13 @@ type TaskState = "processing" | "success" | "failed";
 
 const taskId = ref<number | null>(null);
 const taskState = ref<TaskState>("processing");
-const generatedImage = ref("");
+const generatedImages = ref<string[]>([]);
+const activeGeneratedImageIndex = ref(0);
 const previewImage = ref("");
 const errorMessage = ref("");
 const taskModel = ref("");
 const taskSize = ref("");
+const taskImageCount = ref<number | null>(null);
 const taskCreditCost = ref<number | null>(null);
 const taskCreateTime = ref("");
 const safeAreaBottom = ref(0);
@@ -219,9 +249,11 @@ const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const showProgressState = computed(() => !pageInitializing.value && taskState.value !== "success");
 const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
+const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
 const taskModelText = computed(() => taskModel.value || "gpt-image-2");
+const activeGeneratedImage = computed(() => generatedImages.value[activeGeneratedImageIndex.value] || "");
 
 const progressTitle = computed(() => {
   if (taskState.value === "failed") return "生成失败";
@@ -236,7 +268,7 @@ const progressSubtitle = computed(() => (
 ));
 const processingHintText = computed(() => (
   longWaitHintVisible.value
-    ? "生成耗时较久，您可离开此页面，稍后到作品中查看"
+    ? "耗时较久，可稍后在作品中查看"
     : "PROCESSING"
 ));
 
@@ -275,6 +307,12 @@ onLoad((query) => {
 
   taskId.value = id;
 
+  if (import.meta.env.DEV && query?.mockLongWait === "1") {
+    pageInitializing.value = false;
+    showLongWaitHint();
+    return;
+  }
+
   if (query?.from === "works") {
     void openFromWorks(id);
     return;
@@ -312,7 +350,7 @@ async function pollTask() {
     }
 
     if (task.status === "success") {
-      completeTask(task.resultImageUrl || "");
+      completeTask(getTaskResultImages(task));
       return;
     }
 
@@ -351,8 +389,9 @@ async function openFromWorks(id: number) {
     const task = await getGenerationTask(id);
     applyTaskDetails(task);
 
-    if (task.status === "success" && task.resultImageUrl) {
-      completeTask(task.resultImageUrl, { instant: true, toast: false });
+    const taskImages = getTaskResultImages(task);
+    if (task.status === "success" && taskImages.length > 0) {
+      completeTask(taskImages, { instant: true, toast: false });
       pageInitializing.value = false;
       return;
     }
@@ -384,8 +423,9 @@ async function openFromWorks(id: number) {
   }
 }
 
-function completeTask(imageUrl: string, options: { instant?: boolean; toast?: boolean } = {}) {
-  generatedImage.value = imageUrl;
+function completeTask(imageUrls: string[], options: { instant?: boolean; toast?: boolean } = {}) {
+  generatedImages.value = imageUrls;
+  activeGeneratedImageIndex.value = 0;
   stopTimers();
   if (options.instant) {
     taskState.value = "success";
@@ -407,6 +447,7 @@ function completeTask(imageUrl: string, options: { instant?: boolean; toast?: bo
 function applyTaskDetails(task: GenerationTask) {
   taskModel.value = task.model || "";
   taskSize.value = task.size || "";
+  taskImageCount.value = typeof task.imageCount === "number" ? task.imageCount : null;
   taskCreditCost.value = typeof task.creditCost === "number" ? task.creditCost : null;
   taskCreateTime.value = task.createTime || task.finishTime || "";
 }
@@ -415,13 +456,14 @@ function hydrateCompletedTaskFromStorage(expectedTaskId: number) {
   const task = uni.getStorageSync(resultDetailStorageKey) as GenerationTask | "";
   uni.removeStorageSync(resultDetailStorageKey);
 
-  if (!task || task.taskId !== expectedTaskId || task.status !== "success" || !task.resultImageUrl) {
+  const taskImages = task ? getTaskResultImages(task) : [];
+  if (!task || task.taskId !== expectedTaskId || task.status !== "success" || taskImages.length === 0) {
     return false;
   }
 
   isHistoryDetail.value = true;
   applyTaskDetails(task);
-  completeTask(task.resultImageUrl, { instant: true, toast: false });
+  completeTask(taskImages, { instant: true, toast: false });
   return true;
 }
 
@@ -478,19 +520,31 @@ function stopTimers() {
   }
 }
 
+function getTaskResultImages(task: GenerationTask) {
+  return task.resultImageUrls?.length ? task.resultImageUrls : task.resultImageUrl ? [task.resultImageUrl] : [];
+}
+
+function handleGeneratedImageChange(event: { detail?: { current?: number } }) {
+  const current = event.detail?.current;
+  if (typeof current !== "number") {
+    return;
+  }
+  activeGeneratedImageIndex.value = Math.max(0, Math.min(generatedImages.value.length - 1, current));
+}
+
 function previewGeneratedImage() {
-  if (!generatedImage.value) return;
+  if (!activeGeneratedImage.value) return;
   uni.previewImage({
-    urls: [generatedImage.value],
-    current: generatedImage.value,
+    urls: generatedImages.value,
+    current: activeGeneratedImage.value,
   });
 }
 
 function saveImage() {
-  if (!generatedImage.value) return;
+  if (!activeGeneratedImage.value) return;
 
   uni.downloadFile({
-    url: generatedImage.value,
+    url: activeGeneratedImage.value,
     success(result) {
       if (result.statusCode !== 200 || !result.tempFilePath) {
         uni.showToast({ title: "图片下载失败", icon: "none" });
@@ -575,6 +629,47 @@ page {
   background-size: 260% 100%;
   background-position: 100% 0;
   animation: infinite-progress-slide 1.2s linear infinite;
+}
+
+.processing-hint-pill {
+  display: inline-flex;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 52rpx;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 22rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999rpx;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14rpx 40rpx rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20rpx);
+}
+
+.processing-hint-pill-long {
+  padding-right: 24rpx;
+  padding-left: 24rpx;
+}
+
+.processing-hint-dot {
+  flex: 0 0 auto;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 9999rpx;
+  background: #1a1c1c;
+  box-shadow: 0 0 0 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.processing-hint-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(76, 69, 70, 0.74);
+  font-size: 22rpx;
+  font-weight: 500;
+  line-height: 28rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .font-mono {

@@ -7,7 +7,8 @@
         <!-- 参考图片 -->
         <view class="mb-[32rpx]">
           <view class="flex items-end justify-between">
-            <text class="model-section-label font-mono">参考图片（最多4张）</text>
+            <text class="model-section-label font-mono">参考图</text>
+            <text class="model-section-label font-mono">{{ referenceImages.length }}/{{ maxReferenceImages }}</text>
           </view>
           <view
             v-if="referenceImages.length === 0"
@@ -16,9 +17,9 @@
           >
             <view class="flex flex-col items-center">
               <view class="relative flex h-[40rpx] w-[40rpx] items-center justify-center">
-                <text class="iconfont icon-icon_paizhaoshangchuan leading-none"  style="font-size: 42rpx;"/>
+                <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-black/50"  style="font-size: 42rpx;"/>
               </view>
-              <text class="mt-[8rpx] text-[22rpx] font-medium leading-[32rpx] tracking-[2rpx] text-[#4c4546]">点击上传图片</text>
+              <text class="mt-[8rpx] text-[22rpx] font-medium leading-[32rpx] tracking-[2rpx] text-black/50">点击上传图片</text>
             </view>
           </view>
 
@@ -591,7 +592,7 @@ async function handleGenerate() {
 }
 
 .reference-upload-box {
-  min-height: 192rpx;
+  min-height: 204rpx;
 }
 
 .segmented-control {

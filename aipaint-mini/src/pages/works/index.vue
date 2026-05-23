@@ -161,7 +161,7 @@
               </view>
             </view>
 
-            <text class="mt-[48rpx] block text-[24rpx] font-bold leading-[50rpx] text-black/50 font-serif">
+            <text class="mt-[48rpx] block text-[24rpx] leading-[50rpx] text-gray-400">
               {{ emptyTitle }}
             </text>
             <text
@@ -252,11 +252,11 @@ const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>((
 
 const completedWorks = computed<Array<CompletedWork & { kind: "completed" }>>(() => (
   tasks.value
-    .filter((task) => task.status === "success" && !!task.resultImageUrl)
+    .filter((task) => task.status === "success" && getTaskResultImages(task).length > 0)
     .map((task) => ({
       taskId: task.taskId,
       title: resolveTitle(task.prompt),
-      image: task.resultImageUrl || "",
+      image: getTaskResultImages(task)[0] || "",
       timeText: formatWorkTime(task.finishTime || task.createTime),
       kind: "completed" as const,
     }))
@@ -377,6 +377,10 @@ function handleLogin() {
   userStore.loginWithWechat()
     .then(() => loadWorks())
     .catch(() => undefined);
+}
+
+function getTaskResultImages(task: GenerationTask) {
+  return task.resultImageUrls?.length ? task.resultImageUrls : task.resultImageUrl ? [task.resultImageUrl] : [];
 }
 
 function resolveTitle(prompt: string) {

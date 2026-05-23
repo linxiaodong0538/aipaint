@@ -104,6 +104,7 @@ public class AiImageService
         try
         {
             String resultImageUrl = provider.generateAndSave(request, providerConfig);
+            ensureResultImageCount(task, resultImageUrl);
             recordCallLog(task, providerConfig, "success", fallbackUsed, System.currentTimeMillis() - startTime, null);
             return resultImageUrl;
         }
@@ -185,7 +186,8 @@ public class AiImageService
     {
         return StringUtils.contains(message, "完成结果缺少图片数据")
                 || StringUtils.contains(message, "返回结果缺少图片数据")
-                || StringUtils.contains(message, "流式返回未包含完成图片");
+                || StringUtils.contains(message, "流式返回未包含完成图片")
+                || StringUtils.contains(message, "生成结果数量不足");
     }
 
     private boolean isAmbiguousSubmitMessage(String message)
@@ -232,6 +234,21 @@ public class AiImageService
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
+    }
+
+    private void ensureResultImageCount(AiGenerationTask task, String resultImageUrl)
+    {
+        int expectedCount = task.getImageCount() == null ? 1 : Math.max(1, task.getImageCount().intValue());
+        if (expectedCount <= 1)
+        {
+            return;
+        }
+
+        int actualCount = parseImageUrls(resultImageUrl).size();
+        if (actualCount < expectedCount)
+        {
+            throw new ServiceException("生成结果数量不足：期望 " + expectedCount + " 张，实际 " + actualCount + " 张");
+        }
     }
 
     private String trimMessage(String message)

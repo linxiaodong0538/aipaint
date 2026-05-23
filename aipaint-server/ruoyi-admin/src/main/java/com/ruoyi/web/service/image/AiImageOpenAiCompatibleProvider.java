@@ -159,7 +159,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         {
             throw new ServiceException("图片生成失败：" + readStreamAsString(response.body()));
         }
-        return readSseAndSave(response.body(), providerConfig);
+        return readSseAndSave(response.body(), providerConfig, payload.getIntValue("n"));
     }
 
     private boolean shouldUseStreamingResponse(AiImageProviderConfig providerConfig)
@@ -240,7 +240,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         JSONArray data = body.getJSONArray("data");
         if (data != null && !data.isEmpty())
         {
-            return saveImageFromDataItem(data.getJSONObject(0), providerConfig);
+            return saveImagesFromData(data, providerConfig);
         }
 
         String taskId = body.getString("id");
@@ -252,11 +252,12 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         throw new ServiceException("图片生成失败：返回结果为空");
     }
 
-    private String readSseAndSave(InputStream inputStream, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
+    private String readSseAndSave(InputStream inputStream, AiImageProviderConfig providerConfig, int expectedCount) throws IOException, InterruptedException
     {
         String event = "";
         StringBuilder data = new StringBuilder();
         StringBuilder raw = new StringBuilder();
+        StringBuilder results = new StringBuilder();
         boolean sseSeen = false;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
         {
@@ -269,7 +270,11 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
                     String result = saveCompletedSseEventIfPresent(event, data.toString(), providerConfig);
                     if (StringUtils.isNotBlank(result))
                     {
-                        return result;
+                        appendResultUrls(results, result);
+                        if (countResultUrls(results.toString()) >= expectedCount)
+                        {
+                            return results.toString();
+                        }
                     }
                     event = "";
                     data.setLength(0);
@@ -296,7 +301,11 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         String result = saveCompletedSseEventIfPresent(event, data.toString(), providerConfig);
         if (StringUtils.isNotBlank(result))
         {
-            return result;
+            appendResultUrls(results, result);
+        }
+        if (StringUtils.isNotBlank(results.toString()))
+        {
+            return results.toString();
         }
         if (!sseSeen)
         {
@@ -437,16 +446,10 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
 
     private String saveCompletedTaskResult(JSONObject body, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
-        String url = body.getString("url");
-        if (StringUtils.isNotBlank(url))
-        {
-            return saveRemoteImage(url, providerConfig);
-        }
-
         JSONArray data = body.getJSONArray("data");
         if (data != null && !data.isEmpty())
         {
-            return saveImageFromDataItem(data.getJSONObject(0), providerConfig);
+            return saveImagesFromData(data, providerConfig);
         }
 
         JSONObject result = body.getJSONObject("result");
@@ -455,11 +458,78 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             JSONArray resultData = result.getJSONArray("data");
             if (resultData != null && !resultData.isEmpty())
             {
-                return saveImageFromDataItem(resultData.getJSONObject(0), providerConfig);
+                return saveImagesFromData(resultData, providerConfig);
+            }
+
+            String resultUrls = saveImagesFromUrlValue(result.get("url"), providerConfig);
+            if (StringUtils.isNotBlank(resultUrls))
+            {
+                return resultUrls;
             }
         }
 
+        String urls = saveImagesFromUrlValue(body.get("urls"), providerConfig);
+        if (StringUtils.isNotBlank(urls))
+        {
+            return urls;
+        }
+
+        urls = saveImagesFromUrlValue(body.get("url"), providerConfig);
+        if (StringUtils.isNotBlank(urls))
+        {
+            return urls;
+        }
+
         throw new ServiceException("图片生成失败：完成结果缺少图片数据");
+    }
+
+    private String saveImagesFromUrlValue(Object value, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
+    {
+        if (value instanceof JSONArray)
+        {
+            JSONArray urls = (JSONArray) value;
+            StringBuilder savedUrls = new StringBuilder();
+            for (int i = 0; i < urls.size(); i++)
+            {
+                String savedUrl = saveImageFromUrl(urls.getString(i), providerConfig);
+                if (StringUtils.isBlank(savedUrl))
+                {
+                    continue;
+                }
+                if (savedUrls.length() > 0)
+                {
+                    savedUrls.append(',');
+                }
+                savedUrls.append(savedUrl);
+            }
+            return savedUrls.toString();
+        }
+
+        String url = value == null ? "" : String.valueOf(value);
+        return StringUtils.isBlank(url) ? null : saveImageFromUrl(url, providerConfig);
+    }
+
+    private String saveImagesFromData(JSONArray data, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
+    {
+        StringBuilder urls = new StringBuilder();
+        for (int i = 0; i < data.size(); i++)
+        {
+            String imageUrl = saveImageFromDataItem(data.getJSONObject(i), providerConfig);
+            if (StringUtils.isBlank(imageUrl))
+            {
+                continue;
+            }
+            if (urls.length() > 0)
+            {
+                urls.append(',');
+            }
+            urls.append(imageUrl);
+        }
+        if (urls.length() == 0)
+        {
+            throw new ServiceException("图片生成失败：返回结果缺少图片数据");
+        }
+        return urls.toString();
     }
 
     private String saveImageFromDataItem(JSONObject item, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
@@ -473,10 +543,41 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         String url = item.getString("url");
         if (StringUtils.isNotBlank(url))
         {
-            return saveRemoteImage(url, providerConfig);
+            return saveImageFromUrl(url, providerConfig);
         }
 
         throw new ServiceException("图片生成失败：返回结果缺少图片数据");
+    }
+
+    private String saveImageFromUrl(String url, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
+    {
+        if (StringUtils.startsWithIgnoreCase(StringUtils.trimToEmpty(url), "data:"))
+        {
+            return saveBase64Image(url);
+        }
+        return saveRemoteImage(url, providerConfig);
+    }
+
+    private void appendResultUrls(StringBuilder results, String urls)
+    {
+        if (StringUtils.isBlank(urls))
+        {
+            return;
+        }
+        if (results.length() > 0)
+        {
+            results.append(',');
+        }
+        results.append(urls);
+    }
+
+    private int countResultUrls(String urls)
+    {
+        if (StringUtils.isBlank(urls))
+        {
+            return 0;
+        }
+        return StringUtils.split(urls, ',').length;
     }
 
     private String saveBase64Image(String b64Json) throws IOException

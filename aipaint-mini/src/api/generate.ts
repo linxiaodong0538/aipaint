@@ -32,6 +32,7 @@ export interface GenerationTask {
   status: GenerationStatus;
   progress?: number;
   resultImageUrl?: string;
+  resultImageUrls?: string[];
   previewImageUrl?: string;
   errorMessage?: string;
   creditCost?: number;
@@ -44,6 +45,23 @@ function resolveFileUrl(url?: string) {
   if (/^(https?:)?\/\//i.test(url) || url.startsWith("data:")) return url;
   if (url.startsWith("/")) return `${baseUrl}${url}`;
   return `${baseUrl}/${url}`;
+}
+
+function resolveResultImageUrls(urls?: string) {
+  return (urls || "")
+    .split(",")
+    .map((url) => resolveFileUrl(url.trim()))
+    .filter(Boolean);
+}
+
+function normalizeTaskImageUrls(task: GenerationTask) {
+  const resultImageUrls = resolveResultImageUrls(task.resultImageUrl);
+  return {
+    ...task,
+    resultImageUrl: resultImageUrls[0] || "",
+    resultImageUrls,
+    previewImageUrl: resolveFileUrl(task.previewImageUrl),
+  };
 }
 
 export function createImageGeneration(data: CreateImageGenerationRequest) {
@@ -86,20 +104,12 @@ export function getGenerationTask(taskId: number) {
   return request<GenerationTask>({
     url: `/mini/generate/tasks/${taskId}`,
     method: "GET",
-  }).then((task) => ({
-    ...task,
-    resultImageUrl: resolveFileUrl(task.resultImageUrl),
-    previewImageUrl: resolveFileUrl(task.previewImageUrl),
-  }));
+  }).then(normalizeTaskImageUrls);
 }
 
 export function listGenerationTasks() {
   return request<GenerationTask[]>({
     url: "/mini/generate/tasks",
     method: "GET",
-  }).then((tasks) => tasks.map((task) => ({
-    ...task,
-    resultImageUrl: resolveFileUrl(task.resultImageUrl),
-    previewImageUrl: resolveFileUrl(task.previewImageUrl),
-  })));
+  }).then((tasks) => tasks.map(normalizeTaskImageUrls));
 }
