@@ -177,7 +177,7 @@
               <text class="iconfont icon-shanshan text-[40rpx] leading-none text-black" style="font-size: 40rpx;"/>
               <text class="font-mono text-[24rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">重试</text>
             </button>
-            <button class="result-action-button flex flex-col items-center justify-center gap-[12rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="showUnsupported">
+            <button class="result-action-button flex flex-col items-center justify-center gap-[12rpx] bg-transparent py-[32rpx] active:bg-black/10" @tap="goto">
               <text class="iconfont icon-tupian text-[40rpx] leading-none text-black" style="font-size: 40rpx;"/>
               <text class="font-mono text-[24rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">作品库</text>
             </button>
@@ -571,8 +571,8 @@ function goBack() {
   navigateBack();
 }
 
-function showUnsupported() {
-  uni.showToast({ title: "局部重绘暂未接入", icon: "none" });
+function goto() {
+  uni.switchTab({url: '/pages/works/index'})
 }
 </script>
 
