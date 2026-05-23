@@ -103,7 +103,7 @@
                 生成参数
               </text>
             </view>
-            <text class="font-mono border border-black px-[16rpx] py-[4rpx] text-[20rpx] font-bold leading-[28rpx] text-black">
+            <text class="font-mono border border-black px-[16rpx] py-[4rpx] text-[20rpx] font-bold leading-[1.4] text-black">
               已验证
             </text>
           </view>
@@ -317,12 +317,12 @@ async function pollTask() {
     }
 
     if (task.status === "failed") {
-      if (shouldKeepProcessing(task.errorMessage)) {
-        showLongWaitHint();
-        return;
-      }
       failTask(task.errorMessage || "图片生成失败");
       return;
+    }
+
+    if (shouldShowLaterCheckHint(task)) {
+      showLongWaitHint();
     }
 
     if (pollAttempts >= 45) {
@@ -358,22 +358,15 @@ async function openFromWorks(id: number) {
     }
 
     if (task.status === "failed") {
-      if (shouldKeepProcessing(task.errorMessage)) {
-        isHistoryDetail.value = false;
-        pageInitializing.value = false;
-        showLongWaitHint();
-        void pollTask();
-        pollTimer = setInterval(() => {
-          void pollTask();
-        }, 2000);
-        return;
-      }
       failTask(task.errorMessage || "图片生成失败");
       pageInitializing.value = false;
       return;
     }
 
     isHistoryDetail.value = false;
+    if (shouldShowLaterCheckHint(task)) {
+      showLongWaitHint();
+    }
     if (task.previewImageUrl) {
       previewImage.value = task.previewImageUrl;
     }
@@ -460,11 +453,9 @@ function showLongWaitHint() {
   longWaitHintVisible.value = true;
 }
 
-function shouldKeepProcessing(message?: string) {
-  if (!message) {
-    return false;
-  }
-  return message.includes("生成耗时较久") || message.includes("稍后到作品");
+function shouldShowLaterCheckHint(task: GenerationTask) {
+  const message = task.errorMessage || "";
+  return task.status === "processing" && message.includes("稍后到作品中查看");
 }
 
 function showBottomBarAfterEnter() {

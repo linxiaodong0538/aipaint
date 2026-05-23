@@ -13,7 +13,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="quality"        column="quality"          />
         <result property="ratio"          column="ratio"            />
         <result property="size"           column="size"             />
+        <result property="resolution"     column="resolution"       />
+        <result property="imageUrls"      column="image_urls"       />
+        <result property="imageCount"     column="image_count"      />
         <result property="status"         column="status"           />
+        <result property="progress"       column="progress"         />
         <result property="resultImageUrl" column="result_image_url" />
         <result property="previewImageUrl" column="preview_image_url" />
         <result property="errorMessage"   column="error_message"    />
@@ -26,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectGenerationTaskVo">
-        select task_id, user_id, provider_code, prompt, model, quality, ratio, size, status, result_image_url, preview_image_url, error_message,
+        select task_id, user_id, provider_code, prompt, model, quality, ratio, size, resolution, image_urls, image_count, status, progress, result_image_url, preview_image_url, error_message,
                credit_cost, finish_time, create_by, create_time, update_by, update_time
         from ai_generation_task
     </sql>
@@ -52,9 +56,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
         <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
         insert into ai_generation_task(
-            user_id, provider_code, prompt, model, quality, ratio, size, status, credit_cost, create_by, create_time
+            user_id, provider_code, prompt, model, quality, ratio, size, resolution, image_urls, image_count, status, progress, credit_cost, create_by, create_time
         ) values (
-            #{userId}, #{providerCode}, #{prompt}, #{model}, #{quality}, #{ratio}, #{size}, #{status}, #{creditCost}, #{createBy}, sysdate()
+            #{userId}, #{providerCode}, #{prompt}, #{model}, #{quality}, #{ratio}, #{size}, #{resolution}, #{imageUrls}, #{imageCount}, #{status}, #{progress}, #{creditCost}, #{createBy}, sysdate()
         )
     </insert>
 
@@ -67,7 +71,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="quality != null">quality = #{quality},</if>
             <if test="ratio != null">ratio = #{ratio},</if>
             <if test="size != null">size = #{size},</if>
+            <if test="resolution != null">resolution = #{resolution},</if>
+            <if test="imageUrls != null">image_urls = #{imageUrls},</if>
+            <if test="imageCount != null">image_count = #{imageCount},</if>
             <if test="status != null">status = #{status},</if>
+            <if test="progress != null">progress = #{progress},</if>
             <if test="resultImageUrl != null">result_image_url = #{resultImageUrl},</if>
             <if test="previewImageUrl != null">preview_image_url = #{previewImageUrl},</if>
             <if test="errorMessage != null">error_message = #{errorMessage},</if>

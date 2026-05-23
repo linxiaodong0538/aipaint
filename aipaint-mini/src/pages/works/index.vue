@@ -33,6 +33,7 @@
         refresher-complete-text="刷新成功"
         refresher-threshold="120rpx"
         :refresher-title-style="refresherTitleStyle"
+        :empty-view-center="false"
         empty-view-text="暂无作品"
         @scrollTopChange="handleScrollTopChange"
         @query="queryWorks"
@@ -144,16 +145,30 @@
         <template #empty>
           <view
             v-if="userStore.isLogin && !loading"
-            class="flex flex-col items-center px-[12rpx] text-center"
+            class="mt-[148rpx] flex flex-col items-center px-[12rpx] text-center"
           >
-            <view class="mb-[48rpx] flex h-[192rpx] w-[192rpx] items-center justify-center rounded-full bg-[#f3f3f4]">
-              <text class="iconfont icon-images leading-none text-black/10" style="font-size: 48rpx;"/>
+            <view class="relative flex h-[200rpx] w-[200rpx] items-center justify-center">
+              <view
+                class="absolute h-[176rpx] w-[176rpx] rounded-full bg-[#efefef]/80"
+              />
+              <view
+                class="relative flex h-[152rpx] w-[152rpx] items-center justify-center rounded-[36rpx] border border-[#ebebeb] bg-white shadow-[0_20rpx_48rpx_rgba(0,0,0,0.06)]"
+              >
+                <text
+                  class="iconfont icon-images leading-none text-[#c8c8c8]"
+                  style="font-size: 56rpx"
+                />
+              </view>
             </view>
-            <text class="block text-[40rpx] font-semibold leading-[64rpx] text-black">
-              暂无作品
+
+            <text class="mt-[48rpx] block text-[24rpx] font-bold leading-[50rpx] text-black/50 font-serif">
+              {{ emptyTitle }}
             </text>
-            <text class="mt-[16rpx] block max-w-[520rpx] text-[28rpx] font-normal leading-[48rpx] text-[#4c4546]/60">
-              您的创意画廊目前还是空的。开始尝试生成您的第一件 AI 艺术作品吧
+            <text
+              v-if="emptyDescription"
+              class="mt-[20rpx] block max-w-[600rpx] text-[26rpx] font-normal leading-[40rpx] text-[#8e8e8e]"
+            >
+              {{ emptyDescription }}
             </text>
           </view>
         </template>
@@ -264,6 +279,16 @@ const visibleWorks = computed<GalleryWork[]>(() => {
 });
 
 const hasVisibleWorks = computed(() => visibleWorks.value.length > 0);
+const emptyTitle = computed(() => {
+  if (activeTab.value === "generating") return "暂无生成中作品";
+  if (activeTab.value === "completed") return "暂无已完成作品";
+  return "暂无作品";
+});
+const emptyDescription = computed(() => {
+  if (activeTab.value === "generating") return "";
+  if (activeTab.value === "completed") return "完成后的作品会展示在这里";
+  return "开始尝试生成您的第一件 AI 艺术作品吧";
+});
 
 function getPaging() {
   return instance?.proxy?.$refs?.paging as PagingRef | undefined;

@@ -1,5 +1,8 @@
 package com.ruoyi.web.service.image;
 
+import java.util.List;
+import com.ruoyi.system.domain.AiImageProviderHealthStats;
+
 /**
  * AI 生图后台配置
  */
@@ -7,13 +10,23 @@ public class AiImageAdminConfig
 {
     private String activeProvider;
 
-    private Boolean forceSizeEnabled;
+    private Boolean fallbackEnabled;
 
-    private String forceSize;
+    private String fallbackStrategy;
+
+    private Integer circuitBreakerFailureThreshold;
+
+    private Integer circuitBreakerCooldownMinutes;
+
+    private String outputFormat;
+
+    private Integer outputCompression;
 
     private AiImageProviderConfig primaryProvider;
 
     private AiImageProviderConfig backupProvider;
+
+    private List<AiImageProviderHealthStats> healthStats;
 
     public String getActiveProvider()
     {
@@ -25,24 +38,64 @@ public class AiImageAdminConfig
         this.activeProvider = activeProvider;
     }
 
-    public Boolean getForceSizeEnabled()
+    public Boolean getFallbackEnabled()
     {
-        return forceSizeEnabled;
+        return fallbackEnabled;
     }
 
-    public void setForceSizeEnabled(Boolean forceSizeEnabled)
+    public void setFallbackEnabled(Boolean fallbackEnabled)
     {
-        this.forceSizeEnabled = forceSizeEnabled;
+        this.fallbackEnabled = fallbackEnabled;
     }
 
-    public String getForceSize()
+    public String getFallbackStrategy()
     {
-        return forceSize;
+        return fallbackStrategy;
     }
 
-    public void setForceSize(String forceSize)
+    public void setFallbackStrategy(String fallbackStrategy)
     {
-        this.forceSize = forceSize;
+        this.fallbackStrategy = fallbackStrategy;
+    }
+
+    public Integer getCircuitBreakerFailureThreshold()
+    {
+        return circuitBreakerFailureThreshold;
+    }
+
+    public void setCircuitBreakerFailureThreshold(Integer circuitBreakerFailureThreshold)
+    {
+        this.circuitBreakerFailureThreshold = circuitBreakerFailureThreshold;
+    }
+
+    public Integer getCircuitBreakerCooldownMinutes()
+    {
+        return circuitBreakerCooldownMinutes;
+    }
+
+    public void setCircuitBreakerCooldownMinutes(Integer circuitBreakerCooldownMinutes)
+    {
+        this.circuitBreakerCooldownMinutes = circuitBreakerCooldownMinutes;
+    }
+
+    public String getOutputFormat()
+    {
+        return outputFormat;
+    }
+
+    public void setOutputFormat(String outputFormat)
+    {
+        this.outputFormat = outputFormat;
+    }
+
+    public Integer getOutputCompression()
+    {
+        return outputCompression;
+    }
+
+    public void setOutputCompression(Integer outputCompression)
+    {
+        this.outputCompression = outputCompression;
     }
 
     public AiImageProviderConfig getPrimaryProvider()
@@ -63,5 +116,15 @@ public class AiImageAdminConfig
     public void setBackupProvider(AiImageProviderConfig backupProvider)
     {
         this.backupProvider = backupProvider;
+    }
+
+    public List<AiImageProviderHealthStats> getHealthStats()
+    {
+        return healthStats;
+    }
+
+    public void setHealthStats(List<AiImageProviderHealthStats> healthStats)
+    {
+        this.healthStats = healthStats;
     }
 }

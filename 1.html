@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>AI 图像生成 - Monochrome Noir</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e2e2e2",
+                    "inverse-primary": "#c6c6c6",
+                    "primary-fixed": "#e2e2e2",
+                    "on-primary-container": "#848484",
+                    "primary-container": "#1b1b1b",
+                    "tertiary-fixed": "#e2e2e2",
+                    "secondary-container": "#e2dfde",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#dadada",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "inverse-on-surface": "#f0f1f1",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "surface-container-high": "#e8e8e8",
+                    "on-error-container": "#93000a",
+                    "background": "#f9f9f9",
+                    "surface-container": "#eeeeee",
+                    "on-background": "#1a1c1c",
+                    "surface-variant": "#e2e2e2",
+                    "outline-variant": "#cfc4c5",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#000000",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-surface": "#1a1c1c",
+                    "on-secondary-fixed-variant": "#474746",
+                    "on-primary-fixed-variant": "#474747",
+                    "on-surface-variant": "#4c4546",
+                    "surface": "#f9f9f9",
+                    "primary": "#000000",
+                    "surface-bright": "#f9f9f9",
+                    "on-tertiary-container": "#838484",
+                    "on-primary-fixed": "#1b1b1b",
+                    "inverse-surface": "#2f3131",
+                    "outline": "#7e7576",
+                    "surface-tint": "#5e5e5e",
+                    "surface-container-low": "#f3f3f4",
+                    "primary-fixed-dim": "#c6c6c6",
+                    "on-secondary-container": "#636262",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-container": "#1a1c1c",
+                    "secondary": "#5f5e5e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-xl": "64px",
+                    "unit": "8px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "container-padding": "32px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "label-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "display": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+        .segmented-control {
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: 999px;
+            display: flex;
+        }
+        .segmented-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 999px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .segmented-item.active {
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-weight: 600;
+        }
+        ::-webkit-scrollbar { display: none; }
+        .generate-btn:active { transform: scale(0.96); }
+        .progress-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm flex items-center justify-between px-container-padding h-16">
+<button class="material-symbols-outlined text-primary dark:text-on-surface hover:opacity-70 transition-opacity active:scale-95 transition-transform">menu</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile tracking-tighter text-primary dark:text-on-surface">AI 图像生成</h1>
+<button class="material-symbols-outlined text-primary dark:text-on-surface hover:opacity-70 transition-opacity active:scale-95 transition-transform">history</button>
+</header>
+<main class="pt-24 pb-32 px-gutter space-y-stack-lg max-w-md mx-auto">
+<!-- Prompt Input Section -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">画面描述</label>
+<div class="glass-card rounded-[24px] p-4">
+<textarea class="w-full h-32 bg-transparent border-none focus:ring-0 resize-none font-body-md text-body-md placeholder:text-on-surface-variant/40" placeholder="输入画面描述，细节越丰富效果越好"></textarea>
+<div class="flex justify-between items-center mt-2 px-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant/50">推荐包含风格、光影、构图等关键词</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant/50">0/500</span>
+</div>
+</div>
+</section>
+<!-- Reference Image Upload -->
+<section class="space-y-stack-sm">
+<div class="flex items-center justify-between px-2">
+<label class="font-label-sm text-label-sm text-secondary">参考图 (最多 16 张)</label>
+<span class="hidden font-label-sm text-label-sm text-primary font-semibold flex items-center gap-1" id="ref-mode-badge">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                    已开启参考图创作模式
+                </span>
+</div>
+<div class="glass-card rounded-[24px] p-4 overflow-hidden">
+<div class="flex gap-3 overflow-x-auto pb-2 scroll-smooth">
+<button class="flex-shrink-0 w-20 h-20 rounded-xl border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center gap-1 text-secondary hover:bg-surface-container-low transition-colors" onclick="toggleRefMode()">
+<span class="material-symbols-outlined text-[24px]">add</span>
+<span class="text-[10px] font-medium leading-none">添加图片</span>
+</button>
+<!-- Mock uploaded images -->
+<div class="flex-shrink-0 relative group">
+<img alt="Reference" class="w-20 h-20 object-cover rounded-xl border border-outline-variant/10 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClDk4XCFtW12UXv2AMD98StdRzag2Z8g4xKzzxRj9EpI6J2A0Cpcjkz3ionG7Mlbgk2zjRBqIhuM7OdTMU2rkUZhZK4lmyg_eyEyETu7du0JyNEdmOSkclFKSvY9u-9NPdaMk7mrHVTsskRrQkIADPiNlQTJnAKx5i0lNSjxmmwNaSSEB-KpLfxkNaP-S2Mk2Q-NLua-w8lrG1FdRU38UpbZuY492URwpKmWkqZLFb_Etxguocpby9hmvd5Khuo8b6ccyGG44pmzkF"/>
+<button class="absolute -top-1 -right-1 bg-primary text-white rounded-full w-5 h-5 flex items-center justify-center text-[12px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Model Selection Section -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">模型选择</label>
+<div class="grid grid-cols-2 gap-3 px-1">
+<button class="relative flex items-center gap-2 p-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-left transition-all active:scale-95" onclick="selectModel(this)">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</div>
+<div>
+<div class="text-[13px] font-semibold">Vision Pro</div>
+<div class="text-[10px] text-on-surface-variant/60">写实摄影风格</div>
+</div>
+</button>
+<button class="relative flex items-center gap-2 p-3 rounded-xl border-2 border-primary bg-primary-container text-left transition-all active:scale-95" onclick="selectModel(this)">
+<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<div class="text-on-primary">
+<div class="text-[13px] font-semibold flex items-center gap-1">
+                GPT-image-2
+                <span class="material-symbols-outlined text-[14px]">check_circle</span>
+</div>
+<div class="text-[10px] opacity-70">全能艺术创作</div>
+</div>
+</button>
+</div>
+</section>
+<!-- Resolution Selection -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">分辨率</label>
+<div class="segmented-control" id="res-selector"><button class="segmented-item flex flex-col items-center py-2 active" data-res="1K" onclick="setResolution('1K')"><span class="font-label-lg text-label-lg">1K</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="2K" onclick="setResolution('2K')"><span class="font-label-lg text-label-lg">2K</span></button><button class="segmented-item flex flex-col items-center py-2" data-res="4K" onclick="setResolution('4K')"><span class="font-label-lg text-label-lg">4K</span></button></div>
+</section>
+<!-- Aspect Ratio Selection -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">画面比例</label>
+<div class="flex flex-wrap gap-2 px-1" id="ratio-container"><button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm active:bg-primary active:text-on-primary transition-colors" style="display: block;">
+<svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="18" rx="2" width="18" x="3" y="3"></rect></svg>
+<span class="text-[11px] font-semibold">1:1</span>
+<span class="text-[9px] opacity-60 font-normal">头像 / 配图</span>
+</button>
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
+<svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="14" rx="2" width="18" x="3" y="5"></rect></svg>
+<span class="text-[11px] font-semibold">4:3</span>
+<span class="text-[9px] opacity-60 font-normal">传统照片</span>
+</button>
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
+<svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="18" rx="2" width="14" x="5" y="3"></rect></svg>
+<span class="text-[11px] font-semibold">3:4</span>
+<span class="text-[9px] opacity-60 font-normal">杂志封面</span>
+</button>
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
+<svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="10" rx="2" width="20" x="2" y="7"></rect></svg>
+<span class="text-[11px] font-semibold">16:9</span>
+<span class="text-[9px] opacity-60 font-normal">电脑 / 横版</span>
+</button>
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl bg-primary text-on-primary text-label-sm font-label-sm ring-4 ring-primary/10" style="display: block;">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="20" rx="2" width="10" x="7" y="2"></rect></svg>
+<span class="text-[11px] font-semibold">9:16</span>
+<span class="text-[9px] font-normal">手机壁纸</span>
+</button>
+<button class="ratio-btn flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-outline-variant/30 text-label-sm font-label-sm" style="display: block;">
+<svg class="opacity-80" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="8" rx="1" width="20" x="2" y="8"></rect></svg>
+<span class="text-[11px] font-semibold">2:1</span>
+<span class="text-[9px] opacity-60 font-normal">长横幅</span>
+</button></div>
+</section>
+<!-- Quality Selection -->
+<section class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-secondary px-2">画质选择</label>
+<div class="segmented-control">
+<button class="segmented-item font-label-lg text-label-lg">低</button>
+<button class="segmented-item font-label-lg text-label-lg">中</button>
+<button class="segmented-item active font-label-lg text-label-lg">高</button>
+</div>
+</section>
+<!-- Start Button -->
+<button class="generate-btn w-full h-14 bg-primary text-on-primary rounded-full font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-xl shadow-primary/20 transition-all duration-300" onclick="startGenerating()">
+<span class="material-symbols-outlined">auto_awesome</span>
+            开始生成
+        </button>
+<!-- Loading / Progress State (Hidden by default) -->
+<div class="hidden fixed inset-0 z-[60] bg-white/90 backdrop-blur-md flex flex-col items-center justify-center px-container-padding text-center" id="progress-state">
+<div class="relative w-48 h-48 mb-8">
+<div class="absolute inset-0 border-4 border-surface-container-highest rounded-full"></div>
+<div class="absolute inset-0 border-4 border-primary rounded-full" id="progress-circle" style="clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 100%, 0 100%, 0 0, 50% 0); transform: rotate(0deg);"></div>
+<div class="absolute inset-4 overflow-hidden rounded-full glass-card flex items-center justify-center">
+<span class="font-display text-display tracking-tighter" id="progress-percent">0%</span>
+</div>
+</div>
+<h3 class="font-headline-md text-headline-md mb-2">正在创造你的画面</h3>
+<p class="font-body-md text-body-md text-secondary mb-1">预计耗时 12 秒...</p>
+<div class="w-full max-w-xs h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary progress-shimmer" id="progress-bar-fill" style="width: 0%"></div>
+</div>
+</div>
+<!-- Result View (Hidden by default) -->
+<div class="hidden fixed inset-0 z-[70] bg-surface flex flex-col p-6 overflow-y-auto" id="result-view">
+<div class="flex justify-between items-center mb-6">
+<button class="w-10 h-10 rounded-full glass-card flex items-center justify-center" onclick="closeResult()"><span class="material-symbols-outlined">close</span></button>
+<span class="font-label-lg text-label-lg">生成成功</span>
+<div class="w-10"></div>
+</div>
+<div class="flex-grow flex flex-col justify-center gap-6">
+<div class="rounded-[32px] overflow-hidden shadow-2xl bg-white aspect-[9/16] relative group">
+<img alt="Generated result" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4QKn4jDpY7FBfGQKy5NkUYMV6iQJvKfoCp5d6c9tOMCFUjTM-Ft0FNhnr7d_zqGDNNvXEZJzim64gKCwLBaWgL4tFjEWqu9WsXDQZrerp7YVBWA5uzkT7TvPoabNv8ikH5dWTu1N6WNEbkeH6mJR6lQ-Rn1ywmt1UmGZv00VzdxyiHI0IZYfPhOfbBKYJpCOs10zf920wM5rTqqu8HJRIk_F0_qDcvHyZK0LG82JQ50KJglYMHcKq8sAgeqjMT26PzWkP07C8MeAr"/>
+<div class="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 h-14 rounded-full border border-outline-variant/30 font-label-lg text-label-lg flex items-center justify-center gap-2 active:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">download</span>
+                        保存图片
+                    </button>
+<button class="flex-1 h-14 rounded-full bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all" onclick="closeResult()">
+<span class="material-symbols-outlined">refresh</span>
+                        重新生成
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full rounded-t-xl z-50 bg-surface/90 dark:bg-surface-container-lowest/90 backdrop-blur-2xl border-t border-outline-variant/5 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] flex justify-around items-center h-20 px-gutter pb-safe">
+<button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined">add_box</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary dark:bg-on-surface text-on-primary dark:text-surface-container-lowest rounded-full w-12 h-12 active:scale-90 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined">collections</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary dark:text-on-surface-variant w-12 h-12 hover:text-primary active:scale-90 transition-all duration-300 ease-out">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+<script>
+        function toggleRefMode() {
+            const badge = document.getElementById('ref-mode-badge');
+            badge.classList.toggle('hidden');
+        }
+
+        function selectModel(target) {
+            // Simplified model selection logic for UI demonstration
+            const container = target.parentElement;
+            container.querySelectorAll('button').forEach(btn => {
+                btn.className = "relative flex items-center gap-2 p-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-left transition-all active:scale-95";
+                const iconContainer = btn.querySelector('div');
+                iconContainer.className = "w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary";
+                const textContainer = btn.querySelector('div:last-child');
+                textContainer.className = "";
+                const check = textContainer.querySelector('.material-symbols-outlined');
+                if(check && check.innerText === 'check_circle') check.remove();
+            });
+            
+            target.className = "relative flex items-center gap-2 p-3 rounded-xl border-2 border-primary bg-primary-container text-left transition-all active:scale-95";
+            const iconCont = target.querySelector('div');
+            iconCont.className = "w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-on-primary";
+            const textCont = target.querySelector('div:last-child');
+            textCont.className = "text-on-primary";
+            const title = textCont.querySelector('.text-[13px]');
+            if(!title.querySelector('span')) {
+                title.innerHTML += ' <span class="material-symbols-outlined text-[14px]">check_circle</span>';
+            }
+        }
+
+        function setResolution(res) {
+            const btns = document.querySelectorAll('#res-selector button');
+            btns.forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[data-res="${res}"]`).classList.add('active');
+
+            const container = document.getElementById('ratio-container');
+            const ratioBtns = container.querySelectorAll('.ratio-btn');
+            
+            if (res === '4K') {
+                ratioBtns.forEach(btn => {
+                    const text = btn.innerText;
+                    if (['1:1', '4:3', '3:4'].includes(text.trim())) {
+                        btn.style.display = 'none';
+                    }
+                });
+                const currentActive = container.querySelector('.bg-primary');
+                if (currentActive && ['1:1', '4:3', '3:4'].includes(currentActive.innerText.trim())) {
+                    setActiveRatio(ratioBtns[3]); // 16:9
+                }
+            } else {
+                ratioBtns.forEach(btn => btn.style.display = 'block');
+            }
+        }
+
+        function setActiveRatio(target) {
+            const btns = document.querySelectorAll('.ratio-btn');
+            btns.forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'ring-4', 'ring-primary/10');
+                b.classList.add('border', 'border-outline-variant/30');
+            });
+            target.classList.remove('border', 'border-outline-variant/30');
+            target.classList.add('bg-primary', 'text-on-primary', 'ring-4', 'ring-primary/10');
+        }
+
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', () => setActiveRatio(btn));
+        });
+
+        function startGenerating() {
+            const overlay = document.getElementById('progress-state');
+            const fill = document.getElementById('progress-bar-fill');
+            const percent = document.getElementById('progress-percent');
+            overlay.classList.remove('hidden');
+            
+            let p = 0;
+            const interval = setInterval(() => {
+                p += Math.floor(Math.random() * 5) + 2;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        document.getElementById('result-view').classList.remove('hidden');
+                    }, 500);
+                }
+                percent.innerText = `${p}%`;
+                fill.style.width = `${p}%`;
+                document.getElementById('progress-circle').style.transform = `rotate(${p * 3.6}deg)`;
+            }, 100);
+        }
+
+        function closeResult() {
+            document.getElementById('result-view').classList.add('hidden');
+            document.getElementById('progress-bar-fill').style.width = '0%';
+            document.getElementById('progress-percent').innerText = '0%';
+        }
+    </script>
+</body></html>

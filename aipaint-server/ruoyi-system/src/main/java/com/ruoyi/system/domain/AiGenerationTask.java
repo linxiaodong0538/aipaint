@@ -44,9 +44,25 @@ public class AiGenerationTask extends BaseEntity
     @Excel(name = "图片尺寸")
     private String size;
 
+    /** 分辨率档位 */
+    @Excel(name = "分辨率档位")
+    private String resolution;
+
+    /** 参考图URL */
+    @Excel(name = "参考图URL")
+    private String imageUrls;
+
+    /** 生成张数 */
+    @Excel(name = "生成张数")
+    private Integer imageCount;
+
     /** 任务状态 */
     @Excel(name = "任务状态")
     private String status;
+
+    /** 任务进度 */
+    @Excel(name = "任务进度")
+    private Integer progress;
 
     /** 结果图片地址 */
     @Excel(name = "结果图片地址")
@@ -148,6 +164,36 @@ public class AiGenerationTask extends BaseEntity
         this.size = size;
     }
 
+    public String getResolution()
+    {
+        return resolution;
+    }
+
+    public void setResolution(String resolution)
+    {
+        this.resolution = resolution;
+    }
+
+    public String getImageUrls()
+    {
+        return imageUrls;
+    }
+
+    public void setImageUrls(String imageUrls)
+    {
+        this.imageUrls = imageUrls;
+    }
+
+    public Integer getImageCount()
+    {
+        return imageCount;
+    }
+
+    public void setImageCount(Integer imageCount)
+    {
+        this.imageCount = imageCount;
+    }
+
     public String getStatus()
     {
         return status;
@@ -156,6 +202,16 @@ public class AiGenerationTask extends BaseEntity
     public void setStatus(String status)
     {
         this.status = status;
+    }
+
+    public Integer getProgress()
+    {
+        return progress;
+    }
+
+    public void setProgress(Integer progress)
+    {
+        this.progress = progress;
     }
 
     public String getResultImageUrl()

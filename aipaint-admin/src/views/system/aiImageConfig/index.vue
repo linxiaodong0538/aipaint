@@ -5,6 +5,36 @@
     <el-form v-else ref="configRef" :model="form" :rules="rules" label-width="120px">
       <el-card class="mb16" shadow="never">
         <template #header>
+          <div class="card-header">通道健康状态</div>
+        </template>
+
+        <el-table :data="healthRows" border>
+          <el-table-column label="通道" prop="providerName" width="120" />
+          <el-table-column label="最近50次成功率" width="140">
+            <template #default="{ row }">
+              <el-tag :type="row.successRate >= 90 ? 'success' : row.successRate >= 60 ? 'warning' : 'danger'">
+                {{ formatPercent(row.successRate) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="平均耗时" width="120">
+            <template #default="{ row }">{{ formatDuration(row.avgDurationMs) }}</template>
+          </el-table-column>
+          <el-table-column label="连续失败" prop="consecutiveFailures" width="100" />
+          <el-table-column label="最后状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.lastStatus === 'success' ? 'success' : row.lastStatus === 'failed' ? 'danger' : 'info'">
+                {{ formatStatus(row.lastStatus) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="最后调用时间" prop="lastCallTime" width="180" />
+          <el-table-column label="最后错误" prop="lastErrorMessage" min-width="260" show-overflow-tooltip />
+        </el-table>
+      </el-card>
+
+      <el-card class="mb16" shadow="never">
+        <template #header>
           <div class="card-header">基础设置</div>
         </template>
 
@@ -15,15 +45,39 @@
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="固定尺寸开关" prop="forceSizeEnabled">
-          <el-switch v-model="form.forceSizeEnabled" />
+        <el-form-item label="切换策略" prop="fallbackStrategy">
+          <el-radio-group v-model="form.fallbackStrategy">
+            <el-radio value="manual">仅手动切换</el-radio>
+            <el-radio value="fallback">失败自动切备用</el-radio>
+            <el-radio value="circuit-breaker">连续失败熔断主通道</el-radio>
+          </el-radio-group>
+          <span class="form-tip">仅主通道作为当前生效通道时触发备用策略</span>
         </el-form-item>
 
-        <el-form-item label="固定尺寸" prop="forceSize">
-          <el-select v-model="form.forceSize" :disabled="!form.forceSizeEnabled" style="width: 220px">
-            <el-option v-for="item in sizeOptions" :key="item" :label="item" :value="item" />
-          </el-select>
-          <span class="form-tip">关闭后将按前台比例自动映射尺寸</span>
+        <el-form-item v-if="form.fallbackStrategy === 'circuit-breaker'" label="熔断条件">
+          <el-input-number v-model="form.circuitBreakerFailureThreshold" :min="1" :max="20" controls-position="right" />
+          <span class="form-tip">次连续失败后，在</span>
+          <el-input-number v-model="form.circuitBreakerCooldownMinutes" :min="1" :max="1440" controls-position="right" />
+          <span class="form-tip">分钟内直接走备用通道</span>
+        </el-form-item>
+
+        <el-form-item label="输出格式" prop="outputFormat">
+          <el-radio-group v-model="form.outputFormat">
+            <el-radio value="jpeg">JPEG</el-radio>
+            <el-radio value="png">PNG</el-radio>
+          </el-radio-group>
+          <span class="form-tip">默认使用 JPEG，文件更小</span>
+        </el-form-item>
+
+        <el-form-item label="JPEG 压缩强度" prop="outputCompression">
+          <el-input-number
+            v-model="form.outputCompression"
+            :min="0"
+            :max="100"
+            :disabled="form.outputFormat !== 'jpeg'"
+            controls-position="right"
+          />
+          <span class="form-tip">仅对 JPEG 生效，范围 0-100</span>
         </el-form-item>
       </el-card>
 
@@ -69,10 +123,13 @@ import { getAiImageConfig, updateAiImageConfig } from "@/api/system/aiImageConfi
 
 const { proxy } = getCurrentInstance()
 
-const sizeOptions = ["1024x1024", "1536x1024", "1024x1536"]
 const providerTypes = [
   { label: "OpenAI Compatible", value: "openai-compatible" }
 ]
+const providerNames = {
+  primary: "主通道",
+  backup: "备用通道"
+}
 
 const loading = ref(true)
 const submitting = ref(false)
@@ -92,10 +149,15 @@ function createProvider(providerCode, providerName) {
 function createForm() {
   return {
     activeProvider: "backup",
-    forceSizeEnabled: false,
-    forceSize: "1024x1024",
+    fallbackEnabled: true,
+    fallbackStrategy: "fallback",
+    circuitBreakerFailureThreshold: 3,
+    circuitBreakerCooldownMinutes: 10,
+    outputFormat: "jpeg",
+    outputCompression: 90,
     primaryProvider: createProvider("primary", "主通道"),
-    backupProvider: createProvider("backup", "备用通道")
+    backupProvider: createProvider("backup", "备用通道"),
+    healthStats: []
   }
 }
 
@@ -103,7 +165,9 @@ const form = reactive(createForm())
 
 const rules = computed(() => ({
   activeProvider: [{ required: true, message: "请选择当前生效通道", trigger: "change" }],
-  forceSize: [{ validator: validateForceSize, trigger: "change" }],
+  fallbackStrategy: [{ required: true, message: "请选择切换策略", trigger: "change" }],
+  outputFormat: [{ required: true, message: "请选择输出格式", trigger: "change" }],
+  outputCompression: [{ validator: validateOutputCompression, trigger: "change" }],
   "primaryProvider.providerName": [{ required: true, message: "请输入主通道名称", trigger: "blur" }],
   "primaryProvider.providerType": [{ required: true, message: "请选择主通道类型", trigger: "change" }],
   "primaryProvider.baseUrl": [{ validator: createProviderRequiredValidator("primaryProvider", "Base URL"), trigger: "blur" }],
@@ -116,17 +180,23 @@ const rules = computed(() => ({
   "backupProvider.model": [{ validator: createProviderRequiredValidator("backupProvider", "模型"), trigger: "blur" }]
 }))
 
-function validateForceSize(rule, value, callback) {
-  if (!form.forceSizeEnabled) {
-    callback()
-    return
-  }
-  if (sizeOptions.includes(value)) {
-    callback()
-    return
-  }
-  callback(new Error("固定尺寸配置无效"))
-}
+const healthRows = computed(() => {
+  const stats = Array.isArray(form.healthStats) ? form.healthStats : []
+  return ["primary", "backup"].map((providerCode) => {
+    const stat = stats.find((item) => item.providerCode === providerCode) || {}
+    return {
+      providerCode,
+      providerName: providerNames[providerCode],
+      totalCount: Number(stat.totalCount || 0),
+      successRate: Number(stat.successRate || 0),
+      avgDurationMs: Number(stat.avgDurationMs || 0),
+      consecutiveFailures: Number(stat.consecutiveFailures || 0),
+      lastStatus: stat.lastStatus || "",
+      lastCallTime: stat.lastCallTime || "-",
+      lastErrorMessage: stat.lastErrorMessage || "-"
+    }
+  })
+})
 
 function createProviderRequiredValidator(providerKey, label) {
   return (rule, value, callback) => {
@@ -143,13 +213,46 @@ function createProviderRequiredValidator(providerKey, label) {
   }
 }
 
+function validateOutputCompression(rule, value, callback) {
+  if (form.outputFormat !== "jpeg") {
+    callback()
+    return
+  }
+  const compression = Number(value)
+  if (Number.isInteger(compression) && compression >= 0 && compression <= 100) {
+    callback()
+    return
+  }
+  callback(new Error("JPEG 压缩强度需为 0-100 的整数"))
+}
+
 function assignForm(data) {
   const defaults = createForm()
   form.activeProvider = data?.activeProvider || defaults.activeProvider
-  form.forceSizeEnabled = Boolean(data?.forceSizeEnabled)
-  form.forceSize = data?.forceSize || defaults.forceSize
+  form.fallbackEnabled = data?.fallbackEnabled === undefined ? defaults.fallbackEnabled : Boolean(data?.fallbackEnabled)
+  form.fallbackStrategy = data?.fallbackStrategy || (form.fallbackEnabled ? defaults.fallbackStrategy : "manual")
+  form.circuitBreakerFailureThreshold = Number(data?.circuitBreakerFailureThreshold || defaults.circuitBreakerFailureThreshold)
+  form.circuitBreakerCooldownMinutes = Number(data?.circuitBreakerCooldownMinutes || defaults.circuitBreakerCooldownMinutes)
+  form.outputFormat = data?.outputFormat || defaults.outputFormat
+  form.outputCompression = Number(data?.outputCompression ?? defaults.outputCompression)
   form.primaryProvider = { ...defaults.primaryProvider, ...(data?.primaryProvider || {}), providerCode: "primary" }
   form.backupProvider = { ...defaults.backupProvider, ...(data?.backupProvider || {}), providerCode: "backup" }
+  form.healthStats = Array.isArray(data?.healthStats) ? data.healthStats : []
+}
+
+function formatPercent(value) {
+  return `${Number(value || 0).toFixed(2)}%`
+}
+
+function formatDuration(value) {
+  const duration = Number(value || 0)
+  return duration > 0 ? `${duration}ms` : "-"
+}
+
+function formatStatus(value) {
+  if (value === "success") return "成功"
+  if (value === "failed") return "失败"
+  return "暂无"
 }
 
 function loadConfig() {

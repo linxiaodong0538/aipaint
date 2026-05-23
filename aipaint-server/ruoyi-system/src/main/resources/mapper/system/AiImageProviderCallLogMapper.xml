@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiImageProviderCallLogMapper">
+
+    <insert id="insertCallLog" parameterType="com.ruoyi.system.domain.AiImageProviderCallLog" useGeneratedKeys="true" keyProperty="logId">
+        insert into ai_image_provider_call_log(
+            task_id, provider_code, provider_name, model, quality, size, status, fallback_used, duration_ms, error_message, create_time
+        ) values (
+            #{taskId}, #{providerCode}, #{providerName}, #{model}, #{quality}, #{size}, #{status}, #{fallbackUsed}, #{durationMs}, #{errorMessage}, sysdate()
+        )
+    </insert>
+
+    <select id="selectProviderHealthStats" resultType="com.ruoyi.system.domain.AiImageProviderHealthStats">
+        select
+            #{providerCode} as providerCode,
+            count(1) as totalCount,
+            coalesce(sum(case when recent.status = 'success' then 1 else 0 end), 0) as successCount,
+            coalesce(sum(case when recent.status = 'failed' then 1 else 0 end), 0) as failedCount,
+            case when count(1) = 0 then 0 else round(coalesce(sum(case when recent.status = 'success' then 1 else 0 end), 0) * 100 / count(1), 2) end as successRate,
+            coalesce(round(avg(recent.duration_ms)), 0) as avgDurationMs,
+            (
+                select last_log.status
+                from ai_image_provider_call_log last_log
+                where last_log.provider_code = #{providerCode}
+                order by last_log.log_id desc
+                limit 1
+            ) as lastStatus,
+            (
+                select last_log.error_message
+                from ai_image_provider_call_log last_log
+                where last_log.provider_code = #{providerCode}
+                order by last_log.log_id desc
+                limit 1
+            ) as lastErrorMessage,
+            (
+                select last_log.create_time
+                from ai_image_provider_call_log last_log
+                where last_log.provider_code = #{providerCode}
+                order by last_log.log_id desc
+                limit 1
+            ) as lastCallTime,
+            (
+                select count(1)
+                from ai_image_provider_call_log fail_log
+                where fail_log.provider_code = #{providerCode}
+                  and fail_log.status = 'failed'
+                  and fail_log.log_id > coalesce((
+                      select max(success_log.log_id)
+                      from ai_image_provider_call_log success_log
+                      where success_log.provider_code = #{providerCode}
+                        and success_log.status = 'success'
+                  ), 0)
+            ) as consecutiveFailures
+        from (
+            select status, duration_ms
+            from ai_image_provider_call_log
+            where provider_code = #{providerCode}
+            order by log_id desc
+            limit #{limit}
+        ) recent
+    </select>
+
+    <select id="countRecentConsecutiveFailures" resultType="Long">
+        select count(1)
+        from ai_image_provider_call_log fail_log
+        where fail_log.provider_code = #{providerCode}
+          and fail_log.status = 'failed'
+          and fail_log.create_time >= date_sub(sysdate(), interval #{minutes} minute)
+          and fail_log.log_id > coalesce((
+              select max(success_log.log_id)
+              from ai_image_provider_call_log success_log
+              where success_log.provider_code = #{providerCode}
+                and success_log.status = 'success'
+          ), 0)
+    </select>
+</mapper>
