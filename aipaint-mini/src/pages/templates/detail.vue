@@ -46,8 +46,10 @@
           <view class="flex items-center justify-between gap-[24rpx] pb-[20rpx] border-b border-dashed border-[#8d8b8863]">
     
             <view class="flex items-center gap-[8rpx]">
-              <text class="text-[34rpx] leading-none text-[#7e7576]">✦</text>
-              <text class="text-[26rpx] font-semibold uppercase  tracking-[4rpx] text-[#7e7576]">
+      
+              <text class="text-[28rpx] text-[#7e7576]">✦</text>
+              <text class="text-[24rpx] font-semibold tracking-[2rpx] text-[#7e7576]">
+        
                 提示词
               </text>
             </view>
