@@ -308,6 +308,16 @@ const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
 const generating = ref(false);
 const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
+const retryParamsStorageKey = "generate:retryParams";
+
+interface RetryParams {
+  prompt?: string;
+  model?: string;
+  ratio?: string;
+  resolution?: string;
+  quality?: string;
+  count?: string | number;
+}
 
 const creditCost = computed(() => {
   const qualityFactor: Record<(typeof qualities)[number], number> = {
@@ -347,10 +357,40 @@ function useRandomPrompt() {
 }
 
 onLoad((query) => {
+  if (query?.fromRetry) {
+    applyRetryParams();
+    return;
+  }
+
   if (query?.fromTemplate || query?.templateId) {
     void applyTemplateFromQuery(query);
   }
 });
+
+function applyRetryParams() {
+  const params = getRetryParams();
+  if (!params) return;
+
+  if (typeof params.prompt === "string") {
+    prompt.value = params.prompt;
+  }
+  model.value = normalizeRetryModel(params.model);
+  ratio.value = normalizeRetryRatio(params.ratio);
+  quality.value = normalizeRetryResolution(params.resolution, params.quality);
+  imageQuality.value = normalizeRetryImageQuality(params.quality, quality.value);
+  count.value = normalizeRetryCount(params.count);
+  ensureRatioForResolution(quality.value);
+}
+
+function getRetryParams() {
+  try {
+    const value = uni.getStorageSync(retryParamsStorageKey) as RetryParams | "";
+    uni.removeStorageSync(retryParamsStorageKey);
+    return value && typeof value === "object" ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 async function applyTemplateFromQuery(query: Record<string, string | undefined>) {
   const templateId = query.templateId ? String(query.templateId) : "";
@@ -419,6 +459,40 @@ function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualiti
   if (source.includes("4k") || source.includes("8k")) return "4K";
   if (source.includes("2k")) return "2K";
   return "2K";
+}
+
+function normalizeRetryModel(value?: string): ModelValue {
+  return value === "gpt-image-2" || value === "xx" ? value : "gpt-image-2";
+}
+
+function normalizeRetryRatio(value?: string): (typeof ratios)[number]["value"] {
+  const matched = ratios.find((item) => item.value === value);
+  return matched?.value || "1:1";
+}
+
+function normalizeRetryResolution(
+  value?: string,
+  imageQualityValue?: string,
+): (typeof qualities)[number] {
+  const matched = qualities.find((item) => item === value);
+  if (matched) return matched;
+  if (imageQualityValue === "low") return "1K";
+  if (imageQualityValue === "high") return "4K";
+  return "2K";
+}
+
+function normalizeRetryImageQuality(
+  value: string | undefined,
+  resolutionValue: (typeof qualities)[number],
+): (typeof imageQualities)[number]["value"] {
+  const matched = imageQualities.find((item) => item.value === value);
+  return matched?.value || mapQuality(resolutionValue);
+}
+
+function normalizeRetryCount(value?: string | number): (typeof counts)[number] {
+  const numericValue = Number(value);
+  const matched = counts.find((item) => item === numericValue);
+  return matched || 1;
 }
 
 function chooseImage() {

@@ -115,7 +115,7 @@
         </view>
 
         <view
-          class="technical-grid border-t border-[#ddd] border-dashed bg-white px-[24rpx] pb-[260rpx] pt-[44rpx]"
+          class="technical-grid border-t border-[#ddd] border-dashed bg-white px-[24rpx] pb-[280rpx] pt-[44rpx]"
      
         >
           <view class="mb-[16rpx] flex justify-between items-center">
@@ -211,7 +211,7 @@
 import { computed, ref } from "vue";
 import { onLoad, onReady, onUnload } from "@dcloudio/uni-app";
 import { getGenerationTask, type GenerationTask } from "@/api/generate";
-import { navigateBack } from "@/utils/router";
+import { navigateTo, routes } from "@/utils/router";
 
 type TaskState = "processing" | "success" | "failed";
 
@@ -223,6 +223,9 @@ const previewImage = ref("");
 const errorMessage = ref("");
 const taskPrompt = ref("");
 const taskModel = ref("");
+const taskRatio = ref("");
+const taskResolution = ref("");
+const taskQuality = ref("");
 const taskSize = ref("");
 const taskImageCount = ref<number | null>(null);
 const taskCreditCost = ref<number | null>(null);
@@ -235,6 +238,7 @@ const historyInitializing = ref(false);
 const bottomBarVisible = ref(false);
 const longWaitHintVisible = ref(false);
 const resultDetailStorageKey = "generateResultDetailTask";
+const retryParamsStorageKey = "generate:retryParams";
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let polling = false;
@@ -453,6 +457,9 @@ function completeTask(imageUrls: string[], options: { instant?: boolean; toast?:
 function applyTaskDetails(task: GenerationTask) {
   taskPrompt.value = task.prompt || "";
   taskModel.value = task.model || "";
+  taskRatio.value = task.ratio || "";
+  taskResolution.value = task.resolution || "";
+  taskQuality.value = task.quality || "";
   taskSize.value = task.size || "";
   taskImageCount.value = typeof task.imageCount === "number" ? task.imageCount : null;
   taskCreditCost.value = typeof task.creditCost === "number" ? task.creditCost : null;
@@ -575,7 +582,15 @@ function saveImage() {
 }
 
 function goBack() {
-  navigateBack();
+  uni.setStorageSync(retryParamsStorageKey, {
+    prompt: taskPrompt.value,
+    model: taskModel.value,
+    ratio: taskRatio.value,
+    resolution: taskResolution.value,
+    quality: taskQuality.value,
+    count: taskImageCount.value,
+  });
+  navigateTo(routes.generate, { fromRetry: 1 });
 }
 
 function goto() {
