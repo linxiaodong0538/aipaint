@@ -1,7 +1,7 @@
 <template>
   <view class="min-h-screen bg-[#f8f8f8] text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="mx-auto min-h-screen max-w-[750rpx] px-[48rpx] pb-[200rpx] pt-[24rpx]">
+      <view class="mx-auto min-h-screen max-w-[750rpx] px-[32rpx] pb-[200rpx] pt-[24rpx]">
         <section class="mb-[64rpx]">
           <view class="relative overflow-hidden rounded-[48rpx] bg-black px-[64rpx] py-[64rpx] text-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
             <view class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_40%)] opacity-70" />
