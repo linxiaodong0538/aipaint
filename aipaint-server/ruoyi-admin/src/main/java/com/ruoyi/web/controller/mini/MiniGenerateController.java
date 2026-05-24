@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.AiGenerationTask;
+import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiGenerationTaskService;
 import com.ruoyi.web.service.image.AiImageProviderConfig;
 import com.ruoyi.web.service.image.AiImageService;
@@ -35,6 +37,9 @@ public class MiniGenerateController extends BaseController
 
     @Autowired
     private AiImageService aiImageService;
+
+    @Autowired
+    private IAiCreditService creditService;
 
     @PostMapping("/image")
     public AjaxResult createImage(@RequestBody GenerateImageRequest request)
@@ -80,9 +85,23 @@ public class MiniGenerateController extends BaseController
         task.setImageCount(imageCount);
         task.setStatus("pending");
         task.setProgress(0);
-        task.setCreditCost(calculateCreditCost(size, imageCount));
+        int creditCost = calculateCreditCost(size, imageCount);
+        task.setCreditCost(creditCost);
         task.setCreateBy(SecurityUtils.getUsername());
         taskService.insertGenerationTask(task);
+
+        try
+        {
+            creditService.consumeForGeneration(userId, task.getTaskId(), creditCost);
+        }
+        catch (ServiceException e)
+        {
+            task.setStatus("failed");
+            task.setProgress(100);
+            task.setErrorMessage(e.getMessage());
+            taskService.updateGenerationTask(task);
+            throw e;
+        }
 
         imageTaskRunner.submit(task.getTaskId());
 
@@ -250,7 +269,7 @@ public class MiniGenerateController extends BaseController
             long width = Long.parseLong(parts[0].trim());
             long height = Long.parseLong(parts[1].trim());
             long pixels = width * height;
-            int cost = (int) Math.ceil((pixels / 8294400.0D) * 30.0D);
+            int cost = (int) Math.ceil((pixels / 8294400.0D) * 20.0D);
             return Math.max(5, cost);
         }
         catch (NumberFormatException e)

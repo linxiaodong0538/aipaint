@@ -70,6 +70,14 @@ export function changeUserStatus(userId, status) {
   })
 }
 
+// 补发新人礼包
+export function grantNewUserGift(userId) {
+  return request({
+    url: '/system/credits/new-user-gift/' + userId,
+    method: 'post'
+  })
+}
+
 // 查询用户个人信息
 export function getUserProfile() {
   return request({

@@ -11,20 +11,20 @@
               </text>
               <view class="mb-[48rpx] flex items-end gap-[8rpx]">
                 <text class="text-[96rpx] font-bold leading-none tracking-[-2rpx] text-white">
-                  1,240
+                  {{ creditBalanceText }}
                 </text>
                 <text class="pb-[10rpx] text-[48rpx] font-semibold leading-[56rpx] text-white/60">
-                  .50
+                  PTS
                 </text>
               </view>
               <view class="grid grid-cols-2 gap-[16rpx]">
                 <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
                   <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月消耗</text>
-                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">46</text>
+                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">{{ monthlyConsume }}</text>
                 </view>
                 <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
                   <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月返还</text>
-                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">16</text>
+                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">{{ monthlyIncome }}</text>
                 </view>
               </view>
             </view>
@@ -96,6 +96,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import { listCreditRecords, type CreditRecord as ApiCreditRecord } from "@/api/credit";
+import { useUserStore } from "@/store/modules/user";
 
 type FilterValue = "all" | "generate" | "signin" | "reward";
 
@@ -121,79 +124,23 @@ const filters: Array<{ label: string; value: FilterValue }> = [
 ];
 
 const activeFilter = ref<FilterValue>("all");
+const userStore = useUserStore();
+const records = ref<CreditRecord[]>([]);
 
-const records: CreditRecord[] = [
-  {
-    id: "generate-1",
-    type: "generate",
-    month: "2026年5月",
-    title: "生成图片",
-    time: "2026-05-21 14:32:05",
-    amount: "-30",
-    meta: "GPT-Image-2",
-    iconClass: "icon-images",
-    iconBackgroundClass: "bg-[#eeeeee]",
-    iconColorClass: "text-black",
-    metaColorClass: "text-[#5f5e5e]/50",
-  },
-  {
-    id: "signin-1",
-    type: "signin",
-    month: "2026年5月",
-    title: "每日签到",
-    time: "2026-05-21 08:00:12",
-    amount: "+5",
-    meta: "奖励",
-    iconClass: "icon-qiandao",
-    iconBackgroundClass: "bg-[#eeeeee]",
-    iconColorClass: "text-black",
-    metaColorClass: "text-[#5f5e5e]/50",
-  },
-  {
-    id: "generate-2",
-    type: "generate",
-    month: "2026年5月",
-    title: "高级扩图",
-    time: "2026-05-20 22:15:44",
-    amount: "-16",
-    meta: "Ultra-Extend",
-    iconClass: "icon-MaterialSymbolsBrush",
-    iconBackgroundClass: "bg-[#eeeeee]",
-    iconColorClass: "text-black",
-    metaColorClass: "text-[#5f5e5e]/50",
-  },
-  {
-    id: "refund-1",
-    type: "reward",
-    month: "2026年5月",
-    title: "生成失败退款",
-    time: "2026-05-20 19:40:22",
-    amount: "+16",
-    meta: "超时自动退回",
-    iconClass: "icon-shanshan",
-    iconBackgroundClass: "bg-[#ffdad6]/60",
-    iconColorClass: "text-[#ba1a1a]",
-    metaColorClass: "text-[#ba1a1a]",
-  },
-  {
-    id: "invite-1",
-    type: "reward",
-    month: "2026年5月",
-    title: "邀请好友奖励",
-    time: "2026-05-19 11:10:05",
-    amount: "+50",
-    meta: "邀请码: AI_992x",
-    iconClass: "icon-jinbi",
-    iconBackgroundClass: "bg-[#eeeeee]",
-    iconColorClass: "text-black",
-    metaColorClass: "text-[#5f5e5e]/50",
-  },
-];
+const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
+
+const monthlyConsume = computed(() => Math.abs(records.value
+  .filter((record) => record.amount.startsWith("-") && isCurrentMonth(record.time))
+  .reduce((sum, record) => sum + Number(record.amount), 0)));
+
+const monthlyIncome = computed(() => records.value
+  .filter((record) => record.amount.startsWith("+") && isCurrentMonth(record.time))
+  .reduce((sum, record) => sum + Number(record.amount), 0));
 
 const groupedRecords = computed(() => {
   const filtered = activeFilter.value === "all"
-    ? records
-    : records.filter((record) => record.type === activeFilter.value);
+    ? records.value
+    : records.value.filter((record) => record.type === activeFilter.value);
 
   const groups = filtered.reduce<Array<{ month: string; records: CreditRecord[] }>>((result, record) => {
     const existing = result.find((group) => group.month === record.month);
@@ -208,4 +155,60 @@ const groupedRecords = computed(() => {
   return groups;
 });
 
+onShow(() => {
+  userStore.fetchProfile().catch(() => undefined);
+  listCreditRecords().then((items) => {
+    records.value = items.map(mapCreditRecord);
+  }).catch(() => undefined);
+});
+
+function mapCreditRecord(record: ApiCreditRecord): CreditRecord {
+  const amount = record.amount || 0;
+  const positive = amount > 0;
+  const type = resolveFilterType(record.changeType);
+  return {
+    id: String(record.recordId),
+    type,
+    month: formatMonth(record.createTime),
+    title: resolveTitle(record.changeType),
+    time: record.createTime || "",
+    amount: `${positive ? "+" : ""}${amount}`,
+    meta: record.remark || record.changeType,
+    iconClass: positive ? "icon-jinbi" : "icon-images",
+    iconBackgroundClass: positive ? "bg-[#eeeeee]" : "bg-[#eeeeee]",
+    iconColorClass: "text-black",
+    metaColorClass: positive ? "text-[#5f5e5e]/50" : "text-[#5f5e5e]/50",
+  };
+}
+
+function resolveFilterType(changeType: string): FilterValue {
+  if (changeType === "GENERATION_CONSUME") return "generate";
+  if (changeType === "SIGNIN") return "signin";
+  return "reward";
+}
+
+function resolveTitle(changeType: string) {
+  if (changeType === "NEW_USER_GIFT") return "新人礼包";
+  if (changeType === "GENERATION_CONSUME") return "生成图片";
+  if (changeType === "GENERATION_REFUND") return "生成失败退款";
+  return "积分变动";
+}
+
+function formatMonth(value?: string) {
+  if (!value) return "未知月份";
+  const [date] = value.split(" ");
+  const [year, month] = date.split("-");
+  return year && month ? `${year}年${Number(month)}月` : "未知月份";
+}
+
+function isCurrentMonth(value: string) {
+  if (!value) return false;
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  return value.startsWith(currentMonth);
+}
+
+function formatCredits(value: number) {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 </script>

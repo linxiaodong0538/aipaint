@@ -69,7 +69,7 @@
               <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+          <el-table-column label="操作" align="center" width="190" class-name="small-padding fixed-width">
             <template #default="scope">
               <el-tooltip content="修改" placement="top" v-if="scope.row.userId !== 1">
                 <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
@@ -82,6 +82,9 @@
               </el-tooltip>
               <el-tooltip content="分配角色" placement="top" v-if="scope.row.userId !== 1">
                 <el-button link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
+              </el-tooltip>
+              <el-tooltip content="补发新人礼包" placement="top" v-if="scope.row.userId !== 1">
+                <el-button link type="primary" icon="Present" @click="handleGrantNewUserGift(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -189,7 +192,7 @@ import TreePanel from "@/components/TreePanel"
 import ExcelImportDialog from "@/components/ExcelImportDialog"
 import UserViewDrawer from "./view"
 import { usePasswordRule } from "@/utils/passwordRule"
-import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect } from "@/api/system/user"
+import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect, grantNewUserGift } from "@/api/system/user"
 
 const router = useRouter()
 const { proxy } = getCurrentInstance()
@@ -355,6 +358,15 @@ function handleResetPwd(row) {
     resetUserPwd(row.userId, value).then(() => {
       proxy.$modal.msgSuccess("修改成功，新密码是：" + value)
     })
+  }).catch(() => {})
+}
+
+/** 补发新人礼包 */
+function handleGrantNewUserGift(row) {
+  proxy.$modal.confirm(`确认给「${row.userName}」补发新人礼包？`).then(function () {
+    return grantNewUserGift(row.userId)
+  }).then((response) => {
+    proxy.$modal.msgSuccess(response.msg || "操作成功")
   }).catch(() => {})
 }
 

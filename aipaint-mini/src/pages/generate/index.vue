@@ -599,7 +599,7 @@ function mapImageSize(
 function calculateCreditCost(size: string, imageCount: number) {
   const [width = 0, height = 0] = size.split("x").map((value) => Number(value));
   const pixels = width * height;
-  const singleCost = Math.max(5, Math.ceil((pixels / 8294400) * 30));
+  const singleCost = Math.max(5, Math.ceil((pixels / 8294400) * 20));
   return singleCost * imageCount;
 }
 

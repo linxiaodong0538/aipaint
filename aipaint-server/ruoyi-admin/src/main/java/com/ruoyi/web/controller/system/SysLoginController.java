@@ -25,7 +25,9 @@ import com.ruoyi.framework.web.service.SysLoginService;
 import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.framework.web.service.WechatLoginService;
+import com.ruoyi.system.domain.AiCreditBatch;
 import com.ruoyi.system.service.ISysConfigService;
+import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.ISysMenuService;
 
 /**
@@ -53,6 +55,9 @@ public class SysLoginController
 
     @Autowired
     private ISysConfigService configService;
+
+    @Autowired
+    private IAiCreditService creditService;
 
     /**
      * 登录方法
@@ -144,10 +149,17 @@ public class SysLoginController
 
     private MiniUserProfile toMiniUserProfile(SysUser user)
     {
-        return new MiniUserProfile(
+        MiniUserProfile profile = new MiniUserProfile(
                 Convert.toStr(user.getUserId()),
                 Convert.toStr(user.getNickName(), "游客用户"),
-                Convert.toStr(user.getAvatar(), ""));
+                Convert.toStr(user.getAvatar(), ""),
+                creditService.getAvailableBalance(user.getUserId()));
+        AiCreditBatch giftBatch = creditService.getNewUserGiftBatch(user.getUserId());
+        Date nowDate = DateUtils.getNowDate();
+        boolean giftActive = giftBatch != null && giftBatch.getExpireTime() != null && giftBatch.getExpireTime().after(nowDate);
+        profile.setNewUserGiftGranted(giftActive);
+        profile.setNewUserGiftExpireTime(giftActive ? giftBatch.getExpireTime() : null);
+        return profile;
     }
 
     // 获取用户密码自定义配置规则

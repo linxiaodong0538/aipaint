@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiCreditMapper">
+
+    <resultMap type="AiCreditBatch" id="AiCreditBatchResult">
+        <id     property="batchId"         column="batch_id"         />
+        <result property="userId"          column="user_id"          />
+        <result property="sourceType"      column="source_type"      />
+        <result property="sourceId"        column="source_id"        />
+        <result property="totalAmount"     column="total_amount"     />
+        <result property="remainingAmount" column="remaining_amount" />
+        <result property="expireTime"      column="expire_time"      />
+        <result property="remark"          column="remark"           />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateTime"      column="update_time"      />
+    </resultMap>
+
+    <resultMap type="AiCreditRecord" id="AiCreditRecordResult">
+        <id     property="recordId"     column="record_id"     />
+        <result property="userId"       column="user_id"       />
+        <result property="changeType"   column="change_type"   />
+        <result property="amount"       column="amount"        />
+        <result property="balanceAfter" column="balance_after" />
+        <result property="relatedType"  column="related_type"  />
+        <result property="relatedId"    column="related_id"    />
+        <result property="remark"       column="remark"        />
+        <result property="createTime"   column="create_time"   />
+    </resultMap>
+
+    <select id="selectAvailableBalance" parameterType="Long" resultType="Integer">
+        select coalesce(sum(remaining_amount), 0)
+        from ai_credit_batch
+        where user_id = #{userId}
+          and remaining_amount > 0
+          and (expire_time is null or expire_time > sysdate())
+    </select>
+
+    <select id="countBatchBySource" resultType="Integer">
+        select count(1)
+        from ai_credit_batch
+        where user_id = #{userId}
+          and source_type = #{sourceType}
+          and source_id = #{sourceId}
+    </select>
+
+    <select id="selectBatchBySource" resultMap="AiCreditBatchResult">
+        select batch_id, user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time, update_time
+        from ai_credit_batch
+        where user_id = #{userId}
+          and source_type = #{sourceType}
+          and source_id = #{sourceId}
+        limit 1
+    </select>
+
+    <select id="countRecordByChange" resultType="Integer">
+        select count(1)
+        from ai_credit_record
+        where user_id = #{userId}
+          and change_type = #{changeType}
+          and related_type = #{relatedType}
+          and related_id = #{relatedId}
+    </select>
+
+    <select id="selectAvailableBatchesForUpdate" parameterType="Long" resultMap="AiCreditBatchResult">
+        select batch_id, user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time, update_time
+        from ai_credit_batch
+        where user_id = #{userId}
+          and remaining_amount > 0
+          and (expire_time is null or expire_time > sysdate())
+        order by case when expire_time is null then 1 else 0 end, expire_time asc, batch_id asc
+        for update
+    </select>
+
+    <insert id="insertCreditBatch" parameterType="AiCreditBatch" useGeneratedKeys="true" keyProperty="batchId">
+        insert into ai_credit_batch(
+            user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time
+        ) values (
+            #{userId}, #{sourceType}, #{sourceId}, #{totalAmount}, #{remainingAmount}, #{expireTime}, #{remark}, sysdate()
+        )
+    </insert>
+
+    <update id="deductCreditBatch">
+        update ai_credit_batch
+        set remaining_amount = remaining_amount - #{amount},
+            update_time = sysdate()
+        where batch_id = #{batchId}
+          and remaining_amount >= #{amount}
+    </update>
+
+    <insert id="insertCreditRecord" parameterType="AiCreditRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into ai_credit_record(
+            user_id, change_type, amount, balance_after, related_type, related_id, remark, create_time
+        ) values (
+            #{userId}, #{changeType}, #{amount}, #{balanceAfter}, #{relatedType}, #{relatedId}, #{remark}, sysdate()
+        )
+    </insert>
+
+    <select id="selectCreditRecordsByUserId" resultMap="AiCreditRecordResult">
+        select record_id, user_id, change_type, amount, balance_after, related_type, related_id, remark, create_time
+        from ai_credit_record
+        where user_id = #{userId}
+        order by create_time desc, record_id desc
+        limit #{limit}
+    </select>
+</mapper>

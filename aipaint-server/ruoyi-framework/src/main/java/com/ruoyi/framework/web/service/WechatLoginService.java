@@ -13,6 +13,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.http.HttpUtils;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.service.IAiCreditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,9 @@ public class WechatLoginService
     private ISysUserService userService;
 
     @Autowired
+    private IAiCreditService creditService;
+
+    @Autowired
     private TokenService tokenService;
 
     /**
@@ -51,9 +55,11 @@ public class WechatLoginService
         }
         String openid = hasWechatConfig() ? getOpenid(code) : getDevOpenid();
         SysUser user = userService.selectUserByOpenid(openid);
+        boolean created = false;
         if (StringUtils.isNull(user))
         {
             user = createMiniUser(openid);
+            created = true;
         }
         if (UserConstants.USER_DISABLE.equals(user.getStatus()))
         {
@@ -61,6 +67,10 @@ public class WechatLoginService
         }
 
         userService.updateLoginInfo(user.getUserId(), IpUtils.getIpAddr(), new Date());
+        if (created)
+        {
+            creditService.grantNewUserGiftIfNeeded(user.getUserId());
+        }
         LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user, Collections.emptySet());
         String token = tokenService.createToken(loginUser);
         return new LoginResult(token, user);
