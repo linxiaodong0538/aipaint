@@ -39,12 +39,12 @@ public class AiCreditServiceImpl implements IAiCreditService
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void grantNewUserGiftIfNeeded(Long userId)
+    public boolean grantNewUserGiftIfNeeded(Long userId)
     {
         String sourceId = String.valueOf(userId);
         if (creditMapper.countBatchBySource(userId, SOURCE_NEW_USER_GIFT, sourceId) > 0)
         {
-            return;
+            return false;
         }
 
         Date now = DateUtils.getNowDate();
@@ -52,11 +52,19 @@ public class AiCreditServiceImpl implements IAiCreditService
         try
         {
             grantCredits(userId, SOURCE_NEW_USER_GIFT, sourceId, NEW_USER_GIFT_AMOUNT, expireTime, "新人礼包，7天有效");
+            return true;
         }
         catch (DuplicateKeyException e)
         {
             // 并发首次登录时，唯一键保证只发放一次。
+            return false;
         }
+    }
+
+    @Override
+    public AiCreditBatch getNewUserGiftBatch(Long userId)
+    {
+        return creditMapper.selectBatchBySource(userId, SOURCE_NEW_USER_GIFT, String.valueOf(userId));
     }
 
     @Override

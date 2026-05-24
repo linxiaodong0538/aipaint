@@ -6,6 +6,8 @@ export interface UserProfile {
   nickname: string;
   avatar: string;
   creditBalance?: number;
+  newUserGiftGranted?: boolean;
+  newUserGiftExpireTime?: string;
 }
 
 interface UserState {

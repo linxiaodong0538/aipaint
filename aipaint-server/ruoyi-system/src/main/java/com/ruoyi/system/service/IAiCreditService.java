@@ -1,6 +1,7 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import com.ruoyi.system.domain.AiCreditBatch;
 import com.ruoyi.system.domain.AiCreditRecord;
 
 /**
@@ -14,7 +15,9 @@ public interface IAiCreditService
 
     public int getAvailableBalance(Long userId);
 
-    public void grantNewUserGiftIfNeeded(Long userId);
+    public boolean grantNewUserGiftIfNeeded(Long userId);
+
+    public AiCreditBatch getNewUserGiftBatch(Long userId);
 
     public void consumeForGeneration(Long userId, Long taskId, int amount);
 

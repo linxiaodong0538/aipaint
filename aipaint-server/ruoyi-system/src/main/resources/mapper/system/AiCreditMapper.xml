@@ -45,6 +45,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           and source_id = #{sourceId}
     </select>
 
+    <select id="selectBatchBySource" resultMap="AiCreditBatchResult">
+        select batch_id, user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time, update_time
+        from ai_credit_batch
+        where user_id = #{userId}
+          and source_type = #{sourceType}
+          and source_id = #{sourceId}
+        limit 1
+    </select>
+
     <select id="countRecordByChange" resultType="Integer">
         select count(1)
         from ai_credit_record

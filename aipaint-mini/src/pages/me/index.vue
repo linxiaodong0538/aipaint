@@ -95,6 +95,23 @@
               </text>
             </view>
           </view>
+
+          <view
+            v-if="showNewUserGiftCard"
+            class="mt-[20rpx] flex w-full items-center gap-[22rpx] rounded-[28rpx] border border-[rgba(0,0,0,0.06)] bg-white px-[28rpx] py-[24rpx] shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)]"
+          >
+            <view class="flex h-[72rpx] w-[72rpx] shrink-0 items-center justify-center rounded-[22rpx] bg-[#eeeeee]">
+              <text class="iconfont icon-jinbi text-[36rpx] leading-none text-black" />
+            </view>
+            <view class="min-w-0 flex-1">
+              <text class="block text-[28rpx] font-bold leading-[38rpx] text-black">
+                新人礼包已到账
+              </text>
+              <text class="mt-[4rpx] block text-[22rpx] leading-[32rpx] text-[var(--app-on-surface-variant)]">
+                100积分，7天有效，约可生成20张常规图
+              </text>
+            </view>
+          </view>
         </view>
 
         <view class="mt-[36rpx] grid grid-cols-3 gap-[20rpx]">
@@ -198,6 +215,13 @@ const displayName = computed(() =>
 const displayId = computed(() => (userStore.isLogin ? userStore.profile?.id || "-" : "-"));
 const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.png");
 const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
+const showNewUserGiftCard = computed(() => {
+  const expireTime = userStore.profile?.newUserGiftExpireTime;
+  if (!userStore.profile?.newUserGiftGranted || !expireTime) {
+    return false;
+  }
+  return parseDateTime(expireTime).getTime() > Date.now();
+});
 
 const tasks: TaskItem[] = [
   { title: "每日签到", desc: "+50 PTS", iconClass: "icon-qiandao" },
@@ -229,6 +253,10 @@ onShow(() => {
 
 function formatCredits(value: number) {
   return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function parseDateTime(value: string) {
+  return new Date(value.replace(/-/g, "/"));
 }
 
 function handleLogin() {

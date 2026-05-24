@@ -14,6 +14,8 @@ public interface AiCreditMapper
 
     public int countBatchBySource(@Param("userId") Long userId, @Param("sourceType") String sourceType, @Param("sourceId") String sourceId);
 
+    public AiCreditBatch selectBatchBySource(@Param("userId") Long userId, @Param("sourceType") String sourceType, @Param("sourceId") String sourceId);
+
     public int countRecordByChange(@Param("userId") Long userId, @Param("changeType") String changeType,
             @Param("relatedType") String relatedType, @Param("relatedId") String relatedId);
 

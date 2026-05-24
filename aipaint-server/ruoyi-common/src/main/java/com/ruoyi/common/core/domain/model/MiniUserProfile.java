@@ -1,5 +1,8 @@
 package com.ruoyi.common.core.domain.model;
 
+import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * 小程序用户资料
  */
@@ -12,6 +15,11 @@ public class MiniUserProfile
     private String avatar;
 
     private Integer creditBalance;
+
+    private Boolean newUserGiftGranted;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date newUserGiftExpireTime;
 
     public MiniUserProfile()
     {
@@ -68,5 +76,25 @@ public class MiniUserProfile
     public void setCreditBalance(Integer creditBalance)
     {
         this.creditBalance = creditBalance;
+    }
+
+    public Boolean getNewUserGiftGranted()
+    {
+        return newUserGiftGranted;
+    }
+
+    public void setNewUserGiftGranted(Boolean newUserGiftGranted)
+    {
+        this.newUserGiftGranted = newUserGiftGranted;
+    }
+
+    public Date getNewUserGiftExpireTime()
+    {
+        return newUserGiftExpireTime;
+    }
+
+    public void setNewUserGiftExpireTime(Date newUserGiftExpireTime)
+    {
+        this.newUserGiftExpireTime = newUserGiftExpireTime;
     }
 }
