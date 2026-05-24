@@ -20,10 +20,14 @@
       scroll-y
       enhanced
       :show-scrollbar="false"
+      :style="{ height: scrollViewHeight }"
     >
       <view
         class="px-[36rpx]"
-        :style="{ paddingTop: `${navLayout.statusBarHeight + 12}px` }"
+        :style="{
+          paddingTop: `${navLayout.statusBarHeight + 12}px`,
+          paddingBottom: bottomSafePadding,
+        }"
       >
         <view class="flex flex-col items-center pt-[48rpx]">
           <view class="relative">
@@ -98,7 +102,7 @@
 
           <view
             v-if="showNewUserGiftCard"
-            class="mt-[20rpx] flex w-full items-center gap-[22rpx] rounded-[28rpx] border border-[rgba(0,0,0,0.06)] bg-white px-[28rpx] py-[24rpx] shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)]"
+            class="mt-[24rpx] flex w-full items-center gap-[22rpx] rounded-[28rpx] border border-[rgba(0,0,0,0.06)] bg-white px-[28rpx] py-[24rpx] shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)]"
           >
             <view class="flex h-[72rpx] w-[72rpx] shrink-0 items-center justify-center rounded-[22rpx] bg-[#eeeeee]">
               <text class="iconfont icon-jinbi text-[36rpx] leading-none text-black" />
@@ -114,7 +118,7 @@
           </view>
         </view>
 
-        <view class="mt-[36rpx] grid grid-cols-3 gap-[20rpx]">
+        <view class="mt-[24rpx] grid grid-cols-3 gap-[20rpx]">
           <view
             v-for="task in tasks"
             :key="task.title"
@@ -140,7 +144,7 @@
         </view>
 
         <view
-          class="mt-[36rpx] overflow-hidden rounded-[24rpx] bg-white shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)]"
+          class="mt-[24rpx] overflow-hidden rounded-[24rpx] bg-white shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)]"
         >
           <view
             v-for="(item, index) in menuItems"
@@ -187,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { getNavBarLayout } from "@/utils/nav-bar";
 import { useUserStore } from "@/store/modules/user";
@@ -208,6 +212,20 @@ interface MenuItem {
 
 const navLayout = getNavBarLayout();
 const userStore = useUserStore();
+const safeAreaBottom = ref(0);
+const windowHeight = ref(0);
+const windowWidth = ref(375);
+
+try {
+  const info = uni.getSystemInfoSync();
+  safeAreaBottom.value = info.safeAreaInsets?.bottom || 0;
+  windowHeight.value = info.windowHeight || 0;
+  windowWidth.value = info.windowWidth || 375;
+} catch {
+  safeAreaBottom.value = 0;
+  windowHeight.value = 0;
+  windowWidth.value = 375;
+}
 
 const displayName = computed(() =>
   userStore.isLogin ? userStore.profile?.nickname || "游客用户" : "游客用户",
@@ -215,6 +233,11 @@ const displayName = computed(() =>
 const displayId = computed(() => (userStore.isLogin ? userStore.profile?.id || "-" : "-"));
 const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.png");
 const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
+const scrollViewHeight = computed(() => (windowHeight.value ? `${windowHeight.value}px` : "100vh"));
+const bottomSafePadding = computed(() => {
+  const bottomGap = rpxToPx(32);
+  return `${safeAreaBottom.value + bottomGap}px`;
+});
 const showNewUserGiftCard = computed(() => {
   const expireTime = userStore.profile?.newUserGiftExpireTime;
   if (!userStore.profile?.newUserGiftGranted || !expireTime) {
@@ -257,6 +280,10 @@ function formatCredits(value: number) {
 
 function parseDateTime(value: string) {
   return new Date(value.replace(/-/g, "/"));
+}
+
+function rpxToPx(rpx: number) {
+  return (windowWidth.value / 750) * rpx;
 }
 
 function handleLogin() {
