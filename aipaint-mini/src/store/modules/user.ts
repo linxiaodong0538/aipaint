@@ -5,6 +5,7 @@ export interface UserProfile {
   id: string;
   nickname: string;
   avatar: string;
+  creditBalance?: number;
 }
 
 interface UserState {

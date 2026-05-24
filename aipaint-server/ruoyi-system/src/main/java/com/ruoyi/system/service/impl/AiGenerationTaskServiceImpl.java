@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.domain.AiGenerationTask;
 import com.ruoyi.system.mapper.AiGenerationTaskMapper;
+import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiGenerationTaskService;
 
 /**
@@ -16,6 +17,9 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
 {
     @Autowired
     private AiGenerationTaskMapper taskMapper;
+
+    @Autowired
+    private IAiCreditService creditService;
 
     @Override
     public AiGenerationTask selectGenerationTaskById(Long taskId)
@@ -91,6 +95,7 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
     @Override
     public void markFailed(Long taskId, String errorMessage)
     {
+        AiGenerationTask existingTask = taskMapper.selectGenerationTaskById(taskId);
         AiGenerationTask task = new AiGenerationTask();
         task.setTaskId(taskId);
         task.setStatus("failed");
@@ -98,5 +103,9 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         task.setErrorMessage(errorMessage);
         task.setFinishTime(new Date());
         taskMapper.updateGenerationTask(task);
+        if (existingTask != null && existingTask.getUserId() != null && existingTask.getCreditCost() != null)
+        {
+            creditService.refundForGenerationFailure(existingTask.getUserId(), taskId, existingTask.getCreditCost());
+        }
     }
 }

@@ -11,7 +11,7 @@
               </text>
               <view class="mt-[14rpx] flex items-end">
                 <text class="text-[84rpx] font-bold leading-none text-white">
-                  12,850
+                  {{ creditBalanceText }}
                 </text>
                 <text class="ml-[12rpx] pb-[8rpx] text-[28rpx] font-semibold leading-[36rpx] text-white/60">
                   PTS
@@ -93,8 +93,8 @@
                   <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">+{{ plan.addonBonus }}%</text>
                 </view>
                 <view class="rounded-[24rpx] bg-[#f4f4f4] px-[18rpx] py-[16rpx]">
-                  <text class="block text-[20rpx] leading-[28rpx] text-[#777]">4K参考</text>
-                  <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ Math.floor(plan.monthlyCredits / 30) }}张</text>
+                  <text class="block text-[20rpx] leading-[28rpx] text-[#777]">约出图</text>
+                  <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ Math.floor(plan.monthlyCredits / STANDARD_IMAGE_REFERENCE_COST) }}张</text>
                 </view>
               </view>
             </button>
@@ -183,6 +183,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { onShow } from "@dcloudio/uni-app";
+import { useUserStore } from "@/store/modules/user";
 
 type RechargeMode = "membership" | "addon";
 type MemberTierValue = "none" | "monthly" | "pro" | "studio";
@@ -215,6 +217,8 @@ interface AddonPackage {
 
 const activeMode = ref<RechargeMode>("membership");
 const currentTier = ref<MemberTierValue>("none");
+const STANDARD_IMAGE_REFERENCE_COST = 5;
+const userStore = useUserStore();
 
 const modes: Array<{ label: string; value: RechargeMode }> = [
   { label: "会员套餐", value: "membership" },
@@ -265,6 +269,7 @@ const addonPackages: AddonPackage[] = [
 
 const activeTier = computed(() => memberTiers.find((tier) => tier.value === currentTier.value) || memberTiers[0]);
 const isMember = computed(() => currentTier.value !== "none");
+const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
 
 const addonCards = computed(() => {
   const bonusRate = activeTier.value.addonBonus / 100;
@@ -281,6 +286,12 @@ const addonCards = computed(() => {
 function formatCredits(value: number) {
   return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+onShow(() => {
+  if (userStore.isLogin) {
+    userStore.fetchProfile().catch(() => undefined);
+  }
+});
 
 function handleBuyMembership(plan: MembershipPlan) {
   uni.showToast({

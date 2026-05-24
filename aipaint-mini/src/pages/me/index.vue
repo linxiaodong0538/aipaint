@@ -75,7 +75,7 @@
                 <text
                   class="text-[56rpx] font-bold leading-[64rpx] tracking-[-1rpx] text-white"
                 >
-                  12,850
+                  {{ creditBalanceText }}
                 </text>
                 <text
                   class="ml-[12rpx] text-[28rpx] font-semibold leading-[36rpx] text-white"
@@ -197,6 +197,7 @@ const displayName = computed(() =>
 );
 const displayId = computed(() => (userStore.isLogin ? userStore.profile?.id || "-" : "-"));
 const avatarSrc = computed(() => userStore.profile?.avatar || "/static/me/avatar.png");
+const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
 
 const tasks: TaskItem[] = [
   { title: "每日签到", desc: "+50 PTS", iconClass: "icon-qiandao" },
@@ -221,10 +222,14 @@ const menuItems: MenuItem[] = [
 ];
 
 onShow(() => {
-  if (userStore.isLogin && !userStore.profile) {
+  if (userStore.isLogin) {
     userStore.fetchProfile().catch(() => undefined);
   }
 });
+
+function formatCredits(value: number) {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 function handleLogin() {
   userStore.loginWithWechat().catch(() => undefined);
