@@ -26,8 +26,10 @@ import com.ruoyi.framework.web.service.SysPermissionService;
 import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.framework.web.service.WechatLoginService;
 import com.ruoyi.system.domain.AiCreditBatch;
+import com.ruoyi.system.domain.AiUserMembership;
 import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.IAiCreditService;
+import com.ruoyi.system.service.IAiPaymentService;
 import com.ruoyi.system.service.ISysMenuService;
 
 /**
@@ -58,6 +60,9 @@ public class SysLoginController
 
     @Autowired
     private IAiCreditService creditService;
+
+    @Autowired
+    private IAiPaymentService paymentService;
 
     /**
      * 登录方法
@@ -159,6 +164,13 @@ public class SysLoginController
         boolean giftActive = giftBatch != null && giftBatch.getExpireTime() != null && giftBatch.getExpireTime().after(nowDate);
         profile.setNewUserGiftGranted(giftActive);
         profile.setNewUserGiftExpireTime(giftActive ? giftBatch.getExpireTime() : null);
+        AiUserMembership membership = paymentService.getActiveMembership(user.getUserId());
+        if (membership != null)
+        {
+            profile.setMemberTier(membership.getMemberTier());
+            profile.setMemberAddonBonus(membership.getAddonBonus());
+            profile.setMemberExpireTime(membership.getExpireTime());
+        }
         return profile;
     }
 

@@ -21,9 +21,13 @@ public interface AiCreditMapper
 
     public List<AiCreditBatch> selectAvailableBatchesForUpdate(@Param("userId") Long userId);
 
+    public List<AiCreditBatch> selectExpiredBatchesForUpdate(@Param("userId") Long userId);
+
     public int insertCreditBatch(AiCreditBatch batch);
 
     public int deductCreditBatch(@Param("batchId") Long batchId, @Param("amount") Integer amount);
+
+    public int expireCreditBatch(@Param("batchId") Long batchId);
 
     public int insertCreditRecord(AiCreditRecord record);
 

@@ -185,6 +185,7 @@
 import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { useUserStore } from "@/store/modules/user";
+import { createPaymentOrder, type PaymentParams } from "@/api/payment";
 
 type RechargeMode = "membership" | "addon";
 type MemberTierValue = "none" | "monthly" | "pro" | "studio";
@@ -216,7 +217,7 @@ interface AddonPackage {
 }
 
 const activeMode = ref<RechargeMode>("membership");
-const currentTier = ref<MemberTierValue>("none");
+const paying = ref(false);
 const STANDARD_IMAGE_REFERENCE_COST = 5;
 const userStore = useUserStore();
 
@@ -268,6 +269,7 @@ const addonPackages: AddonPackage[] = [
 ];
 
 const activeTier = computed(() => memberTiers.find((tier) => tier.value === currentTier.value) || memberTiers[0]);
+const currentTier = computed<MemberTierValue>(() => userStore.profile?.memberTier || "none");
 const isMember = computed(() => currentTier.value !== "none");
 const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
 
@@ -293,22 +295,68 @@ onShow(() => {
   }
 });
 
-function handleBuyMembership(plan: MembershipPlan) {
-  uni.showToast({
-    title: `支付暂未接入：${plan.name}`,
-    icon: "none",
-  });
+async function handleBuyMembership(plan: MembershipPlan) {
+  await startWechatPay(plan.id, `${plan.name}开通成功，积分到账处理中`);
 }
 
-function handleBuyAddon(item: AddonPackage & { finalCredits: number }) {
+async function handleBuyAddon(item: AddonPackage & { finalCredits: number }) {
   if (!isMember.value) {
     uni.showToast({ title: "请先开通会员套餐", icon: "none" });
     return;
   }
 
-  uni.showToast({
-    title: `支付暂未接入：${formatCredits(item.finalCredits)}积分`,
-    icon: "none",
+  await startWechatPay(item.id, `${formatCredits(item.finalCredits)}积分到账处理中`);
+}
+
+async function startWechatPay(productId: string, successTitle: string) {
+  if (!userStore.isLogin) {
+    await userStore.loginWithWechat();
+  }
+
+  if (paying.value) {
+    return;
+  }
+
+  paying.value = true;
+  uni.showLoading({ title: "创建订单..." });
+  try {
+    const result = await createPaymentOrder(productId);
+    uni.hideLoading();
+    await requestWechatPayment(result.paymentParams);
+    uni.showToast({ title: successTitle, icon: "none" });
+    setTimeout(() => {
+      userStore.fetchProfile().catch(() => undefined);
+    }, 1200);
+  } catch (error) {
+    uni.hideLoading();
+    if (!isPaymentCancel(error)) {
+      const message = error instanceof Error ? error.message : "支付未完成";
+      uni.showToast({ title: message, icon: "none" });
+    }
+  } finally {
+    paying.value = false;
+  }
+}
+
+function requestWechatPayment(params: PaymentParams) {
+  return new Promise<void>((resolve, reject) => {
+    uni.requestPayment({
+      provider: "wxpay",
+      timeStamp: params.timeStamp,
+      nonceStr: params.nonceStr,
+      package: params.package,
+      signType: params.signType,
+      paySign: params.paySign,
+      success: () => resolve(),
+      fail: (error) => reject(error),
+    });
   });
+}
+
+function isPaymentCancel(error: unknown) {
+  const message = typeof error === "object" && error !== null && "errMsg" in error
+    ? String((error as { errMsg?: string }).errMsg || "")
+    : "";
+  return message.includes("cancel");
 }
 </script>

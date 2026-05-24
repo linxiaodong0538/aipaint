@@ -73,6 +73,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         for update
     </select>
 
+    <select id="selectExpiredBatchesForUpdate" parameterType="Long" resultMap="AiCreditBatchResult">
+        select batch_id, user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time, update_time
+        from ai_credit_batch
+        where user_id = #{userId}
+          and remaining_amount > 0
+          and expire_time is not null
+          and expire_time &lt;= sysdate()
+        order by expire_time asc, batch_id asc
+        for update
+    </select>
+
     <insert id="insertCreditBatch" parameterType="AiCreditBatch" useGeneratedKeys="true" keyProperty="batchId">
         insert into ai_credit_batch(
             user_id, source_type, source_id, total_amount, remaining_amount, expire_time, remark, create_time
@@ -87,6 +98,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         where batch_id = #{batchId}
           and remaining_amount >= #{amount}
+    </update>
+
+    <update id="expireCreditBatch">
+        update ai_credit_batch
+        set remaining_amount = 0,
+            update_time = sysdate()
+        where batch_id = #{batchId}
+          and remaining_amount > 0
     </update>
 
     <insert id="insertCreditRecord" parameterType="AiCreditRecord" useGeneratedKeys="true" keyProperty="recordId">

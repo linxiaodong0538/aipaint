@@ -102,6 +102,16 @@ wechat:
   miniapp:
     appid: "wxea537cd58dc3bea3"
     secret: "63b6e900df411760b62404ec41947a53"
+  pay:
+    # 正式上线前改为 true，并配置商户号、证书序列号、API v3 密钥、商户私钥和回调地址。
+    enabled: false
+    mch-id: ""
+    mch-serial-no: ""
+    api-v3-key: ""
+    private-key-path: ""
+    private-key: ""
+    platform-certificate-path: ""
+    notify-url: "https://你的域名/mini/payment/wechat/notify"
 
 # MyBatis配置
 mybatis:

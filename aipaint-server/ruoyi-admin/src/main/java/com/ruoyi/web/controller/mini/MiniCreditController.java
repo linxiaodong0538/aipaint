@@ -2,6 +2,7 @@ package com.ruoyi.web.controller.mini;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
@@ -23,6 +24,17 @@ public class MiniCreditController extends BaseController
     public AjaxResult getBalance()
     {
         return success(creditService.getAvailableBalance(SecurityUtils.getUserId()));
+    }
+
+    @PostMapping("/signin")
+    public AjaxResult signin()
+    {
+        Long userId = SecurityUtils.getUserId();
+        boolean granted = creditService.grantDailySigninIfNeeded(userId);
+        AjaxResult ajax = success(granted ? "签到成功，+5 PTS" : "今天已签到");
+        ajax.put("granted", granted);
+        ajax.put("creditBalance", creditService.getAvailableBalance(userId));
+        return ajax;
     }
 
     @GetMapping("/records")

@@ -118,28 +118,35 @@
           </view>
         </view>
 
-        <view class="mt-[24rpx] grid grid-cols-3 gap-[20rpx]">
+        <view class="mt-[24rpx] grid grid-cols-1 gap-[20rpx]">
           <view
             v-for="task in tasks"
             :key="task.title"
-            class="flex min-h-[168rpx] flex-col items-center justify-center rounded-[24rpx] bg-white px-[12rpx] py-[20rpx] text-center shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)] active:scale-[0.98]"
-            @tap="handleUserAction"
+            class="flex min-h-[116rpx] flex-row items-center justify-between rounded-[24rpx] bg-white px-[28rpx] py-[22rpx] text-left shadow-[0_8rpx_28rpx_rgba(0,0,0,0.06)] active:scale-[0.98]"
+            @tap="handleTaskTap(task)"
           >
-            <text
-              class="iconfont text-[44rpx] leading-none text-[var(--app-primary)]"
-              :class="task.iconClass"
-              :style="{ fontSize: task.fontSize + 'rpx' }"
-            />
-            <text
-              class="mt-[14rpx] whitespace-nowrap text-[26rpx] font-semibold leading-[34rpx] text-[var(--app-on-surface)]"
-            >
-              {{ task.title }}
-            </text>
-            <text
-              class="mt-[4rpx] text-[22rpx] leading-[28rpx] text-[var(--app-on-surface-variant)]"
-            >
-              {{ userStore.isLogin ? task.desc : "登录查看" }}
-            </text>
+            <view class="flex min-w-0 items-center gap-[22rpx]">
+              <view class="flex h-[72rpx] w-[72rpx] shrink-0 items-center justify-center rounded-[22rpx] bg-[#eeeeee]">
+                <text
+                  class="iconfont leading-none text-[var(--app-primary)]"
+                  :class="task.iconClass"
+                  :style="{ fontSize: task.fontSize + 'rpx' }"
+                />
+              </view>
+              <view class="min-w-0">
+                <text
+                  class="block text-[28rpx] font-semibold leading-[38rpx] text-[var(--app-on-surface)]"
+                >
+                  {{ task.title }}
+                </text>
+                <text
+                  class="mt-[2rpx] block text-[22rpx] leading-[30rpx] text-[var(--app-on-surface-variant)]"
+                >
+                  {{ userStore.isLogin ? task.desc : "登录查看" }}
+                </text>
+              </view>
+            </view>
+            <text class="text-[32rpx] leading-none text-[#c4c4c4]">›</text>
           </view>
         </view>
 
@@ -196,12 +203,14 @@ import { onShow } from "@dcloudio/uni-app";
 import { getNavBarLayout } from "@/utils/nav-bar";
 import { useUserStore } from "@/store/modules/user";
 import { navigateTo, routes, switchTab } from "@/utils/router";
+import { dailySignin } from "@/api/credit";
 
 interface TaskItem {
   title: string;
   desc: string;
   iconClass: string;
   fontSize?: string;
+  action: "signin";
 }
 
 interface MenuItem {
@@ -215,6 +224,7 @@ const userStore = useUserStore();
 const safeAreaBottom = ref(0);
 const windowHeight = ref(0);
 const windowWidth = ref(375);
+const signingIn = ref(false);
 
 try {
   const info = uni.getSystemInfoSync();
@@ -247,24 +257,11 @@ const showNewUserGiftCard = computed(() => {
 });
 
 const tasks: TaskItem[] = [
-  { title: "每日签到", desc: "+50 PTS", iconClass: "icon-qiandao" },
-  {
-    title: "观看视频",
-    desc: "+20 PTS",
-    iconClass: "icon-bofang",
-    fontSize: "42",
-  },
-  {
-    title: "邀请奖励",
-    desc: "+100 PTS",
-    iconClass: "icon-jinbi",
-    fontSize: "38",
-  },
+  { title: "每日签到", desc: "+5 PTS", iconClass: "icon-qiandao", fontSize: "38", action: "signin" },
 ];
 
 const menuItems: MenuItem[] = [
-  { title: "积分充值", iconClass: "icon-jinbi", action: "recharge" },
-  { title: "我的积分", iconClass: "icon-jinbi", action: "credit-detail" },
+  { title: "积分明细", iconClass: "icon-jinbi", action: "credit-detail" },
   { title: "我的作品", iconClass: "icon-images", action: "works" },
 ];
 
@@ -290,9 +287,39 @@ function handleLogin() {
   userStore.loginWithWechat().catch(() => undefined);
 }
 
-function handleUserAction() {
+async function handleTaskTap(task: TaskItem) {
   if (!userStore.isLogin) {
     handleLogin();
+    return;
+  }
+
+  if (task.action === "signin") {
+    await handleSignin();
+  }
+}
+
+async function handleSignin() {
+  if (signingIn.value) {
+    return;
+  }
+
+  signingIn.value = true;
+  try {
+    const result = await dailySignin();
+    if (userStore.profile) {
+      userStore.setProfile({
+        ...userStore.profile,
+        creditBalance: result.creditBalance,
+      });
+    } else {
+      await userStore.fetchProfile();
+    }
+    uni.showToast({
+      title: result.granted ? "签到成功，+5 PTS" : "今天已签到",
+      icon: "none",
+    });
+  } finally {
+    signingIn.value = false;
   }
 }
 

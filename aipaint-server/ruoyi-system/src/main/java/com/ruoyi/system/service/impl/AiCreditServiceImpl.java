@@ -21,18 +21,24 @@ public class AiCreditServiceImpl implements IAiCreditService
 {
     private static final String SOURCE_NEW_USER_GIFT = "NEW_USER_GIFT";
 
+    private static final String SOURCE_SIGNIN = "SIGNIN";
+
     private static final String SOURCE_GENERATION_REFUND = "GENERATION_REFUND";
 
     private static final String RELATED_GENERATION = "GENERATION";
 
     private static final String CHANGE_GENERATION_CONSUME = "GENERATION_CONSUME";
 
+    private static final String CHANGE_CREDIT_EXPIRE = "CREDIT_EXPIRE";
+
     @Autowired
     private AiCreditMapper creditMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int getAvailableBalance(Long userId)
     {
+        processExpiredCredits(userId);
         Integer balance = creditMapper.selectAvailableBalance(userId);
         return balance == null ? 0 : balance.intValue();
     }
@@ -69,6 +75,29 @@ public class AiCreditServiceImpl implements IAiCreditService
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean grantDailySigninIfNeeded(Long userId)
+    {
+        String sourceId = DateUtils.getDate();
+        if (creditMapper.countBatchBySource(userId, SOURCE_SIGNIN, sourceId) > 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            grantCredits(userId, SOURCE_SIGNIN, sourceId, DAILY_SIGNIN_AMOUNT, DateUtils.addDays(DateUtils.getNowDate(), 7),
+                    "每日签到奖励，7天有效");
+            return true;
+        }
+        catch (DuplicateKeyException e)
+        {
+            // 连点或并发请求时，唯一键保证每天只发一次。
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void consumeForGeneration(Long userId, Long taskId, int amount)
     {
         if (amount <= 0)
@@ -76,6 +105,7 @@ public class AiCreditServiceImpl implements IAiCreditService
             return;
         }
 
+        processExpiredCredits(userId);
         int balance = getAvailableBalance(userId);
         if (balance < amount)
         {
@@ -137,10 +167,72 @@ public class AiCreditServiceImpl implements IAiCreditService
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void grantPaymentCredits(Long userId, String sourceType, String sourceId, int amount, Date expireTime, String remark)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+        try
+        {
+            grantCredits(userId, sourceType, sourceId, amount, expireTime, remark);
+        }
+        catch (DuplicateKeyException e)
+        {
+            // 支付回调可能重复到达，唯一键保证同一订单只到账一次。
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<AiCreditRecord> listUserRecords(Long userId, Integer limit)
     {
+        processExpiredCredits(userId);
         int normalizedLimit = limit == null ? 50 : Math.max(1, Math.min(100, limit.intValue()));
         return creditMapper.selectCreditRecordsByUserId(userId, normalizedLimit);
+    }
+
+    private void processExpiredCredits(Long userId)
+    {
+        List<AiCreditBatch> expiredBatches = creditMapper.selectExpiredBatchesForUpdate(userId);
+        for (AiCreditBatch batch : expiredBatches)
+        {
+            int expiredAmount = batch.getRemainingAmount() == null ? 0 : batch.getRemainingAmount().intValue();
+            if (expiredAmount <= 0)
+            {
+                continue;
+            }
+            int updated = creditMapper.expireCreditBatch(batch.getBatchId());
+            if (updated > 0)
+            {
+                Integer balanceAfter = creditMapper.selectAvailableBalance(userId);
+                insertRecord(userId, CHANGE_CREDIT_EXPIRE, -expiredAmount, balanceAfter == null ? 0 : balanceAfter.intValue(),
+                        batch.getSourceType(), batch.getSourceId(), resolveExpireRemark(batch));
+            }
+        }
+    }
+
+    private String resolveExpireRemark(AiCreditBatch batch)
+    {
+        String sourceType = batch.getSourceType();
+        if (SOURCE_SIGNIN.equals(sourceType))
+        {
+            return "签到积分过期";
+        }
+        if (SOURCE_NEW_USER_GIFT.equals(sourceType))
+        {
+            return "新人礼包积分过期";
+        }
+        if ("PAYMENT_MEMBERSHIP".equals(sourceType))
+        {
+            return "会员赠送积分过期";
+        }
+        if (SOURCE_GENERATION_REFUND.equals(sourceType))
+        {
+            return "退款积分过期";
+        }
+        return "积分过期";
     }
 
     private void grantCredits(Long userId, String sourceType, String sourceId, int amount, Date expireTime, String remark)

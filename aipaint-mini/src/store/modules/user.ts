@@ -8,6 +8,9 @@ export interface UserProfile {
   creditBalance?: number;
   newUserGiftGranted?: boolean;
   newUserGiftExpireTime?: string;
+  memberTier?: "monthly" | "pro" | "studio";
+  memberAddonBonus?: number;
+  memberExpireTime?: string;
 }
 
 interface UserState {
