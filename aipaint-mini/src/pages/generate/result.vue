@@ -278,7 +278,7 @@ const progressSubtitle = computed(() => (
 ));
 const processingHintText = computed(() => (
   longWaitHintVisible.value
-    ? "耗时较久，可稍后在作品中查看"
+    ? "耗时较久，可离开稍后在作品中查看"
     : "PROCESSING"
 ));
 
@@ -373,11 +373,11 @@ async function pollTask() {
       showLongWaitHint();
     }
 
-    if (pollAttempts >= 45) {
+    if (pollAttempts >= 15) {
       showLongWaitHint();
     }
   } catch (error) {
-    if (pollAttempts >= 45) {
+    if (pollAttempts >= 15) {
       showLongWaitHint();
     }
   } finally {
