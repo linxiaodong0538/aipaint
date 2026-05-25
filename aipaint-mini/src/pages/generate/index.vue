@@ -90,36 +90,44 @@
         <!-- 模型选择 -->
         <view class="mb-[32rpx]">
           <text class="model-section-label font-mono">模型选择</text>
-          <view class="model-grid">
-            <view
-              v-for="item in models"
-              :key="item.value"
-              class="model-card"
-              :class="model === item.value ? 'model-card-active' : 'model-card-default'"
-              @tap="selectModel(item)"
-            >
+          <scroll-view
+            class="model-scroll"
+            scroll-x
+            enhanced
+            :bounces="false"
+            :show-scrollbar="false"
+          >
+            <view class="model-grid">
               <view
-                class="model-card-icon"
-                :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
+                v-for="item in models"
+                :key="item.value"
+                class="model-card"
+                :class="model === item.value ? 'model-card-active' : 'model-card-default'"
+                @tap="selectModel(item)"
               >
-                <text
-                  class="iconfont leading-none"
-                  :class="item.iconClass"
-                  :style="{ fontSize: '40rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
-                />
-              </view>
-              <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
-                <view class="model-card-title-row">
-                  <text class="model-card-title">{{ item.label }}</text>
+                <!-- <view
+                  class="model-card-icon"
+                  :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
+                >
                   <text
-                    v-if="model === item.value"
-                    class="iconfont icon-gou2x model-card-check"
+                    class="iconfont leading-none"
+                    :class="item.iconClass"
+                    :style="{ fontSize: '32rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
                   />
+                </view> -->
+                <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
+                  <view class="model-card-title-row">
+                    <text class="model-card-title">{{ item.label }}</text>
+                    <text
+                      v-if="model === item.value"
+                      class="iconfont icon-gou2x model-card-check"
+                    />
+                  </view>
+                  <text class="model-card-desc pt-[4rpx]">{{ item.description }}</text>
                 </view>
-                <text class="model-card-desc">{{ item.description }}</text>
               </view>
             </view>
-          </view>
+          </scroll-view>
         </view>
 
         <!-- 分辨率 -->
@@ -257,7 +265,7 @@ const REFERENCE_MAX_EDGE = 2048;
 const REFERENCE_COMPRESS_QUALITY = 0.82;
 const REFERENCE_COMPRESS_CANVAS_ID = "reference-compress-canvas";
 
-type ModelValue = "gpt-image-2" | "nano-banana-2";
+type ModelValue = "gpt-image-2" | "gpt-image-2-vip" | "nano-banana-2" | "nano-banana-pro" | "nano-banana";
 
 const models: Array<{
   value: ModelValue;
@@ -266,11 +274,18 @@ const models: Array<{
   iconClass: string;
   enabled: boolean;
 }> = [
-{
+  {
     value: "gpt-image-2",
     label: "GPT-image-2",
     description: "全能艺术创作",
     iconClass: "icon-magic",
+    enabled: true,
+  },
+  {
+    value: "gpt-image-2-vip",
+    label: "GPT-image-2 VIP",
+    description: "高优先级精修",
+    iconClass: "icon-huizhang",
     enabled: true,
   },
   {
@@ -279,8 +294,21 @@ const models: Array<{
     description: "写实摄影风格",
     iconClass: "icon-tupian",
     enabled: true,
-  }
-
+  },
+  {
+    value: "nano-banana-pro",
+    label: "nano-banana-pro",
+    description: "专业细节增强",
+    iconClass: "icon-line-medalxunzhang-02",
+    enabled: true,
+  },
+  {
+    value: "nano-banana",
+    label: "nano-banana",
+    description: "轻量快速生成",
+    iconClass: "icon-images",
+    enabled: true,
+  },
 ];
 
 const qualities = ["1K", "2K", "4K"] as const;
@@ -461,6 +489,10 @@ function applyTemplate(value: Partial<TemplateItem>) {
 function normalizeTemplateModel(value?: string): ModelValue {
   if (!value) return "gpt-image-2";
   const normalized = value.toLowerCase();
+  const matchedModel = models.find((item) => normalized.includes(item.value.toLowerCase()));
+  if (matchedModel) {
+    return matchedModel.value;
+  }
   if (normalized.includes("nano-banana")) {
     return "nano-banana-2";
   }
@@ -486,7 +518,8 @@ function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualiti
 }
 
 function normalizeRetryModel(value?: string): ModelValue {
-  return value === "gpt-image-2" || value === "nano-banana-2" ? value : "gpt-image-2";
+  const matchedModel = models.find((item) => item.value === value);
+  return matchedModel?.value || "gpt-image-2";
 }
 
 function normalizeRetryRatio(value?: string): (typeof ratios)[number]["value"] {
@@ -986,19 +1019,23 @@ async function handleGenerate() {
   color: #777;
 }
 
+.model-scroll {
+  width: 100%;
+}
+
 .model-grid {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 24rpx;
-  padding: 0 8rpx;
+  padding: 0 8rpx 8rpx;
 }
 
 .model-card {
   display: flex;
   box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
+  flex: none;
+  width: 260rpx;
   align-items: center;
   gap: 16rpx;
   padding: 24rpx;

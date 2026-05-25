@@ -1,257 +1,271 @@
 <!DOCTYPE html>
 
-<html lang="zh" style="width: 390px; height: 884px; overflow: hidden; position: relative;"><head>
+<html class="light" lang="zh-CN" style=""><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI生成 - 横向滑动芯片版</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "inverse-surface": "#2f3131",
-                    "on-tertiary-container": "#838484",
-                    "tertiary": "#000000",
-                    "on-tertiary-fixed-variant": "#454747",
-                    "primary-fixed": "#e2e2e2",
-                    "primary": "#000000",
-                    "surface-container-high": "#e8e8e8",
-                    "on-primary-fixed-variant": "#474747",
-                    "on-primary-fixed": "#1b1b1b",
-                    "surface-tint": "#5e5e5e",
-                    "surface-dim": "#dadada",
-                    "surface-variant": "#e2e2e2",
-                    "primary-container": "#1b1b1b",
-                    "on-secondary": "#ffffff",
-                    "on-primary": "#ffffff",
-                    "surface": "#f9f9f9",
-                    "error-container": "#ffdad6",
-                    "error": "#ba1a1a",
-                    "tertiary-container": "#1a1c1c",
-                    "on-surface": "#1a1c1c",
-                    "on-tertiary-fixed": "#1a1c1c",
-                    "tertiary-fixed-dim": "#c6c6c7",
-                    "outline": "#7e7576",
-                    "secondary-fixed-dim": "#c8c6c5",
-                    "secondary-fixed": "#e5e2e1",
-                    "secondary": "#5f5e5e",
-                    "tertiary-fixed": "#e2e2e2",
-                    "on-error-container": "#93000a",
-                    "on-primary-container": "#848484",
-                    "surface-container-highest": "#e2e2e2",
-                    "background": "#f9f9f9",
-                    "primary-fixed-dim": "#c6c6c6",
-                    "on-secondary-fixed": "#1c1b1b",
-                    "surface-container-low": "#f3f3f4",
-                    "on-surface-variant": "#4c4546",
-                    "on-tertiary": "#ffffff",
-                    "on-error": "#ffffff",
-                    "inverse-on-surface": "#f0f1f1",
-                    "inverse-primary": "#c6c6c6",
-                    "surface-bright": "#f9f9f9",
-                    "secondary-container": "#e2dfde",
-                    "surface-container": "#eeeeee",
-                    "on-secondary-container": "#636262",
-                    "on-secondary-fixed-variant": "#474746",
-                    "outline-variant": "#cfc4c5",
-                    "surface-container-lowest": "#ffffff",
-                    "on-background": "#1a1c1c"
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#dadada",
+                        "secondary": "#5f5e5e",
+                        "on-surface-variant": "#4c4546",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-background": "#1a1c1c",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "outline": "#7e7576",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary-fixed-variant": "#474747",
+                        "on-primary-container": "#848484",
+                        "primary-fixed-dim": "#c6c6c6",
+                        "surface-tint": "#5e5e5e",
+                        "outline-variant": "#cfc4c5",
+                        "surface": "#f9f9f9",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary": "#000000",
+                        "on-tertiary-container": "#838484",
+                        "surface-bright": "#f9f9f9",
+                        "inverse-on-surface": "#f0f1f1",
+                        "secondary-container": "#e2dfde",
+                        "inverse-surface": "#2f3131",
+                        "primary-fixed": "#e2e2e2",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "surface-container-low": "#f3f3f4",
+                        "surface-container-high": "#e8e8e8",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f9f9f9",
+                        "surface-container": "#eeeeee",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-primary-fixed": "#1b1b1b",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#1b1b1b",
+                        "on-secondary-container": "#636262",
+                        "primary": "#000000",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "inverse-primary": "#c6c6c6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1a1c1c",
+                        "on-secondary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "container-padding": "32px",
+                        "unit": "8px",
+                        "stack-md": "16px",
+                        "stack-xl": "64px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
             },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "stack-sm": "8px",
-                    "stack-xl": "64px",
-                    "stack-lg": "32px",
-                    "unit": "8px",
-                    "gutter": "24px",
-                    "container-padding": "32px",
-                    "stack-md": "16px"
-            },
-            "fontFamily": {
-                    "display": ["Plus Jakarta Sans"],
-                    "body-md": ["Plus Jakarta Sans"],
-                    "headline-lg": ["Plus Jakarta Sans"],
-                    "label-sm": ["Plus Jakarta Sans"],
-                    "label-lg": ["Plus Jakarta Sans"],
-                    "headline-md": ["Plus Jakarta Sans"],
-                    "headline-lg-mobile": ["Plus Jakarta Sans"],
-                    "body-lg": ["Plus Jakarta Sans"]
-            },
-            "fontSize": {
-                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
-                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
-                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
-                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
-            }
-          },
-        },
-      }
+        }
     </script>
 <style>
-        .glass-effect {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
             background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         }
-        .soft-shadow {
-            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.04);
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        .inner-glow:hover {
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
         }
         body {
-            background-color: #ffffff;
-            color: #1a1c1c;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f9f9f9;
         }
-        /* Masonry-like columns */
-        .masonry-grid {
-            column-count: 2;
-            column-gap: 8px;
-        }
-        .masonry-item {
-            break-inside: avoid;
-            margin-bottom: 8px;
-        }
+        ::-webkit-scrollbar { height: 0px; width: 0px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="font-body-md text-body-md min-h-screen pb-20 overflow-y-auto">
-<main class="px-2">
-<!-- Category Tabs - High Density -->
-<div class="flex items-center gap-4 overflow-x-auto py-3 no-scrollbar border-b border-gray-50">
-<button class="whitespace-nowrap font-label-lg text-primary font-semibold">推荐</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">穿搭</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">壁纸</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">机车</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">数码</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">影视</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">健身</button>
-<button class="whitespace-nowrap font-label-lg text-secondary">健身</button>
+<body class="text-on-surface antialiased">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-2xl px-gutter py-2 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-[20px]">arrow_back_ios_new</span>
+</button>
+<h1 class="font-headline-md text-[20px] text-primary">AI生成</h1>
 </div>
-<!-- AI Banner - Integrated into flow -->
-<section class="my-3 relative rounded-xl overflow-hidden soft-shadow bg-black aspect-[16/7]">
-<img class="w-full h-full object-cover opacity-70" data-alt="Abstract AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHaLmgTeKMCIq__T1vgUYUp8cJe_0aDfBw6MQL9TtpXg5KWzLrpg99RqTMkr4PJmxCogcnynHzLntk0c-kvnFAZnJT5z_OHH_WTp6vOho3DUtRA7xJipLhatstWi_DEQ6E0Bo4q4MqmMgLeCC0ghaon_d-WOsD4FQbKowY1q246jJBfKyw2QPos_ZhzBb6swUN7EvoxdWHwyN4TAtTpOxOYvYlYA_bROGnn-JDINvon-Z1elz-R2EFuOqEe4Rk2hQM31r69QbOP9BC"/>
-<div class="absolute inset-0 p-4 flex flex-col justify-center">
-<h2 class="text-white font-display text-xl font-bold">GPT Image 2</h2>
-<p class="text-white/80 text-[10px] max-w-[180px] mt-1 leading-tight">利用下一代 AI 引擎将您的想象力转化为高分辨率的视觉杰作。</p>
-<button class="mt-3 bg-white text-black w-fit px-4 py-1.5 rounded-full text-[10px] font-bold flex items-center gap-1">
-                立即尝试 <span class="material-symbols-outlined text-[12px]" data-icon="north_east">north_east</span>
+<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-[22px]">history</span>
+</button>
+</header>
+<main class="pt-16 pb-32 max-w-2xl mx-auto px-4 space-y-4">
+<!-- Reference Image Upload Area -->
+<section class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest">参考图片</label>
+<span class="text-[10px] text-outline">1张, 5MB以内</span>
+</div>
+<div class="w-full">
+<!-- Upload Trigger -->
+<div class="h-24 flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-all cursor-pointer group"><span class="material-symbols-outlined text-outline group-hover:scale-110 transition-transform text-[20px]">add_a_photo</span>
+<span class="text-[11px] text-on-surface-variant font-medium tracking-wide">点击上传图片</span></div>
+</div>
+</section>
+<!-- Prompt Input -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面描述</label>
+<div class="relative glass-card rounded-2xl p-3 focus-within:ring-2 ring-primary/5 transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-body-md font-body-md min-h-[80px] p-0 resize-none text-primary" maxlength="1000" placeholder="描述你想要的画面..."></textarea>
+<div class="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-[14px] text-primary" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
+<span class="text-[11px] font-medium text-secondary">Prompt</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-[1px] h-3 bg-outline-variant/30"></span>
+<span class="text-[10px] text-outline tracking-wider">支持中英文</span>
+</div>
+</div></div>
+</section>
+<!-- Model Selection (Redesigned as Scrollable Chips) -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">AI 模型</label>
+<div class="flex overflow-x-auto no-scrollbar gap-2 pb-1 -mx-4 px-4">
+<!-- Chip 1 -->
+<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
+<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[14px]">image</span>
+</div>
+<span class="text-[13px] font-semibold text-primary">G Image 2</span>
+</div>
+<!-- Chip 2 (Selected) -->
+<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white transition-all cursor-pointer border border-primary shadow-lg shadow-primary/10 whitespace-nowrap">
+<div class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px]" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
+</div>
+<span class="text-[13px] font-semibold">Pro Model</span>
+<span class="material-symbols-outlined text-white text-[14px]">check_circle</span>
+</div>
+<!-- Chip 3 -->
+<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
+<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[14px]">brush</span>
+</div>
+<span class="text-[13px] font-semibold text-primary">V2.4 Anime</span>
+</div>
+<!-- Chip 4 -->
+<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
+<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[14px]">camera</span>
+</div>
+<span class="text-[13px] font-semibold text-primary">Realistic</span>
+</div>
+</div>
+</section>
+<!-- Controls Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Quality & Count -->
+<div class="space-y-4">
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">质量</label>
+<div class="flex gap-2">
+<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">1K</button>
+<button class="flex-1 py-1.5 rounded-lg bg-primary text-white text-[12px] font-semibold active:scale-95 shadow-sm">2K</button>
+<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">4K</button>
+</div>
+</section>
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">生成数量</label>
+<div class="flex gap-1 p-1 bg-surface-container-high rounded-xl">
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">1</button>
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">2</button>
+<button class="flex-1 py-1 rounded-lg bg-white text-primary text-[12px] font-bold shadow-sm">3</button>
+<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">4</button>
+</div>
+</section>
+</div>
+<!-- Aspect Ratio -->
+<section class="space-y-2">
+<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面比例</label>
+<div class="grid grid-cols-4 gap-2">
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-4 h-4 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">1:1</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-primary bg-primary/5 transition-all active:scale-95">
+<div class="w-5 h-4 border border-primary rounded-sm bg-primary/20"></div>
+<span class="text-[9px] font-bold">4:3</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-5 h-3.5 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">3:2</span>
+</button>
+<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
+<div class="w-6 h-3 border border-primary/20 rounded-sm bg-primary/5"></div>
+<span class="text-[9px] font-bold">16:9</span>
 </button>
 </div>
 </section>
-<!-- Staggered Feed Layout -->
-<div class="masonry-grid mt-2">
-<!-- Card 1 -->
-<div class="masonry-item bg-white rounded-lg overflow-hidden soft-shadow border border-gray-100">
-<img alt="Portrait" class="w-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDqQ81RIrF4DYD6IUhgk5Vd-HiPTFoFCeTMaWVb-9zHZd4K-Uy-hrFd36GNLO1fBIlElhH5f28yVXbYMoY6X3BIKdBlbLRDlhkyu06sNreUu6wR6LjzKHdQHIHJnStkzZfKDej2S5XC8fpYwc9E_ZPtp0C7M1N_LX9hBdNqgDJabPA_FvW983rcC8Jv3ppP-jqZLrCRkf1hdR18Nd9CQUla4c_ZWMaSTWDUbpL-WJ8RGkZ5oNKHPCLkWAoFq8N3_Ujlwi-qkZC0ly9"/>
-<div class="p-2 space-y-1.5">
-<h4 class="text-[13px] font-bold leading-tight line-clamp-2">复古黑色系人像摄影：极致的光影美学</h4>
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-1">
-<div class="w-4 h-4 rounded-full bg-gray-200"></div>
-<span class="text-[10px] text-secondary">VisionArt</span>
-</div>
-<div class="flex items-center gap-0.5 text-secondary">
-<span class="material-symbols-outlined text-[12px]" data-icon="favorite">favorite</span>
-<span class="text-[10px]">1.2k</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Card 2 -->
-<div class="masonry-item bg-white rounded-lg overflow-hidden soft-shadow border border-gray-100">
-<img alt="Landscape" class="w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTyCO2I_N97JxY2C3TgX2L5IDL2as-Lg-uSM3tyrJlG_w3IfAu0XiLafx04Sj84OoXSHRVQICE-leVwH2qkCyVsKZllB9aRkAYD7W8YSTZ1Fc1C6BR5EAWE6mC0ZoU6_BeoJumcvIAy5Bb-Q7WihM623FcPZhBsoCNzjOhWwu3jNSefyqhP8pij7nZ_urm9Ni11jSPfMLWf36bHT2lFXRcpOWoOddLfZ1CWXCtexsNRT6zKUB12vBXBwuQdTYkJtgzHJMCMRpdP0Ma"/>
-<div class="p-2 space-y-1.5">
-<h4 class="text-[13px] font-bold leading-tight line-clamp-2">AI 生成的奇幻仙境，每一帧都是壁纸级别</h4>
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-1">
-<div class="w-4 h-4 rounded-full bg-gray-200 overflow-hidden">
-<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWKltY_tzZNoDkNNHoihAHH2yucH6ItJtGGuYmww1FuDw39xmuV73WVQ2Tft8pQPIH_Mw2dUvLnO4nJwrIknuqBBjJ2Pcm2QgSTkDaCiZ-D_AeF_QRdHExbsxmT_EofojW0qCO8ZI7NA7E3k0QbWhHKEBSlRfL9Yytm8Wvy9F8OHArBp83ddF7WMdBW3jMAFMxcjgtIs2NYLDO7RgPj79lr88ZpHVeKoTwJfbJDdZQQWOVa7LCzV73xe1_AV23koT8FzdclvsiLm-K"/>
-</div>
-<span class="text-[10px] text-secondary">梦幻旅人</span>
-</div>
-<div class="flex items-center gap-0.5 text-secondary">
-<span class="material-symbols-outlined text-[12px]" data-icon="favorite">favorite</span>
-<span class="text-[10px]">856</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Card 3 -->
-<div class="masonry-item bg-white rounded-lg overflow-hidden soft-shadow border border-gray-100">
-<img alt="Anime" class="w-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWKltY_tzZNoDkNNHoihAHH2yucH6ItJtGGuYmww1FuDw39xmuV73WVQ2Tft8pQPIH_Mw2dUvLnO4nJwrIknuqBBjJ2Pcm2QgSTkDaCiZ-D_AeF_QRdHExbsxmT_EofojW0qCO8ZI7NA7E3k0QbWhHKEBSlRfL9Yytm8Wvy9F8OHArBp83ddF7WMdBW3jMAFMxcjgtIs2NYLDO7RgPj79lr88ZpHVeKoTwJfbJDdZQQWOVa7LCzV73xe1_AV23koT8FzdclvsiLm-K"/>
-<div class="p-2 space-y-1.5">
-<h4 class="text-[13px] font-bold leading-tight line-clamp-2">极简二次元线条感，黑白风格的独特魅力</h4>
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-1">
-<div class="w-4 h-4 rounded-full bg-gray-200"></div>
-<span class="text-[10px] text-secondary">AnimeLab</span>
-</div>
-<div class="flex items-center gap-0.5 text-secondary">
-<span class="material-symbols-outlined text-[12px]" data-icon="favorite">favorite</span>
-<span class="text-[10px]">2.3k</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Card 4 -->
-<div class="masonry-item bg-white rounded-lg overflow-hidden soft-shadow border border-gray-100">
-<img alt="3D Art" class="w-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfS8GbRH19-WMIqfyCUTzFz8SVAxQS2k8nsziQOBvXFE-dtfXLFyh2eAylTfuOePlXtME3MguBsKladcSpyyJY-0xP-RPHUJ_tQo84JsV16PVkrpSTwKmcW0-Jtk7zZ1JaGdu18OvsOHH89Sw8R5em0fQCpqe_zERusg4vnZBNsbXdu2RlwRUVlJxXh2sKxZkZncomPo9VfaqD1MYWRC-Jdt_iMF4RQjSlOIz01Cx-Q8KrME0BMa8uF7CKY8I16NNEP2M2UKgqLVQy"/>
-<div class="p-2 space-y-1.5">
-<h4 class="text-[13px] font-bold leading-tight line-clamp-2">流体雕塑：数字艺术的无限可能</h4>
-<div class="flex items-center justify-between">
-<div class="flex items-center gap-1">
-<div class="w-4 h-4 rounded-full bg-gray-200"></div>
-<span class="text-[10px] text-secondary">3DGen</span>
-</div>
-<div class="flex items-center gap-0.5 text-secondary">
-<span class="material-symbols-outlined text-[12px]" data-icon="favorite">favorite</span>
-<span class="text-[10px]">492</span>
-</div>
-</div>
-</div>
-</div>
 </div>
 </main>
-<!-- Bottom Navigation Shell - Clean & Consistent -->
-<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-2 bg-white/95 backdrop-blur-xl border-t border-gray-100 z-50 h-16">
-<a class="flex flex-col items-center justify-center text-primary" href="#">
-<span class="material-symbols-outlined text-[24px]" data-icon="home">home</span>
-<span class="text-[10px] font-bold mt-0.5">首页</span>
-</a>
-<a class="flex flex-col items-center justify-center text-secondary" href="#">
-<span class="material-symbols-outlined text-[24px]" data-icon="category">category</span>
-<span class="text-[10px] mt-0.5">模板</span>
-</a>
-<div class="flex items-center justify-center">
-<button class="bg-primary text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-<span class="material-symbols-outlined" data-icon="add">add</span>
-</button>
+<!-- Bottom Action Sheet -->
+<footer class="fixed bottom-0 left-0 w-full z-50 p-4">
+<div class="max-w-2xl mx-auto glass-card rounded-2xl p-3 flex items-center justify-between shadow-[0_-15px_40px_rgba(0,0,0,0.08)]"><div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary" style='font-variation-settings: "FILL" 1;'>token</span>
+<span class="text-[20px] font-bold text-primary tracking-tight">8</span>
 </div>
-<a class="flex flex-col items-center justify-center text-secondary relative" href="#">
-<span class="material-symbols-outlined text-[24px]" data-icon="chat_bubble">chat_bubble</span>
-<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-error rounded-full"></span>
-<span class="text-[10px] mt-0.5">消息</span>
-</a>
-<a class="flex flex-col items-center justify-center text-secondary" href="#">
-<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
-<span class="text-[10px] mt-0.5">我</span>
-</a>
-</nav>
+<p class="text-[10px] text-secondary font-medium tracking-wider">预计消耗</p>
+</div>
+<button class="bg-primary text-white px-10 py-3.5 rounded-xl text-[15px] font-bold active:scale-95 transition-all inner-glow hover:opacity-90 flex items-center gap-2 shadow-lg">
+<span class="">立即生成</span>
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+</button></div>
+</footer>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none opacity-10">
+<div class="absolute top-[5%] right-[-5%] w-[300px] h-[300px] bg-secondary-fixed/30 rounded-full blur-[80px]"></div>
+<div class="absolute bottom-[10%] left-[-10%] w-[400px] h-[400px] bg-tertiary-fixed/40 rounded-full blur-[100px]"></div>
+</div>
 </body></html>

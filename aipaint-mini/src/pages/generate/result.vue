@@ -495,7 +495,10 @@ function formatCreateTime(value: string) {
 
 function formatModel(value: string) {
   if (value === "gpt-image-2" || value === "g-image-2") return "GPT-image-2";
+  if (value === "gpt-image-2-vip") return "GPT-image-2 VIP";
   if (value === "nano-banana-2") return "nano-banana-2";
+  if (value === "nano-banana-pro") return "nano-banana-pro";
+  if (value === "nano-banana") return "nano-banana";
   return value || "gpt-image-2";
 }
 
