@@ -29,6 +29,16 @@ import com.ruoyi.web.service.image.AiImageTaskRunner;
 @RequestMapping("/mini/generate")
 public class MiniGenerateController extends BaseController
 {
+    private static final String MODEL_GPT_IMAGE_2 = "gpt-image-2";
+
+    private static final String MODEL_GPT_IMAGE_2_VIP = "gpt-image-2-vip";
+
+    private static final String MODEL_NANO_BANANA_2 = "nano-banana-2";
+
+    private static final String MODEL_NANO_BANANA_PRO = "nano-banana-pro";
+
+    private static final String MODEL_NANO_BANANA = "nano-banana";
+
     @Autowired
     private IAiGenerationTaskService taskService;
 
@@ -62,23 +72,18 @@ public class MiniGenerateController extends BaseController
 
         Long userId = SecurityUtils.getUserId();
         String model = normalizeModel(requestedModel, providerConfig.getModel());
-        String ratio = normalizeRatio(request.getRatio());
-        String resolution = normalizeResolution(request.getResolution());
-        String quality = normalizeQuality(request.getQuality());
+        String ratio = normalizeRatioForModel(model, normalizeRatio(request.getRatio()));
+        String resolution = normalizeResolutionForModel(model, ratio, normalizeResolution(request.getResolution()));
         Integer imageCount = normalizeImageCount(request.getN());
         List<String> imageUrls = normalizeImageUrls(request.getImageUrls(), request.getReferenceImageUrl());
-        String size = normalizeImageSize(ratio, resolution, request.getSize());
-        if ("4K".equals(resolution) && ("1:1".equals(ratio) || "4:3".equals(ratio) || "3:4".equals(ratio)))
-        {
-            return error("4K 分辨率仅支持 16:9、9:16、2:1");
-        }
+        String size = normalizeImageSize(model, ratio, resolution, request.getSize());
 
         AiGenerationTask task = new AiGenerationTask();
         task.setUserId(userId);
         task.setProviderCode(providerConfig.getProviderCode());
         task.setPrompt(request.getPrompt().trim());
         task.setModel(model);
-        task.setQuality(quality);
+        task.setQuality("auto");
         task.setRatio(ratio);
         task.setSize(size);
         task.setResolution(resolution);
@@ -86,7 +91,7 @@ public class MiniGenerateController extends BaseController
         task.setImageCount(imageCount);
         task.setStatus("pending");
         task.setProgress(0);
-        int creditCost = calculateCreditCost(size, imageCount);
+        int creditCost = calculateCreditCost(model, resolution, imageCount);
         task.setCreditCost(creditCost);
         task.setCreateBy(SecurityUtils.getUsername());
         taskService.insertGenerationTask(task);
@@ -127,7 +132,21 @@ public class MiniGenerateController extends BaseController
     private String normalizeRatio(String ratio)
     {
         if ("1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio)
-                || "16:9".equals(ratio) || "9:16".equals(ratio) || "2:1".equals(ratio))
+                || "16:9".equals(ratio) || "9:16".equals(ratio) || "2:1".equals(ratio)
+                || "3:2".equals(ratio) || "2:3".equals(ratio) || "5:4".equals(ratio)
+                || "4:5".equals(ratio) || "21:9".equals(ratio) || "9:21".equals(ratio)
+                || "1:3".equals(ratio) || "3:1".equals(ratio) || "1:2".equals(ratio))
+        {
+            return ratio;
+        }
+        return "1:1";
+    }
+
+    private String normalizeRatioForModel(String model, String ratio)
+    {
+        if (StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "1K"))
+                || StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "2K"))
+                || StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "4K")))
         {
             return ratio;
         }
@@ -136,20 +155,31 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeModel(String model, String defaultModel)
     {
-        if ("gpt-image-2".equals(model) || "nano-banana-2".equals(model))
+        if (isSupportedModel(model))
         {
             return model;
         }
-        return StringUtils.defaultIfBlank(defaultModel, "gpt-image-2");
+        if (isSupportedModel(defaultModel))
+        {
+            return defaultModel;
+        }
+        return MODEL_GPT_IMAGE_2;
     }
 
     private String normalizeRequestModel(String model)
     {
-        if ("gpt-image-2".equals(model) || "nano-banana-2".equals(model))
+        if (isSupportedModel(model))
         {
             return model;
         }
         return "";
+    }
+
+    private boolean isSupportedModel(String model)
+    {
+        return MODEL_GPT_IMAGE_2.equals(model) || MODEL_GPT_IMAGE_2_VIP.equals(model)
+                || MODEL_NANO_BANANA_2.equals(model) || MODEL_NANO_BANANA_PRO.equals(model)
+                || MODEL_NANO_BANANA.equals(model);
     }
 
     private String normalizeResolution(String resolution)
@@ -165,26 +195,30 @@ public class MiniGenerateController extends BaseController
         return "2K";
     }
 
-    private String normalizeQuality(String quality)
+    private String normalizeResolutionForModel(String model, String ratio, String resolution)
     {
-        if ("low".equals(quality) || "medium".equals(quality) || "high".equals(quality))
+        if (StringUtils.isNotBlank(resolveExpectedSize(model, ratio, resolution)))
         {
-            return quality;
+            return resolution;
         }
-        if ("1K".equals(quality))
+        if (StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "1K")))
         {
-            return "low";
+            return "1K";
         }
-        if ("4K".equals(quality))
+        if (StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "2K")))
         {
-            return "high";
+            return "2K";
         }
-        return "medium";
+        if (StringUtils.isNotBlank(resolveExpectedSize(model, ratio, "4K")))
+        {
+            return "4K";
+        }
+        return "1K";
     }
 
-    private String normalizeImageSize(String ratio, String resolution, String requestSize)
+    private String normalizeImageSize(String model, String ratio, String resolution, String requestSize)
     {
-        String expectedSize = resolveExpectedSize(ratio, resolution);
+        String expectedSize = StringUtils.defaultIfBlank(resolveExpectedSize(model, ratio, resolution), "1024x1024");
         if (StringUtils.isBlank(requestSize))
         {
             return expectedSize;
@@ -192,33 +226,115 @@ public class MiniGenerateController extends BaseController
         return expectedSize.equals(requestSize) ? requestSize : expectedSize;
     }
 
-    private String resolveExpectedSize(String ratio, String resolution)
+    private String resolveExpectedSize(String model, String ratio, String resolution)
+    {
+        if (MODEL_GPT_IMAGE_2.equals(model))
+        {
+            return resolveGptImage2Size(ratio, resolution);
+        }
+        if (MODEL_GPT_IMAGE_2_VIP.equals(model))
+        {
+            return resolveGptImage2VipSize(ratio, resolution);
+        }
+        return resolveDefaultSize(ratio, resolution);
+    }
+
+    private String resolveGptImage2Size(String ratio, String resolution)
+    {
+        if (!"1K".equals(resolution))
+        {
+            return null;
+        }
+        if ("1:1".equals(ratio)) return "1024x1024";
+        if ("16:9".equals(ratio)) return "1672x941";
+        if ("9:16".equals(ratio)) return "941x1672";
+        if ("4:3".equals(ratio)) return "1443x1090";
+        if ("3:4".equals(ratio)) return "1090x1443";
+        if ("3:2".equals(ratio)) return "1536x1024";
+        if ("2:3".equals(ratio)) return "1024x1536";
+        if ("5:4".equals(ratio)) return "1408x1120";
+        if ("4:5".equals(ratio)) return "1120x1408";
+        if ("21:9".equals(ratio)) return "1920x832";
+        if ("9:21".equals(ratio)) return "832x1920";
+        if ("1:2".equals(ratio)) return "896x1792";
+        if ("2:1".equals(ratio)) return "1792x896";
+        return null;
+    }
+
+    private String resolveGptImage2VipSize(String ratio, String resolution)
     {
         if ("1:1".equals(ratio))
         {
-            return "1K".equals(resolution) ? "1024x1024" : "2048x2048";
-        }
-        if ("4:3".equals(ratio))
-        {
-            return "1K".equals(resolution) ? "1024x768" : "2048x1536";
-        }
-        if ("3:4".equals(ratio))
-        {
-            return "1K".equals(resolution) ? "768x1024" : "1536x2048";
+            return "1K".equals(resolution) ? "1024x1024" : "2K".equals(resolution) ? "2048x2048" : "4K".equals(resolution) ? "2880x2880" : null;
         }
         if ("16:9".equals(ratio))
         {
-            return "1K".equals(resolution) ? "1536x864" : "2K".equals(resolution) ? "2048x1152" : "3840x2160";
+            return "1K".equals(resolution) ? "1280x720" : "2K".equals(resolution) ? "2048x1152" : "4K".equals(resolution) ? "3840x2160" : null;
         }
         if ("9:16".equals(ratio))
         {
-            return "1K".equals(resolution) ? "864x1536" : "2K".equals(resolution) ? "1152x2048" : "2160x3840";
+            return "1K".equals(resolution) ? "720x1280" : "2K".equals(resolution) ? "1152x2048" : "4K".equals(resolution) ? "2160x3840" : null;
+        }
+        if ("4:3".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1152x864" : "2K".equals(resolution) ? "2304x1728" : "4K".equals(resolution) ? "3264x2448" : null;
+        }
+        if ("3:4".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "864x1152" : "2K".equals(resolution) ? "1728x2304" : "4K".equals(resolution) ? "2448x3264" : null;
+        }
+        if ("3:2".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1536x1024" : "2K".equals(resolution) ? "2048x1360" : "4K".equals(resolution) ? "3504x2336" : null;
+        }
+        if ("2:3".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1024x1536" : "2K".equals(resolution) ? "1360x2048" : "4K".equals(resolution) ? "2336x3504" : null;
+        }
+        if ("5:4".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1120x896" : "2K".equals(resolution) ? "2240x1792" : "4K".equals(resolution) ? "3200x2560" : null;
+        }
+        if ("4:5".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "896x1120" : "2K".equals(resolution) ? "1792x2240" : "4K".equals(resolution) ? "2560x3200" : null;
+        }
+        if ("21:9".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "1456x624" : "2K".equals(resolution) ? "2912x1248" : "4K".equals(resolution) ? "3840x1648" : null;
+        }
+        if ("9:21".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "624x1456" : "2K".equals(resolution) ? "1248x2912" : "4K".equals(resolution) ? "1648x3840" : null;
+        }
+        if ("1:3".equals(ratio))
+        {
+            return "2K".equals(resolution) ? "688x2048" : "4K".equals(resolution) ? "1280x3840" : null;
+        }
+        if ("3:1".equals(ratio))
+        {
+            return "2K".equals(resolution) ? "2048x688" : "4K".equals(resolution) ? "3840x1280" : null;
         }
         if ("2:1".equals(ratio))
         {
-            return "1K".equals(resolution) ? "2048x1024" : "2K".equals(resolution) ? "2688x1344" : "3840x1920";
+            return "1K".equals(resolution) ? "1536x768" : "2K".equals(resolution) ? "3072x1536" : "4K".equals(resolution) ? "3840x1920" : null;
         }
-        return "1024x1024";
+        if ("1:2".equals(ratio))
+        {
+            return "1K".equals(resolution) ? "768x1536" : "2K".equals(resolution) ? "1536x3072" : "4K".equals(resolution) ? "1920x3840" : null;
+        }
+        return null;
+    }
+
+    private String resolveDefaultSize(String ratio, String resolution)
+    {
+        if ("1:1".equals(ratio)) return "1K".equals(resolution) ? "1024x1024" : "2K".equals(resolution) ? "2048x2048" : null;
+        if ("4:3".equals(ratio)) return "1K".equals(resolution) ? "1024x768" : "2K".equals(resolution) ? "2048x1536" : null;
+        if ("3:4".equals(ratio)) return "1K".equals(resolution) ? "768x1024" : "2K".equals(resolution) ? "1536x2048" : null;
+        if ("16:9".equals(ratio)) return "1K".equals(resolution) ? "1536x864" : "2K".equals(resolution) ? "2048x1152" : "4K".equals(resolution) ? "3840x2160" : null;
+        if ("9:16".equals(ratio)) return "1K".equals(resolution) ? "864x1536" : "2K".equals(resolution) ? "1152x2048" : "4K".equals(resolution) ? "2160x3840" : null;
+        if ("2:1".equals(ratio)) return "1K".equals(resolution) ? "2048x1024" : "2K".equals(resolution) ? "2688x1344" : "4K".equals(resolution) ? "3840x1920" : null;
+        return null;
     }
 
     private List<String> normalizeImageUrls(List<String> imageUrls, String referenceImageUrl)
@@ -259,40 +375,56 @@ public class MiniGenerateController extends BaseController
         return null;
     }
 
-    private int calculateCreditCost(String size, Integer imageCount)
+    private int calculateCreditCost(String model, String resolution, Integer imageCount)
     {
-        int singleCost = calculateSingleCreditCost(size);
+        int singleCost = calculateSingleCreditCost(model, resolution);
         int count = imageCount == null ? 1 : Math.max(1, imageCount.intValue());
         return singleCost * count;
     }
 
-    private int calculateSingleCreditCost(String size)
+    private int calculateSingleCreditCost(String model, String resolution)
     {
-        String[] parts = StringUtils.defaultString(size).toLowerCase().split("x");
-        if (parts.length != 2)
-        {
-            return 5;
-        }
+        return (int) Math.ceil(getModelBaseCredits(model) * getResolutionCreditMultiplier(resolution));
+    }
 
-        try
+    private int getModelBaseCredits(String model)
+    {
+        if (MODEL_GPT_IMAGE_2.equals(model))
         {
-            long width = Long.parseLong(parts[0].trim());
-            long height = Long.parseLong(parts[1].trim());
-            long pixels = width * height;
-            int cost = (int) Math.ceil((pixels / 8294400.0D) * 20.0D);
-            return Math.max(5, cost);
+            return 6;
         }
-        catch (NumberFormatException e)
+        if (MODEL_NANO_BANANA_2.equals(model))
         {
-            return 5;
+            return 12;
         }
+        if (MODEL_GPT_IMAGE_2_VIP.equals(model) || MODEL_NANO_BANANA.equals(model))
+        {
+            return 15;
+        }
+        if (MODEL_NANO_BANANA_PRO.equals(model))
+        {
+            return 20;
+        }
+        return 6;
+    }
+
+    private double getResolutionCreditMultiplier(String resolution)
+    {
+        if ("2K".equals(resolution))
+        {
+            return 1.2D;
+        }
+        if ("4K".equals(resolution))
+        {
+            return 1.5D;
+        }
+        return 1.0D;
     }
 
     public static class GenerateImageRequest
     {
         private String prompt;
         private String model;
-        private String quality;
         private String ratio;
         private String size;
         private String resolution;
@@ -319,16 +451,6 @@ public class MiniGenerateController extends BaseController
         public void setModel(String model)
         {
             this.model = model;
-        }
-
-        public String getQuality()
-        {
-            return quality;
-        }
-
-        public void setQuality(String quality)
-        {
-            this.quality = quality;
         }
 
         public String getRatio()

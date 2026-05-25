@@ -112,7 +112,7 @@
                 新人礼包已到账
               </text>
               <text class="mt-[4rpx] block text-[22rpx] leading-[32rpx] text-[var(--app-on-surface-variant)]">
-                100积分，7天有效，约可生成20张常规图
+                100积分，7天有效，约可生成16张基础1K图
               </text>
             </view>
           </view>

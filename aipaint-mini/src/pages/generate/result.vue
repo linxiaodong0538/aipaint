@@ -259,7 +259,7 @@ const showProgressState = computed(() => !pageInitializing.value && taskState.va
 const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
-const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
+const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
 const taskPromptText = computed(() => taskPrompt.value || "未填写");
 const taskModelText = computed(() => formatModel(taskModel.value));
