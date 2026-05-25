@@ -21,6 +21,13 @@ public class MiniUserProfile
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date newUserGiftExpireTime;
 
+    private String memberTier;
+
+    private Integer memberAddonBonus;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date memberExpireTime;
+
     public MiniUserProfile()
     {
     }
@@ -96,5 +103,35 @@ public class MiniUserProfile
     public void setNewUserGiftExpireTime(Date newUserGiftExpireTime)
     {
         this.newUserGiftExpireTime = newUserGiftExpireTime;
+    }
+
+    public String getMemberTier()
+    {
+        return memberTier;
+    }
+
+    public void setMemberTier(String memberTier)
+    {
+        this.memberTier = memberTier;
+    }
+
+    public Integer getMemberAddonBonus()
+    {
+        return memberAddonBonus;
+    }
+
+    public void setMemberAddonBonus(Integer memberAddonBonus)
+    {
+        this.memberAddonBonus = memberAddonBonus;
+    }
+
+    public Date getMemberExpireTime()
+    {
+        return memberExpireTime;
+    }
+
+    public void setMemberExpireTime(Date memberExpireTime)
+    {
+        this.memberExpireTime = memberExpireTime;
     }
 }

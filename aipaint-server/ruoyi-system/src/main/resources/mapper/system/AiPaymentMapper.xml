@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiPaymentMapper">
+
+    <resultMap type="AiPaymentOrder" id="AiPaymentOrderResult">
+        <id     property="orderId"       column="order_id"       />
+        <result property="outTradeNo"    column="out_trade_no"   />
+        <result property="userId"        column="user_id"        />
+        <result property="productId"     column="product_id"     />
+        <result property="productType"   column="product_type"   />
+        <result property="productName"   column="product_name"   />
+        <result property="amountCent"    column="amount_cent"    />
+        <result property="credits"       column="credits"        />
+        <result property="memberTier"    column="member_tier"    />
+        <result property="memberDays"    column="member_days"    />
+        <result property="status"        column="status"         />
+        <result property="transactionId" column="transaction_id" />
+        <result property="prepayId"      column="prepay_id"      />
+        <result property="paidTime"      column="paid_time"      />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="notifyTime"    column="notify_time"    />
+        <result property="rawNotify"     column="raw_notify"     />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <resultMap type="AiUserMembership" id="AiUserMembershipResult">
+        <id     property="userId"      column="user_id"      />
+        <result property="memberTier"  column="member_tier"  />
+        <result property="addonBonus"  column="addon_bonus"  />
+        <result property="expireTime"  column="expire_time"  />
+        <result property="createTime"  column="create_time"  />
+        <result property="updateTime"  column="update_time"  />
+    </resultMap>
+
+    <sql id="selectPaymentOrderVo">
+        select order_id, out_trade_no, user_id, product_id, product_type, product_name, amount_cent, credits,
+               member_tier, member_days, status, transaction_id, prepay_id, paid_time, expire_time,
+               notify_time, raw_notify, create_time, update_time
+        from ai_payment_order
+    </sql>
+
+    <insert id="insertPaymentOrder" parameterType="AiPaymentOrder" useGeneratedKeys="true" keyProperty="orderId">
+        insert into ai_payment_order(
+            out_trade_no, user_id, product_id, product_type, product_name, amount_cent, credits,
+            member_tier, member_days, status, expire_time, create_time
+        ) values (
+            #{outTradeNo}, #{userId}, #{productId}, #{productType}, #{productName}, #{amountCent}, #{credits},
+            #{memberTier}, #{memberDays}, #{status}, #{expireTime}, sysdate()
+        )
+    </insert>
+
+    <select id="selectPaymentOrderByOutTradeNo" resultMap="AiPaymentOrderResult">
+        <include refid="selectPaymentOrderVo"/>
+        where out_trade_no = #{outTradeNo}
+        limit 1
+    </select>
+
+    <select id="selectPaymentOrderByOutTradeNoForUpdate" resultMap="AiPaymentOrderResult">
+        <include refid="selectPaymentOrderVo"/>
+        where out_trade_no = #{outTradeNo}
+        limit 1
+        for update
+    </select>
+
+    <update id="updatePaymentOrderPrepay">
+        update ai_payment_order
+        set prepay_id = #{prepayId},
+            update_time = sysdate()
+        where out_trade_no = #{outTradeNo}
+    </update>
+
+    <update id="markPaymentOrderPaid" parameterType="AiPaymentOrder">
+        update ai_payment_order
+        set status = 'PAID',
+            transaction_id = #{transactionId},
+            paid_time = #{paidTime},
+            notify_time = sysdate(),
+            raw_notify = #{rawNotify},
+            update_time = sysdate()
+        where out_trade_no = #{outTradeNo}
+          and status != 'PAID'
+    </update>
+
+    <select id="selectMembershipByUserId" resultMap="AiUserMembershipResult">
+        select user_id, member_tier, addon_bonus, expire_time, create_time, update_time
+        from ai_user_membership
+        where user_id = #{userId}
+        limit 1
+    </select>
+
+    <insert id="insertMembership" parameterType="AiUserMembership">
+        insert into ai_user_membership(
+            user_id, member_tier, addon_bonus, expire_time, create_time
+        ) values (
+            #{userId}, #{memberTier}, #{addonBonus}, #{expireTime}, sysdate()
+        )
+    </insert>
+
+    <update id="updateMembership" parameterType="AiUserMembership">
+        update ai_user_membership
+        set member_tier = #{memberTier},
+            addon_bonus = #{addonBonus},
+            expire_time = #{expireTime},
+            update_time = sysdate()
+        where user_id = #{userId}
+    </update>
+</mapper>

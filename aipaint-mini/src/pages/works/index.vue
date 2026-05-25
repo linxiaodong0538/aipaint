@@ -161,7 +161,8 @@
               </view>
             </view>
 
-            <text class="mt-[48rpx] block text-[24rpx] leading-[50rpx] text-gray-400">
+            <text class="mt-[48rpx] block text-[28rpx] leading-[50rpx] text-gray-400 tracking-widest">
+      
               {{ emptyTitle }}
             </text>
             <text

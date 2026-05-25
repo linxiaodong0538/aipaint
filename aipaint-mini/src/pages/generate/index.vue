@@ -223,11 +223,21 @@
         </button>
       </view>
     </view>
+
+    <canvas
+      canvas-id="reference-compress-canvas"
+      id="reference-compress-canvas"
+      class="reference-compress-canvas"
+      :style="{
+        width: `${compressCanvasWidth}px`,
+        height: `${compressCanvasHeight}px`,
+      }"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
 import { createImageGeneration, uploadImage } from "@/api/generate";
@@ -239,6 +249,12 @@ const prompts = [
   "水墨山谷中的白色建筑，云雾缭绕，留白构图，细腻纸张纹理",
   "赛博街区的雨夜橱窗，霓虹反射，广角摄影，超现实氛围",
 ];
+
+const REFERENCE_DIRECT_MAX_BYTES = 5 * 1024 * 1024;
+const REFERENCE_COMPRESSED_MAX_BYTES = 8 * 1024 * 1024;
+const REFERENCE_MAX_EDGE = 2048;
+const REFERENCE_COMPRESS_QUALITY = 0.82;
+const REFERENCE_COMPRESS_CANVAS_ID = "reference-compress-canvas";
 
 type ModelValue = "gpt-image-2" | "xx";
 
@@ -324,9 +340,16 @@ interface RetryParams {
   count?: string | number;
 }
 
+interface ReferenceSelectedFile {
+  path: string;
+  size?: number;
+}
+
 const creditCost = computed(() => {
   return calculateCreditCost(mapImageSize(ratio.value, quality.value), count.value);
 });
+const compressCanvasWidth = ref(1);
+const compressCanvasHeight = ref(1);
 
 const hiddenRatiosFor4K = ["1:1", "4:3", "3:4"] as const;
 const visibleRatios = computed(() => (
@@ -505,8 +528,154 @@ function chooseImage() {
     sizeType: ["compressed"],
     sourceType: ["album", "camera"],
     success(result) {
-      referenceImages.value = [...referenceImages.value, ...result.tempFilePaths].slice(0, maxReferenceImages);
+      const selectedFiles = normalizeSelectedReferenceFiles(result).slice(0, remainingCount);
+      void handleSelectedReferenceImages(selectedFiles);
     },
+  });
+}
+
+function normalizeSelectedReferenceFiles(result: UniApp.ChooseImageSuccessCallbackResult): ReferenceSelectedFile[] {
+  const tempFilePaths = Array.isArray(result.tempFilePaths) ? result.tempFilePaths : [result.tempFilePaths].filter(Boolean);
+  const tempFiles = (result.tempFiles || []) as Array<{ path?: string; size?: number } | string>;
+  if (tempFiles.length > 0) {
+    return tempFiles
+      .map((file, index) => {
+        if (typeof file === "string") {
+          return { path: file };
+        }
+        return {
+          path: file.path || tempFilePaths[index],
+          size: file.size,
+        };
+      })
+      .filter((file) => Boolean(file.path));
+  }
+
+  return tempFilePaths.map((path: string) => ({ path }));
+}
+
+async function handleSelectedReferenceImages(files: ReferenceSelectedFile[]) {
+  if (!files.length) {
+    return;
+  }
+
+  const acceptedImages: string[] = [];
+  let oversizedCount = 0;
+
+  uni.showLoading({ title: "处理参考图...", mask: true });
+  try {
+    for (const file of files) {
+      if (referenceImages.value.length + acceptedImages.length >= maxReferenceImages) {
+        break;
+      }
+
+      const processedPath = await processReferenceImage(file);
+      if (processedPath) {
+        acceptedImages.push(processedPath);
+      } else {
+        oversizedCount += 1;
+      }
+    }
+  } finally {
+    uni.hideLoading();
+  }
+
+  if (acceptedImages.length > 0) {
+    referenceImages.value = [...referenceImages.value, ...acceptedImages].slice(0, maxReferenceImages);
+  }
+
+  if (oversizedCount > 0) {
+    uni.showToast({
+      title: "图片过大，请更换或裁剪后上传",
+      icon: "none",
+    });
+  }
+}
+
+async function processReferenceImage(file: ReferenceSelectedFile) {
+  const fileSize = typeof file.size === "number" ? file.size : await getLocalFileSize(file.path).catch(() => 0);
+  const imageInfo = await getLocalImageInfo(file.path).catch(() => null);
+  if (!imageInfo) {
+    return fileSize > REFERENCE_COMPRESSED_MAX_BYTES ? "" : file.path;
+  }
+
+  const longestEdge = Math.max(imageInfo.width, imageInfo.height);
+  if (fileSize <= REFERENCE_DIRECT_MAX_BYTES && longestEdge <= REFERENCE_MAX_EDGE) {
+    return file.path;
+  }
+
+  const compressedPath = await compressReferenceImage(file.path, imageInfo.width, imageInfo.height).catch(() => "");
+  if (!compressedPath) {
+    return fileSize > REFERENCE_COMPRESSED_MAX_BYTES ? "" : file.path;
+  }
+
+  const compressedSize = await getLocalFileSize(compressedPath).catch(() => 0);
+  if (compressedSize > REFERENCE_COMPRESSED_MAX_BYTES) {
+    return "";
+  }
+  return compressedPath;
+}
+
+function getLocalImageInfo(src: string) {
+  return new Promise<UniApp.GetImageInfoSuccessData>((resolve, reject) => {
+    uni.getImageInfo({
+      src,
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+function getLocalFileSize(filePath: string) {
+  return new Promise<number>((resolve, reject) => {
+    uni.getFileInfo({
+      filePath,
+      success(result) {
+        resolve(result.size || 0);
+      },
+      fail: reject,
+    });
+  });
+}
+
+async function compressReferenceImage(filePath: string, width: number, height: number) {
+  const scale = Math.min(1, REFERENCE_MAX_EDGE / Math.max(width, height));
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+
+  compressCanvasWidth.value = targetWidth;
+  compressCanvasHeight.value = targetHeight;
+  await nextTick();
+
+  const context = uni.createCanvasContext(REFERENCE_COMPRESS_CANVAS_ID);
+  context.clearRect(0, 0, targetWidth, targetHeight);
+  context.drawImage(filePath, 0, 0, targetWidth, targetHeight);
+  await drawCanvas(context);
+
+  return new Promise<string>((resolve, reject) => {
+    uni.canvasToTempFilePath({
+      canvasId: REFERENCE_COMPRESS_CANVAS_ID,
+      x: 0,
+      y: 0,
+      width: targetWidth,
+      height: targetHeight,
+      destWidth: targetWidth,
+      destHeight: targetHeight,
+      fileType: "jpg",
+      quality: REFERENCE_COMPRESS_QUALITY,
+      success(result) {
+        resolve(result.tempFilePath);
+      },
+      fail: reject,
+    });
+  });
+}
+
+function drawCanvas(context: UniApp.CanvasContext) {
+  return new Promise<void>((resolve) => {
+    context.draw(false, () => {
+      resolve();
+    });
   });
 }
 
@@ -671,6 +840,15 @@ async function handleGenerate() {
 
 .reference-upload-box {
   min-height: 204rpx;
+}
+
+.reference-compress-canvas {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .segmented-control {

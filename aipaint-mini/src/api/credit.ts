@@ -19,6 +19,19 @@ export function getCreditBalance() {
   });
 }
 
+export interface SigninResult {
+  granted: boolean;
+  creditBalance: number;
+  msg?: string;
+}
+
+export function dailySignin() {
+  return request<SigninResult>({
+    url: "/mini/credits/signin",
+    method: "POST",
+  });
+}
+
 export function listCreditRecords(limit = 50) {
   return request<CreditRecord[]>({
     url: "/mini/credits/records",

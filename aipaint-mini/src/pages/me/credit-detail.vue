@@ -1,7 +1,7 @@
 <template>
   <view class="min-h-screen bg-[#f8f8f8] text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="mx-auto min-h-screen max-w-[750rpx] px-[48rpx] pb-[200rpx] pt-[24rpx]">
+      <view class="mx-auto min-h-screen max-w-[750rpx] px-[32rpx] pb-[200rpx] pt-[24rpx]">
         <section class="mb-[64rpx]">
           <view class="relative overflow-hidden rounded-[48rpx] bg-black px-[64rpx] py-[64rpx] text-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
             <view class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_40%)] opacity-70" />
@@ -170,10 +170,10 @@ function mapCreditRecord(record: ApiCreditRecord): CreditRecord {
     id: String(record.recordId),
     type,
     month: formatMonth(record.createTime),
-    title: resolveTitle(record.changeType),
+    title: resolveTitle(record),
     time: record.createTime || "",
     amount: `${positive ? "+" : ""}${amount}`,
-    meta: record.remark || record.changeType,
+    meta: resolveMeta(record),
     iconClass: positive ? "icon-jinbi" : "icon-images",
     iconBackgroundClass: positive ? "bg-[#eeeeee]" : "bg-[#eeeeee]",
     iconColorClass: "text-black",
@@ -187,11 +187,21 @@ function resolveFilterType(changeType: string): FilterValue {
   return "reward";
 }
 
-function resolveTitle(changeType: string) {
+function resolveTitle(record: ApiCreditRecord) {
+  const changeType = record.changeType;
+  if (changeType === "CREDIT_EXPIRE") return record.remark || "积分过期";
   if (changeType === "NEW_USER_GIFT") return "新人礼包";
+  if (changeType === "SIGNIN") return "每日签到";
   if (changeType === "GENERATION_CONSUME") return "生成图片";
   if (changeType === "GENERATION_REFUND") return "生成失败退款";
+  if (changeType === "PAYMENT_MEMBERSHIP") return "会员赠送";
+  if (changeType === "PAYMENT_ADDON") return "积分加量";
   return "积分变动";
+}
+
+function resolveMeta(record: ApiCreditRecord) {
+  if (record.changeType === "CREDIT_EXPIRE") return "已过期";
+  return record.remark || record.changeType;
 }
 
 function formatMonth(value?: string) {
