@@ -11,6 +11,8 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
@@ -27,14 +29,16 @@ import com.ruoyi.common.utils.file.FileUtils;
 @Component
 public class AiImageOpenAiCompatibleProvider implements AiImageProvider
 {
+    private static final Logger log = LoggerFactory.getLogger(AiImageOpenAiCompatibleProvider.class);
+
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
             .build();
 
     @Override
-    public String getProviderType()
+    public String getAdapterType()
     {
-        return AiImageConfigService.TYPE_OPENAI_COMPATIBLE;
+        return AiImageConfigService.ADAPTER_OPENAI_COMPATIBLE;
     }
 
     @Override
@@ -105,7 +109,15 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             {
                 if (isAmbiguousSubmitError(e))
                 {
-                    throw new ServiceException("图片生成响应异常，本地未收到生成结果，请重试");
+                    log.warn("AI图片生成提交后响应异常，providerCode={}, baseUrl={}, error={}: {}",
+                            providerConfig.getProviderCode(),
+                            maskBaseUrl(providerConfig.getBaseUrl()),
+                            e.getClass().getSimpleName(),
+                            e.getMessage(),
+                            e);
+                    throw new ServiceException("图片生成响应异常，本地未收到生成结果，结果待确认（"
+                            + e.getClass().getSimpleName() + "：" + StringUtils.defaultIfBlank(e.getMessage(), "无详细信息")
+                            + "）");
                 }
                 if (!isTransientCreateError(e) || transientFailureCount >= 2)
                 {
@@ -152,7 +164,15 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         }
         catch (IOException e)
         {
-            throw new ServiceException("图片生成失败：流式响应连接异常，请重试");
+            log.warn("AI图片流式响应连接异常，providerCode={}, baseUrl={}, error={}: {}",
+                    providerConfig.getProviderCode(),
+                    maskBaseUrl(providerConfig.getBaseUrl()),
+                    e.getClass().getSimpleName(),
+                    e.getMessage(),
+                    e);
+            throw new ServiceException("图片生成失败：流式响应连接异常（"
+                    + e.getClass().getSimpleName() + "：" + StringUtils.defaultIfBlank(e.getMessage(), "无详细信息")
+                    + "），请重试");
         }
 
         if (response.statusCode() < 200 || response.statusCode() >= 300)
@@ -162,12 +182,6 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         return readSseAndSave(response.body(), providerConfig, payload.getIntValue("n"));
     }
 
-    private boolean shouldUseStreamingResponse(AiImageProviderConfig providerConfig)
-    {
-        String baseUrl = providerConfig == null ? "" : StringUtils.defaultString(providerConfig.getBaseUrl()).toLowerCase();
-        return baseUrl.contains("gpt2image.superapi.buzz");
-    }
-
     private String resolvePayloadSize(AiImageGenerateRequest request, AiImageProviderConfig providerConfig)
     {
         if (isToApisProvider(providerConfig) && isRatioSize(request.getRatio()))
@@ -175,6 +189,12 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             return request.getRatio();
         }
         return request.getSize();
+    }
+
+    private boolean shouldUseStreamingResponse(AiImageProviderConfig providerConfig)
+    {
+        return providerConfig != null
+                && AiImageConfigService.RESPONSE_MODE_STREAM.equals(providerConfig.getResponseMode());
     }
 
     private boolean isToApisProvider(AiImageProviderConfig providerConfig)
@@ -417,8 +437,11 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         String message = e == null ? "" : StringUtils.defaultString(e.getMessage()).toLowerCase();
         return message.contains("header parser received no bytes")
                 || message.contains("http/1.1 header parser")
+                || message.contains("no bytes")
                 || message.contains("connection closed")
                 || message.contains("connection reset")
+                || message.contains("timed out")
+                || message.contains("timeout")
                 || message.contains("eof");
     }
 
@@ -705,5 +728,22 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             value = value.substring(0, value.length() - 1);
         }
         return value;
+    }
+
+    private String maskBaseUrl(String baseUrl)
+    {
+        if (StringUtils.isBlank(baseUrl))
+        {
+            return "";
+        }
+        try
+        {
+            URI uri = URI.create(baseUrl);
+            return uri.getScheme() + "://" + uri.getHost() + StringUtils.defaultString(uri.getPath());
+        }
+        catch (IllegalArgumentException e)
+        {
+            return trimEnd(baseUrl);
+        }
     }
 }

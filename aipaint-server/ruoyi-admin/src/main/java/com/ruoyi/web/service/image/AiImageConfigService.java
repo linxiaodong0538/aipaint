@@ -1,12 +1,25 @@
 package com.ruoyi.web.service.image;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.system.domain.AiImageModelRouteRecord;
+import com.ruoyi.system.domain.AiImageProviderHealthStats;
+import com.ruoyi.system.domain.AiImageProviderModelRecord;
+import com.ruoyi.system.domain.AiImageProviderRecord;
 import com.ruoyi.system.domain.SysConfig;
 import com.ruoyi.system.mapper.AiImageProviderCallLogMapper;
+import com.ruoyi.system.mapper.AiImageRoutingConfigMapper;
 import com.ruoyi.system.mapper.SysConfigMapper;
 import com.ruoyi.system.service.ISysConfigService;
 
@@ -20,23 +33,23 @@ public class AiImageConfigService
 
     public static final String SLOT_BACKUP = "backup";
 
-    public static final String TYPE_OPENAI_COMPATIBLE = "openai-compatible";
+    public static final String ADAPTER_OPENAI_COMPATIBLE = "openai-compatible";
 
-    public static final String STRATEGY_MANUAL = "manual";
+    public static final String ADAPTER_GRSAI_ASYNC = "grsai-async";
+
+    public static final String RESPONSE_MODE_JSON = "json";
+
+    public static final String RESPONSE_MODE_STREAM = "stream";
 
     public static final String STRATEGY_FALLBACK = "fallback";
 
-    public static final String STRATEGY_CIRCUIT_BREAKER = "circuit-breaker";
-
-    private static final String DEFAULT_BACKUP_BASE_URL = "https://dm-fox.rjj.cc/codex/v1";
-
     private static final String DEFAULT_MODEL = "gpt-image-2";
 
-    private static final String KEY_ACTIVE_PROVIDER = "ai.image.activeProvider";
+    private static final String MODEL_NANO_BANANA = "nano-banana-2";
 
-    private static final String KEY_FALLBACK_ENABLED = "ai.image.fallbackEnabled";
+    private static final String PROVIDER_SUPERAPI = "superapi";
 
-    private static final String KEY_FALLBACK_STRATEGY = "ai.image.fallbackStrategy";
+    private static final String PROVIDER_GRSAI = "grsai";
 
     private static final String KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD = "ai.image.circuitBreaker.failureThreshold";
 
@@ -55,53 +68,103 @@ public class AiImageConfigService
     @Autowired
     private AiImageProviderCallLogMapper callLogMapper;
 
+    @Autowired
+    private AiImageRoutingConfigMapper routingConfigMapper;
+
     public AiImageAdminConfig getAdminConfig()
     {
+        List<AiImageProviderConfig> providers = loadProviderConfigs();
+        List<AiImageModelRouteConfig> modelRoutes = loadModelRoutes();
+
         AiImageAdminConfig config = new AiImageAdminConfig();
-        config.setActiveProvider(normalizeProviderCode(readString(KEY_ACTIVE_PROVIDER, SLOT_BACKUP)));
-        config.setFallbackEnabled(Boolean.valueOf(readBoolean(KEY_FALLBACK_ENABLED, true)));
-        config.setFallbackStrategy(readFallbackStrategy(config.getFallbackEnabled()));
+        config.setActiveProvider(resolveCompatActiveProvider(modelRoutes));
+        config.setFallbackEnabled(Boolean.TRUE);
+        config.setFallbackStrategy(STRATEGY_FALLBACK);
         config.setCircuitBreakerFailureThreshold(readInt(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, 3, 1, 20));
         config.setCircuitBreakerCooldownMinutes(readInt(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, 10, 1, 1440));
         config.setOutputFormat(readOutputFormat());
         config.setOutputCompression(Integer.valueOf(readInt(KEY_OUTPUT_COMPRESSION, 90, 0, 100)));
-        config.setPrimaryProvider(buildProviderConfig(SLOT_PRIMARY, "主通道"));
-        config.setBackupProvider(buildProviderConfig(SLOT_BACKUP, "备用通道"));
-        config.setHealthStats(Arrays.asList(
-                callLogMapper.selectProviderHealthStats(SLOT_PRIMARY, 50),
-                callLogMapper.selectProviderHealthStats(SLOT_BACKUP, 50)));
+        config.setProviders(providers);
+        config.setModelRoutes(modelRoutes);
+        config.setPrimaryProvider(findProvider(providers, config.getActiveProvider()));
+        config.setBackupProvider(resolveCompatBackupProvider(providers, modelRoutes));
+        config.setHealthStats(buildHealthStats(providers));
         return config;
     }
 
     public AiImageProviderConfig resolveActiveProvider()
     {
-        return resolveProviderByCode(getAdminConfig().getActiveProvider());
+        AiImageModelRouteConfig route = resolveModelRoute(DEFAULT_MODEL);
+        return resolveProviderByCode(route.getPrimaryProviderCode(), route.getModel());
     }
 
     public AiImageProviderConfig resolveProviderByCode(String providerCode)
     {
-        String normalizedCode = normalizeProviderCode(providerCode);
-        AiImageProviderConfig config = SLOT_BACKUP.equals(normalizedCode)
-                ? buildProviderConfig(SLOT_BACKUP, "备用通道")
-                : buildProviderConfig(SLOT_PRIMARY, "主通道");
+        return resolveProviderByCode(providerCode, null);
+    }
+
+    public AiImageProviderConfig resolveProviderByCode(String providerCode, String model)
+    {
+        AiImageProviderConfig config = findProvider(loadProviderConfigs(), normalizeProviderCode(providerCode));
+        if (config == null)
+        {
+            throw new ServiceException("未找到生图通道：" + providerCode);
+        }
         validateRuntimeConfig(config);
+        if (StringUtils.isNotBlank(model) && !supportsModel(config, model))
+        {
+            throw new ServiceException("生图通道 " + config.getProviderCode() + " 不支持模型：" + model);
+        }
         return config;
     }
 
+    public AiImageModelRouteConfig resolveModelRoute(String model)
+    {
+        String normalizedModel = normalizeModel(model);
+        for (AiImageModelRouteConfig route : loadModelRoutes())
+        {
+            if (normalizedModel.equals(route.getModel()))
+            {
+                if (!Boolean.TRUE.equals(route.getEnabled()))
+                {
+                    throw new ServiceException("模型路由未启用：" + normalizedModel);
+                }
+                if (StringUtils.isBlank(route.getPrimaryProviderCode()))
+                {
+                    throw new ServiceException("模型路由未配置主通道：" + normalizedModel);
+                }
+                return route;
+            }
+        }
+        throw new ServiceException("模型未配置生图路由：" + normalizedModel);
+    }
+
+    @Transactional
     public void saveAdminConfig(AiImageAdminConfig config, String operator)
     {
         AiImageAdminConfig normalized = normalizeForSave(config);
 
-        upsert(KEY_ACTIVE_PROVIDER, "AI生图-当前生效通道", normalized.getActiveProvider(), "primary=主通道，backup=备用通道", operator);
-        upsert(KEY_FALLBACK_ENABLED, "AI生图-失败自动切备用", String.valueOf(Boolean.TRUE.equals(normalized.getFallbackEnabled())), "true 开启主通道失败自动尝试备用通道，false 关闭", operator);
-        upsert(KEY_FALLBACK_STRATEGY, "AI生图-切换策略", normalized.getFallbackStrategy(), "manual=仅手动切换，fallback=失败自动切备用，circuit-breaker=连续失败熔断主通道", operator);
         upsert(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, "AI生图-熔断失败阈值", String.valueOf(normalized.getCircuitBreakerFailureThreshold()), "连续失败达到该次数后临时熔断主通道", operator);
         upsert(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, "AI生图-熔断冷却分钟", String.valueOf(normalized.getCircuitBreakerCooldownMinutes()), "只统计冷却窗口内的连续失败", operator);
         upsert(KEY_OUTPUT_FORMAT, "AI生图-输出格式", normalized.getOutputFormat(), "支持 jpeg、png", operator);
         upsert(KEY_OUTPUT_COMPRESSION, "AI生图-JPEG压缩强度", String.valueOf(normalized.getOutputCompression()), "范围 0-100，仅对 jpeg 有效", operator);
 
-        saveProvider(normalized.getPrimaryProvider(), operator);
-        saveProvider(normalized.getBackupProvider(), operator);
+        routingConfigMapper.deleteModelRoutes();
+        routingConfigMapper.deleteProviderModels();
+        routingConfigMapper.deleteProviders();
+
+        for (AiImageProviderConfig provider : normalized.getProviders())
+        {
+            routingConfigMapper.insertProvider(toProviderRecord(provider));
+            for (String model : provider.getSupportedModels())
+            {
+                routingConfigMapper.insertProviderModel(toProviderModelRecord(provider.getProviderCode(), model));
+            }
+        }
+        for (AiImageModelRouteConfig route : normalized.getModelRoutes())
+        {
+            routingConfigMapper.insertModelRoute(toModelRouteRecord(route));
+        }
 
         sysConfigService.resetConfigCache();
     }
@@ -109,33 +172,152 @@ public class AiImageConfigService
     private AiImageAdminConfig normalizeForSave(AiImageAdminConfig input)
     {
         AiImageAdminConfig config = input == null ? new AiImageAdminConfig() : input;
-        config.setActiveProvider(normalizeProviderCode(config.getActiveProvider()));
-        config.setFallbackStrategy(normalizeFallbackStrategy(config.getFallbackStrategy(), config.getFallbackEnabled()));
-        config.setFallbackEnabled(Boolean.valueOf(!STRATEGY_MANUAL.equals(config.getFallbackStrategy())));
         config.setCircuitBreakerFailureThreshold(normalizeInt(config.getCircuitBreakerFailureThreshold(), 3, 1, 20));
         config.setCircuitBreakerCooldownMinutes(normalizeInt(config.getCircuitBreakerCooldownMinutes(), 10, 1, 1440));
         config.setOutputFormat(normalizeOutputFormat(config.getOutputFormat()));
         config.setOutputCompression(Integer.valueOf(normalizeInt(config.getOutputCompression(), 90, 0, 100)));
 
-        config.setPrimaryProvider(normalizeProvider(config.getPrimaryProvider(), SLOT_PRIMARY, "主通道"));
-        config.setBackupProvider(normalizeProvider(config.getBackupProvider(), SLOT_BACKUP, "备用通道"));
+        List<AiImageProviderConfig> providers = normalizeProviders(config.getProviders());
+        List<AiImageModelRouteConfig> routes = normalizeRoutes(config.getModelRoutes(), providers);
+        config.setProviders(providers);
+        config.setModelRoutes(routes);
         return config;
     }
 
-    private AiImageProviderConfig normalizeProvider(AiImageProviderConfig provider, String providerCode, String defaultName)
+    private List<AiImageProviderConfig> normalizeProviders(List<AiImageProviderConfig> input)
+    {
+        List<AiImageProviderConfig> source = input == null || input.isEmpty() ? buildDefaultProviders() : input;
+        List<AiImageProviderConfig> providers = new ArrayList<>();
+        Set<String> providerCodes = new LinkedHashSet<>();
+        int index = 0;
+        for (AiImageProviderConfig provider : source)
+        {
+            AiImageProviderConfig normalized = normalizeProvider(provider, index++);
+            if (!providerCodes.add(normalized.getProviderCode()))
+            {
+                throw new ServiceException("通道编码重复：" + normalized.getProviderCode());
+            }
+            providers.add(normalized);
+        }
+        return providers;
+    }
+
+    private AiImageProviderConfig normalizeProvider(AiImageProviderConfig provider, int index)
     {
         AiImageProviderConfig normalized = provider == null ? new AiImageProviderConfig() : provider;
-        normalized.setProviderCode(providerCode);
-        normalized.setProviderName(StringUtils.defaultIfBlank(normalized.getProviderName(), defaultName));
+        normalized.setProviderCode(normalizeProviderCode(normalized.getProviderCode()));
+        if (StringUtils.isBlank(normalized.getProviderCode()))
+        {
+            throw new ServiceException("通道编码不能为空");
+        }
+        if (!normalized.getProviderCode().matches("[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}"))
+        {
+            throw new ServiceException("通道编码只能使用 1-32 位字母、数字、下划线或中划线");
+        }
+        normalized.setProviderName(StringUtils.defaultIfBlank(normalized.getProviderName(), normalized.getProviderCode()));
         normalized.setEnabled(Boolean.valueOf(Boolean.TRUE.equals(normalized.getEnabled())));
-        normalized.setProviderType(StringUtils.defaultIfBlank(normalized.getProviderType(), TYPE_OPENAI_COMPATIBLE));
+        normalized.setAdapterType(normalizeAdapterType(normalized.getAdapterType()));
+        normalized.setResponseMode(normalizeResponseMode(normalized.getResponseMode(), normalized));
         normalized.setBaseUrl(blankToEmpty(normalized.getBaseUrl()));
         normalized.setApiKey(blankToEmpty(normalized.getApiKey()));
-        normalized.setModel(StringUtils.defaultIfBlank(normalized.getModel(), DEFAULT_MODEL));
-
-        if (!TYPE_OPENAI_COMPATIBLE.equals(normalized.getProviderType()))
+        if (!isSupportedAdapterType(normalized.getAdapterType()))
         {
-            throw new ServiceException("当前仅支持 openai-compatible 类型的图片通道");
+            throw new ServiceException("当前仅支持 openai-compatible、grsai-async 接口协议");
+        }
+        normalized.setSupportedModels(normalizeSupportedModels(normalized));
+        normalized.setModel(normalized.getSupportedModels().get(0));
+        normalized.setSortOrder(Integer.valueOf(normalizeInt(normalized.getSortOrder(), index + 1, 0, 9999)));
+        normalized.setRemark(blankToEmpty(normalized.getRemark()));
+        return normalized;
+    }
+
+    private List<String> normalizeSupportedModels(AiImageProviderConfig provider)
+    {
+        LinkedHashSet<String> models = new LinkedHashSet<>();
+        if (provider.getSupportedModels() != null)
+        {
+            for (String model : provider.getSupportedModels())
+            {
+                if (StringUtils.isNotBlank(model))
+                {
+                    models.add(normalizeModel(model));
+                }
+            }
+        }
+        if (models.isEmpty() && StringUtils.isNotBlank(provider.getModel()))
+        {
+            models.add(normalizeModel(provider.getModel()));
+        }
+        if (models.isEmpty())
+        {
+            if (ADAPTER_GRSAI_ASYNC.equals(provider.getAdapterType()))
+            {
+                models.add(DEFAULT_MODEL);
+                models.add(MODEL_NANO_BANANA);
+            }
+            else
+            {
+                models.add(DEFAULT_MODEL);
+            }
+        }
+        return new ArrayList<>(models);
+    }
+
+    private List<AiImageModelRouteConfig> normalizeRoutes(List<AiImageModelRouteConfig> input, List<AiImageProviderConfig> providers)
+    {
+        List<AiImageModelRouteConfig> source = input == null || input.isEmpty() ? buildDefaultRoutes() : input;
+        Map<String, AiImageProviderConfig> providerMap = providers.stream()
+                .collect(Collectors.toMap(AiImageProviderConfig::getProviderCode, provider -> provider, (left, right) -> left, LinkedHashMap::new));
+        List<AiImageModelRouteConfig> routes = new ArrayList<>();
+        Set<String> models = new LinkedHashSet<>();
+        int index = 0;
+        for (AiImageModelRouteConfig route : source)
+        {
+            AiImageModelRouteConfig normalized = normalizeRoute(route, providerMap, index++);
+            if (!models.add(normalized.getModel()))
+            {
+                throw new ServiceException("模型路由重复：" + normalized.getModel());
+            }
+            routes.add(normalized);
+        }
+        return routes;
+    }
+
+    private AiImageModelRouteConfig normalizeRoute(AiImageModelRouteConfig route, Map<String, AiImageProviderConfig> providerMap, int index)
+    {
+        AiImageModelRouteConfig normalized = route == null ? new AiImageModelRouteConfig() : route;
+        normalized.setModel(normalizeModel(normalized.getModel()));
+        normalized.setEnabled(Boolean.valueOf(Boolean.TRUE.equals(normalized.getEnabled())));
+        normalized.setPrimaryProviderCode(normalizeProviderCode(normalized.getPrimaryProviderCode()));
+        normalized.setBackupProviderCode(blankToNull(normalizeProviderCode(normalized.getBackupProviderCode())));
+        normalized.setFallbackEnabled(Boolean.valueOf(Boolean.TRUE.equals(normalized.getFallbackEnabled()) && StringUtils.isNotBlank(normalized.getBackupProviderCode())));
+        normalized.setSortOrder(Integer.valueOf(normalizeInt(normalized.getSortOrder(), index + 1, 0, 9999)));
+        normalized.setRemark(blankToEmpty(normalized.getRemark()));
+
+        AiImageProviderConfig primaryProvider = providerMap.get(normalized.getPrimaryProviderCode());
+        if (primaryProvider == null)
+        {
+            throw new ServiceException("模型 " + normalized.getModel() + " 的主通道不存在：" + normalized.getPrimaryProviderCode());
+        }
+        if (!supportsModel(primaryProvider, normalized.getModel()))
+        {
+            throw new ServiceException("主通道 " + primaryProvider.getProviderCode() + " 不支持模型：" + normalized.getModel());
+        }
+        if (StringUtils.isNotBlank(normalized.getBackupProviderCode()))
+        {
+            if (normalized.getBackupProviderCode().equals(normalized.getPrimaryProviderCode()))
+            {
+                throw new ServiceException("模型 " + normalized.getModel() + " 的主通道和备用通道不能相同");
+            }
+            AiImageProviderConfig backupProvider = providerMap.get(normalized.getBackupProviderCode());
+            if (backupProvider == null)
+            {
+                throw new ServiceException("模型 " + normalized.getModel() + " 的备用通道不存在：" + normalized.getBackupProviderCode());
+            }
+            if (!supportsModel(backupProvider, normalized.getModel()))
+            {
+                throw new ServiceException("备用通道 " + backupProvider.getProviderCode() + " 不支持模型：" + normalized.getModel());
+            }
         }
         return normalized;
     }
@@ -146,9 +328,9 @@ public class AiImageConfigService
         {
             throw new ServiceException("当前生图通道未启用，请先在后台开启");
         }
-        if (!TYPE_OPENAI_COMPATIBLE.equals(config.getProviderType()))
+        if (!isSupportedAdapterType(config.getAdapterType()))
         {
-            throw new ServiceException("当前生图通道类型暂不支持：" + config.getProviderType());
+            throw new ServiceException("当前生图接口协议暂不支持：" + config.getAdapterType());
         }
         if (StringUtils.isBlank(config.getBaseUrl()))
         {
@@ -162,17 +344,6 @@ public class AiImageConfigService
         {
             throw new ServiceException("当前生图通道未配置模型");
         }
-    }
-
-    private void saveProvider(AiImageProviderConfig provider, String operator)
-    {
-        String prefix = "ai.image." + provider.getProviderCode();
-        upsert(prefix + ".name", "AI生图-" + provider.getProviderName() + "-名称", provider.getProviderName(), "通道展示名称", operator);
-        upsert(prefix + ".enabled", "AI生图-" + provider.getProviderName() + "-启用", String.valueOf(Boolean.TRUE.equals(provider.getEnabled())), "true 启用，false 停用", operator);
-        upsert(prefix + ".type", "AI生图-" + provider.getProviderName() + "-类型", provider.getProviderType(), "当前支持 openai-compatible", operator);
-        upsert(prefix + ".baseUrl", "AI生图-" + provider.getProviderName() + "-BaseURL", provider.getBaseUrl(), "图片生成接口基础地址", operator);
-        upsert(prefix + ".apiKey", "AI生图-" + provider.getProviderName() + "-APIKey", provider.getApiKey(), "图片生成接口密钥", operator);
-        upsert(prefix + ".model", "AI生图-" + provider.getProviderName() + "-模型", provider.getModel(), "例如 gpt-image-2", operator);
     }
 
     private void upsert(String configKey, String configName, String configValue, String remark, String operator)
@@ -199,15 +370,91 @@ public class AiImageConfigService
         sysConfigMapper.updateConfig(existing);
     }
 
-    private AiImageProviderConfig buildProviderConfig(String providerCode, String defaultName)
+    private List<AiImageProviderConfig> loadProviderConfigs()
     {
-        String prefix = "ai.image." + providerCode;
+        List<AiImageProviderRecord> providerRecords = routingConfigMapper.selectProviders();
+        if (providerRecords == null || providerRecords.isEmpty())
+        {
+            return buildDefaultProviders();
+        }
+
+        Map<String, List<String>> modelMap = new LinkedHashMap<>();
+        List<AiImageProviderModelRecord> providerModels = routingConfigMapper.selectProviderModels();
+        if (providerModels != null)
+        {
+            for (AiImageProviderModelRecord providerModel : providerModels)
+            {
+                if (Boolean.TRUE.equals(providerModel.getEnabled()) && StringUtils.isNotBlank(providerModel.getModel()))
+                {
+                    modelMap.computeIfAbsent(providerModel.getProviderCode(), key -> new ArrayList<>())
+                            .add(providerModel.getModel());
+                }
+            }
+        }
+
+        List<AiImageProviderConfig> providers = new ArrayList<>();
+        for (AiImageProviderRecord record : providerRecords)
+        {
+            AiImageProviderConfig config = fromProviderRecord(record, modelMap.get(record.getProviderCode()));
+            providers.add(config);
+        }
+        return providers;
+    }
+
+    private List<AiImageModelRouteConfig> loadModelRoutes()
+    {
+        List<AiImageModelRouteRecord> records = routingConfigMapper.selectModelRoutes();
+        if (records == null || records.isEmpty())
+        {
+            return buildDefaultRoutes();
+        }
+        List<AiImageModelRouteConfig> routes = new ArrayList<>();
+        for (AiImageModelRouteRecord record : records)
+        {
+            routes.add(fromModelRouteRecord(record));
+        }
+        return routes;
+    }
+
+    private List<AiImageProviderConfig> buildDefaultProviders()
+    {
+        List<AiImageProviderConfig> providers = new ArrayList<>();
+        AiImageProviderConfig superapi = buildCompatProviderConfig(SLOT_PRIMARY, PROVIDER_SUPERAPI, "SuperAPI 中转站", ADAPTER_OPENAI_COMPATIBLE);
+        superapi.setSupportedModels(Collections.singletonList(DEFAULT_MODEL));
+        superapi.setModel(DEFAULT_MODEL);
+        superapi.setSortOrder(Integer.valueOf(1));
+        superapi.setRemark("默认 GPT 主通道");
+        superapi.setResponseMode(RESPONSE_MODE_STREAM);
+        providers.add(superapi);
+
+        AiImageProviderConfig grsai = new AiImageProviderConfig();
+        grsai.setProviderCode(PROVIDER_GRSAI);
+        grsai.setProviderName("Grsai 中转站");
+        grsai.setAdapterType(ADAPTER_GRSAI_ASYNC);
+        grsai.setResponseMode(RESPONSE_MODE_JSON);
+        grsai.setBaseUrl("");
+        grsai.setApiKey("");
+        grsai.setEnabled(Boolean.FALSE);
+        List<String> grsaiModels = new ArrayList<>();
+        grsaiModels.add(DEFAULT_MODEL);
+        grsaiModels.add(MODEL_NANO_BANANA);
+        grsai.setSupportedModels(grsaiModels);
+        grsai.setModel(DEFAULT_MODEL);
+        grsai.setSortOrder(Integer.valueOf(2));
+        grsai.setRemark("支持 GPT 与 nano-banana 的中转站");
+        providers.add(grsai);
+        return providers;
+    }
+
+    private AiImageProviderConfig buildCompatProviderConfig(String legacySlot, String providerCode, String defaultName, String defaultAdapterType)
+    {
+        String prefix = "ai.image." + legacySlot;
         AiImageProviderConfig config = new AiImageProviderConfig();
         config.setProviderCode(providerCode);
         config.setProviderName(readString(prefix + ".name", defaultName));
-        config.setEnabled(Boolean.valueOf(readBoolean(prefix + ".enabled", SLOT_BACKUP.equals(providerCode))));
-        config.setProviderType(readString(prefix + ".type", TYPE_OPENAI_COMPATIBLE));
-        config.setBaseUrl(readString(prefix + ".baseUrl", defaultBaseUrl(providerCode)));
+        config.setEnabled(Boolean.valueOf(readBoolean(prefix + ".enabled", false)));
+        config.setAdapterType(defaultAdapterType);
+        config.setBaseUrl(readString(prefix + ".baseUrl", ""));
         config.setApiKey(readString(prefix + ".apiKey", ""));
         config.setModel(readString(prefix + ".model", DEFAULT_MODEL));
         return config;
@@ -215,7 +462,41 @@ public class AiImageConfigService
 
     private String normalizeProviderCode(String providerCode)
     {
-        return SLOT_BACKUP.equalsIgnoreCase(providerCode) ? SLOT_BACKUP : SLOT_PRIMARY;
+        return StringUtils.trimToEmpty(providerCode).toLowerCase();
+    }
+
+    private String normalizeAdapterType(String adapterType)
+    {
+        String normalized = StringUtils.defaultIfBlank(adapterType, ADAPTER_OPENAI_COMPATIBLE).trim();
+        if ("grsai".equals(normalized))
+        {
+            return ADAPTER_GRSAI_ASYNC;
+        }
+        return normalized;
+    }
+
+    private String normalizeResponseMode(String responseMode, AiImageProviderConfig provider)
+    {
+        String normalized = StringUtils.defaultIfBlank(responseMode, "").trim().toLowerCase();
+        if (RESPONSE_MODE_STREAM.equals(normalized))
+        {
+            return RESPONSE_MODE_STREAM;
+        }
+        if (RESPONSE_MODE_JSON.equals(normalized))
+        {
+            return RESPONSE_MODE_JSON;
+        }
+        if (provider != null && ADAPTER_OPENAI_COMPATIBLE.equals(provider.getAdapterType())
+                && StringUtils.containsIgnoreCase(StringUtils.defaultString(provider.getBaseUrl()), "gpt2image.superapi.buzz"))
+        {
+            return RESPONSE_MODE_STREAM;
+        }
+        return RESPONSE_MODE_JSON;
+    }
+
+    private boolean isSupportedAdapterType(String adapterType)
+    {
+        return ADAPTER_OPENAI_COMPATIBLE.equals(adapterType) || ADAPTER_GRSAI_ASYNC.equals(adapterType);
     }
 
     private String readString(String key, String defaultValue)
@@ -260,23 +541,9 @@ public class AiImageConfigService
         return Math.max(min, Math.min(max, value.intValue()));
     }
 
-    private String readFallbackStrategy(Boolean fallbackEnabled)
-    {
-        return normalizeFallbackStrategy(readString(KEY_FALLBACK_STRATEGY, ""), fallbackEnabled);
-    }
-
     private String readOutputFormat()
     {
         return normalizeOutputFormat(readString(KEY_OUTPUT_FORMAT, "jpeg"));
-    }
-
-    private String normalizeFallbackStrategy(String strategy, Boolean fallbackEnabled)
-    {
-        if (STRATEGY_MANUAL.equals(strategy) || STRATEGY_FALLBACK.equals(strategy) || STRATEGY_CIRCUIT_BREAKER.equals(strategy))
-        {
-            return strategy;
-        }
-        return Boolean.FALSE.equals(fallbackEnabled) ? STRATEGY_MANUAL : STRATEGY_FALLBACK;
     }
 
     private String normalizeOutputFormat(String outputFormat)
@@ -284,9 +551,168 @@ public class AiImageConfigService
         return "png".equalsIgnoreCase(outputFormat) ? "png" : "jpeg";
     }
 
-    private String defaultBaseUrl(String providerCode)
+    private List<AiImageModelRouteConfig> buildDefaultRoutes()
     {
-        return SLOT_BACKUP.equals(providerCode) ? DEFAULT_BACKUP_BASE_URL : "";
+        List<AiImageModelRouteConfig> routes = new ArrayList<>();
+        AiImageModelRouteConfig gptRoute = new AiImageModelRouteConfig();
+        gptRoute.setModel(DEFAULT_MODEL);
+        gptRoute.setEnabled(Boolean.TRUE);
+        gptRoute.setPrimaryProviderCode(PROVIDER_SUPERAPI);
+        gptRoute.setBackupProviderCode(PROVIDER_GRSAI);
+        gptRoute.setFallbackEnabled(Boolean.TRUE);
+        gptRoute.setSortOrder(Integer.valueOf(1));
+        gptRoute.setRemark("GPT 主用 SuperAPI，失败切 Grsai");
+        routes.add(gptRoute);
+
+        AiImageModelRouteConfig nanoRoute = new AiImageModelRouteConfig();
+        nanoRoute.setModel(MODEL_NANO_BANANA);
+        nanoRoute.setEnabled(Boolean.TRUE);
+        nanoRoute.setPrimaryProviderCode(PROVIDER_GRSAI);
+        nanoRoute.setBackupProviderCode("");
+        nanoRoute.setFallbackEnabled(Boolean.FALSE);
+        nanoRoute.setSortOrder(Integer.valueOf(2));
+        nanoRoute.setRemark("nano-banana 固定走 Grsai");
+        routes.add(nanoRoute);
+        return routes;
+    }
+
+    private AiImageProviderConfig fromProviderRecord(AiImageProviderRecord record, List<String> supportedModels)
+    {
+        AiImageProviderConfig config = new AiImageProviderConfig();
+        config.setProviderCode(record.getProviderCode());
+        config.setProviderName(record.getProviderName());
+        config.setAdapterType(record.getAdapterType());
+        config.setResponseMode(record.getResponseMode());
+        config.setBaseUrl(record.getBaseUrl());
+        config.setApiKey(record.getApiKey());
+        config.setEnabled(record.getEnabled());
+        config.setSupportedModels(supportedModels == null ? Collections.emptyList() : supportedModels);
+        config.setModel(config.getSupportedModels().isEmpty() ? "" : config.getSupportedModels().get(0));
+        config.setSortOrder(record.getSortOrder());
+        config.setRemark(record.getRemark());
+        return config;
+    }
+
+    private AiImageModelRouteConfig fromModelRouteRecord(AiImageModelRouteRecord record)
+    {
+        AiImageModelRouteConfig route = new AiImageModelRouteConfig();
+        route.setModel(record.getModel());
+        route.setEnabled(record.getEnabled());
+        route.setPrimaryProviderCode(record.getPrimaryProviderCode());
+        route.setBackupProviderCode(record.getBackupProviderCode());
+        route.setFallbackEnabled(record.getFallbackEnabled());
+        route.setSortOrder(record.getSortOrder());
+        route.setRemark(record.getRemark());
+        return route;
+    }
+
+    private AiImageProviderRecord toProviderRecord(AiImageProviderConfig config)
+    {
+        AiImageProviderRecord record = new AiImageProviderRecord();
+        record.setProviderCode(config.getProviderCode());
+        record.setProviderName(config.getProviderName());
+        record.setAdapterType(config.getAdapterType());
+        record.setResponseMode(config.getResponseMode());
+        record.setBaseUrl(config.getBaseUrl());
+        record.setApiKey(config.getApiKey());
+        record.setEnabled(config.getEnabled());
+        record.setSortOrder(config.getSortOrder());
+        record.setRemark(config.getRemark());
+        return record;
+    }
+
+    private AiImageProviderModelRecord toProviderModelRecord(String providerCode, String model)
+    {
+        AiImageProviderModelRecord record = new AiImageProviderModelRecord();
+        record.setProviderCode(providerCode);
+        record.setModel(model);
+        record.setEnabled(Boolean.TRUE);
+        return record;
+    }
+
+    private AiImageModelRouteRecord toModelRouteRecord(AiImageModelRouteConfig config)
+    {
+        AiImageModelRouteRecord record = new AiImageModelRouteRecord();
+        record.setModel(config.getModel());
+        record.setEnabled(config.getEnabled());
+        record.setPrimaryProviderCode(config.getPrimaryProviderCode());
+        record.setBackupProviderCode(blankToNull(config.getBackupProviderCode()));
+        record.setFallbackEnabled(config.getFallbackEnabled());
+        record.setSortOrder(config.getSortOrder());
+        record.setRemark(config.getRemark());
+        return record;
+    }
+
+    private List<AiImageProviderHealthStats> buildHealthStats(List<AiImageProviderConfig> providers)
+    {
+        List<AiImageProviderHealthStats> stats = new ArrayList<>();
+        for (AiImageProviderConfig provider : providers)
+        {
+            stats.add(callLogMapper.selectProviderHealthStats(provider.getProviderCode(), 50));
+        }
+        return stats;
+    }
+
+    private AiImageProviderConfig findProvider(List<AiImageProviderConfig> providers, String providerCode)
+    {
+        if (providers == null || StringUtils.isBlank(providerCode))
+        {
+            return null;
+        }
+        for (AiImageProviderConfig provider : providers)
+        {
+            if (providerCode.equals(provider.getProviderCode()))
+            {
+                return provider;
+            }
+        }
+        return null;
+    }
+
+    private AiImageProviderConfig resolveCompatBackupProvider(List<AiImageProviderConfig> providers, List<AiImageModelRouteConfig> routes)
+    {
+        for (AiImageModelRouteConfig route : routes)
+        {
+            if (DEFAULT_MODEL.equals(route.getModel()) && StringUtils.isNotBlank(route.getBackupProviderCode()))
+            {
+                return findProvider(providers, route.getBackupProviderCode());
+            }
+        }
+        return null;
+    }
+
+    private String resolveCompatActiveProvider(List<AiImageModelRouteConfig> routes)
+    {
+        for (AiImageModelRouteConfig route : routes)
+        {
+            if (DEFAULT_MODEL.equals(route.getModel()))
+            {
+                return route.getPrimaryProviderCode();
+            }
+        }
+        return PROVIDER_SUPERAPI;
+    }
+
+    private boolean supportsModel(AiImageProviderConfig provider, String model)
+    {
+        return provider != null
+                && provider.getSupportedModels() != null
+                && provider.getSupportedModels().contains(normalizeModel(model));
+    }
+
+    private String normalizeModel(String model)
+    {
+        String normalized = StringUtils.trimToEmpty(model);
+        if (StringUtils.isBlank(normalized))
+        {
+            throw new ServiceException("模型不能为空");
+        }
+        return normalized;
+    }
+
+    private String blankToNull(String value)
+    {
+        return StringUtils.isBlank(value) ? null : value.trim();
     }
 
     private String blankToEmpty(String value)

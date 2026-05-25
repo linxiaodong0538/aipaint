@@ -5,7 +5,7 @@ package com.ruoyi.web.service.image;
  */
 public interface AiImageProvider
 {
-    String getProviderType();
+    String getAdapterType();
 
     String generateAndSave(AiImageGenerateRequest request, AiImageProviderConfig providerConfig);
 }

@@ -6,7 +6,7 @@ export type GenerationStatus = "pending" | "processing" | "success" | "failed";
 
 export interface CreateImageGenerationRequest {
   prompt: string;
-  model: "gpt-image-2";
+  model: "gpt-image-2" | "nano-banana-2";
   ratio: "1:1" | "3:4" | "4:3" | "16:9" | "9:16" | "2:1";
   size: string;
   resolution: "1K" | "2K" | "4K";

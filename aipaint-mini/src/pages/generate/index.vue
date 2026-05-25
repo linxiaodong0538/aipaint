@@ -241,6 +241,7 @@ import { computed, nextTick, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
 import { createImageGeneration, uploadImage } from "@/api/generate";
+import type { ApiError } from "@/utils/request";
 import { getTemplateDetail, type TemplateItem } from "@/api/template";
 import { useUserStore } from "@/store/modules/user";
 
@@ -256,7 +257,7 @@ const REFERENCE_MAX_EDGE = 2048;
 const REFERENCE_COMPRESS_QUALITY = 0.82;
 const REFERENCE_COMPRESS_CANVAS_ID = "reference-compress-canvas";
 
-type ModelValue = "gpt-image-2" | "xx";
+type ModelValue = "gpt-image-2" | "nano-banana-2";
 
 const models: Array<{
   value: ModelValue;
@@ -273,11 +274,11 @@ const models: Array<{
     enabled: true,
   },
   {
-    value: "xx",
-    label: "暂定",
+    value: "nano-banana-2",
+    label: "nano-banana-2",
     description: "写实摄影风格",
     iconClass: "icon-tupian",
-    enabled: false,
+    enabled: true,
   }
 
 ];
@@ -460,6 +461,9 @@ function applyTemplate(value: Partial<TemplateItem>) {
 function normalizeTemplateModel(value?: string): ModelValue {
   if (!value) return "gpt-image-2";
   const normalized = value.toLowerCase();
+  if (normalized.includes("nano-banana")) {
+    return "nano-banana-2";
+  }
   if (normalized.includes("g-image") || normalized.includes("gpt-image")) {
     return "gpt-image-2";
   }
@@ -482,7 +486,7 @@ function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualiti
 }
 
 function normalizeRetryModel(value?: string): ModelValue {
-  return value === "gpt-image-2" || value === "xx" ? value : "gpt-image-2";
+  return value === "gpt-image-2" || value === "nano-banana-2" ? value : "gpt-image-2";
 }
 
 function normalizeRetryRatio(value?: string): (typeof ratios)[number]["value"] {
@@ -804,7 +808,7 @@ async function handleGenerate() {
     const imageUrls = await uploadReferenceImages();
     const result = await createImageGeneration({
       prompt: prompt.value.trim(),
-      model: model.value === "gpt-image-2" ? model.value : "gpt-image-2",
+      model: model.value,
       ratio: ratio.value,
       size: mapImageSize(ratio.value, quality.value),
       resolution: mapResolution(quality.value),
@@ -815,7 +819,11 @@ async function handleGenerate() {
 
     await navigateTo(routes.generateResult, { taskId: result.taskId });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "图片生成失败";
+    const apiError = error as ApiError | undefined;
+    if (apiError?.shown) {
+      return;
+    }
+    const message = error instanceof Error ? error.message : (apiError?.data?.msg || apiError?.data?.message || "图片生成失败");
     uni.showToast({ title: message, icon: "none" });
   } finally {
     generating.value = false;

@@ -1,17 +1,17 @@
-package com.ruoyi.web.service.image;
+package com.ruoyi.system.domain;
 
-import java.util.List;
+import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * AI 生图 Provider 配置
+ * AI 图片通道配置 ai_image_provider
  */
-public class AiImageProviderConfig
+public class AiImageProviderRecord extends BaseEntity
 {
+    private static final long serialVersionUID = 1L;
+
     private String providerCode;
 
     private String providerName;
-
-    private Boolean enabled;
 
     private String adapterType;
 
@@ -21,9 +21,7 @@ public class AiImageProviderConfig
 
     private String apiKey;
 
-    private String model;
-
-    private List<String> supportedModels;
+    private Boolean enabled;
 
     private Integer sortOrder;
 
@@ -47,16 +45,6 @@ public class AiImageProviderConfig
     public void setProviderName(String providerName)
     {
         this.providerName = providerName;
-    }
-
-    public Boolean getEnabled()
-    {
-        return enabled;
-    }
-
-    public void setEnabled(Boolean enabled)
-    {
-        this.enabled = enabled;
     }
 
     public String getAdapterType()
@@ -99,24 +87,14 @@ public class AiImageProviderConfig
         this.apiKey = apiKey;
     }
 
-    public String getModel()
+    public Boolean getEnabled()
     {
-        return model;
+        return enabled;
     }
 
-    public void setModel(String model)
+    public void setEnabled(Boolean enabled)
     {
-        this.model = model;
-    }
-
-    public List<String> getSupportedModels()
-    {
-        return supportedModels;
-    }
-
-    public void setSupportedModels(List<String> supportedModels)
-    {
-        this.supportedModels = supportedModels;
+        this.enabled = enabled;
     }
 
     public Integer getSortOrder()

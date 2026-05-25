@@ -19,7 +19,7 @@ public class AiImageTaskRunner
 
     private static final String AMBIGUOUS_RESPONSE_MARKER = "图片生成响应异常";
 
-    private static final String AMBIGUOUS_RESPONSE_MESSAGE = "图片生成响应异常，本地未收到生成结果，请重试";
+    private static final String AMBIGUOUS_RESPONSE_MESSAGE = "图片生成已提交，上游仍可能继续处理，请稍后到作品中查看";
 
     private final IAiGenerationTaskService taskService;
 
@@ -54,12 +54,13 @@ public class AiImageTaskRunner
         }
         catch (Exception e)
         {
-            log.error("AI图片生成任务失败，taskId={}", taskId, e);
             if (isAmbiguousResponseException(e))
             {
-                taskService.markFailed(taskId, AMBIGUOUS_RESPONSE_MESSAGE);
+                log.warn("AI图片生成响应状态不确定，taskId={}", taskId, e);
+                taskService.markProcessingWithMessage(taskId, AMBIGUOUS_RESPONSE_MESSAGE);
                 return;
             }
+            log.error("AI图片生成任务失败，taskId={}", taskId, e);
             taskService.markFailed(taskId, e.getMessage());
         }
     }

@@ -26,6 +26,10 @@ public class AiImageAdminConfig
 
     private AiImageProviderConfig backupProvider;
 
+    private List<AiImageProviderConfig> providers;
+
+    private List<AiImageModelRouteConfig> modelRoutes;
+
     private List<AiImageProviderHealthStats> healthStats;
 
     public String getActiveProvider()
@@ -116,6 +120,26 @@ public class AiImageAdminConfig
     public void setBackupProvider(AiImageProviderConfig backupProvider)
     {
         this.backupProvider = backupProvider;
+    }
+
+    public List<AiImageProviderConfig> getProviders()
+    {
+        return providers;
+    }
+
+    public void setProviders(List<AiImageProviderConfig> providers)
+    {
+        this.providers = providers;
+    }
+
+    public List<AiImageModelRouteConfig> getModelRoutes()
+    {
+        return modelRoutes;
+    }
+
+    public void setModelRoutes(List<AiImageModelRouteConfig> modelRoutes)
+    {
+        this.modelRoutes = modelRoutes;
     }
 
     public List<AiImageProviderHealthStats> getHealthStats()

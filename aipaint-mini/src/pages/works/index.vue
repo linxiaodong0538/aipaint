@@ -392,6 +392,7 @@ function resolveTitle(prompt: string) {
 
 function formatModel(model: string) {
   if (model === "gpt-image-2" || model === "g-image-2") return "G Image 2";
+  if (model === "nano-banana-2") return "Nano Banana 2";
   return model || "AI";
 }
 

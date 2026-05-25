@@ -262,7 +262,7 @@ const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedI
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
 const taskPromptText = computed(() => taskPrompt.value || "未填写");
-const taskModelText = computed(() => taskModel.value || "gpt-image-2");
+const taskModelText = computed(() => formatModel(taskModel.value));
 const activeGeneratedImage = computed(() => generatedImages.value[activeGeneratedImageIndex.value] || "");
 
 const progressTitle = computed(() => {
@@ -491,6 +491,12 @@ function formatCreateTime(value: string) {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${date.getFullYear()}年${month}月${day}日 ${hours}:${minutes}`;
+}
+
+function formatModel(value: string) {
+  if (value === "gpt-image-2" || value === "g-image-2") return "GPT-image-2";
+  if (value === "nano-banana-2") return "nano-banana-2";
+  return value || "gpt-image-2";
 }
 
 function failTask(message: string) {

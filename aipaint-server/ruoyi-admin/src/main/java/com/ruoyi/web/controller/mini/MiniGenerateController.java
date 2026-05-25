@@ -49,10 +49,11 @@ public class MiniGenerateController extends BaseController
             return error("请输入画面描述");
         }
 
+        String requestedModel = normalizeRequestModel(request.getModel());
         AiImageProviderConfig providerConfig;
         try
         {
-            providerConfig = aiImageService.resolveActiveProvider();
+            providerConfig = aiImageService.resolveProviderForModel(requestedModel);
         }
         catch (Exception e)
         {
@@ -60,7 +61,7 @@ public class MiniGenerateController extends BaseController
         }
 
         Long userId = SecurityUtils.getUserId();
-        String model = normalizeModel(request.getModel(), providerConfig.getModel());
+        String model = normalizeModel(requestedModel, providerConfig.getModel());
         String ratio = normalizeRatio(request.getRatio());
         String resolution = normalizeResolution(request.getResolution());
         String quality = normalizeQuality(request.getQuality());
@@ -135,11 +136,20 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeModel(String model, String defaultModel)
     {
-        if ("gpt-image-2".equals(model))
+        if ("gpt-image-2".equals(model) || "nano-banana-2".equals(model))
         {
             return model;
         }
         return StringUtils.defaultIfBlank(defaultModel, "gpt-image-2");
+    }
+
+    private String normalizeRequestModel(String model)
+    {
+        if ("gpt-image-2".equals(model) || "nano-banana-2".equals(model))
+        {
+            return model;
+        }
+        return "";
     }
 
     private String normalizeResolution(String resolution)

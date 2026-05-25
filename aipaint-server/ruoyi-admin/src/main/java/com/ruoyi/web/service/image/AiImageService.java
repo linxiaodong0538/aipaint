@@ -33,7 +33,7 @@ public class AiImageService
     {
         for (AiImageProvider provider : providers)
         {
-            this.providers.put(provider.getProviderType(), provider);
+            this.providers.put(provider.getAdapterType(), provider);
         }
         this.aiImageConfigService = aiImageConfigService;
         this.callLogMapper = callLogMapper;
@@ -44,13 +44,21 @@ public class AiImageService
         return aiImageConfigService.resolveActiveProvider();
     }
 
+    public AiImageProviderConfig resolveProviderForModel(String model)
+    {
+        String normalizedModel = StringUtils.defaultIfBlank(model, "gpt-image-2");
+        AiImageModelRouteConfig route = aiImageConfigService.resolveModelRoute(normalizedModel);
+        return aiImageConfigService.resolveProviderByCode(route.getPrimaryProviderCode(), route.getModel());
+    }
+
     public AiImageGenerateResult generateAndSave(AiGenerationTask task)
     {
         AiImageAdminConfig adminConfig = aiImageConfigService.getAdminConfig();
-        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(task.getProviderCode());
-        if (shouldBypassPrimary(adminConfig, providerConfig))
+        AiImageModelRouteConfig route = aiImageConfigService.resolveModelRoute(StringUtils.defaultIfBlank(task.getModel(), "gpt-image-2"));
+        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(route.getPrimaryProviderCode(), route.getModel());
+        if (shouldBypassPrimary(adminConfig, route, providerConfig))
         {
-            AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(AiImageConfigService.SLOT_BACKUP);
+            AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(route.getBackupProviderCode(), route.getModel());
             String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, adminConfig, true);
             return new AiImageGenerateResult(resultImageUrl, backupConfig.getProviderCode(), true);
         }
@@ -61,14 +69,14 @@ public class AiImageService
         }
         catch (Exception e)
         {
-            if (!shouldFallback(adminConfig, providerConfig, e))
+            if (!shouldFallback(route, providerConfig, e))
             {
                 throw e;
             }
 
             try
             {
-                AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(AiImageConfigService.SLOT_BACKUP);
+                AiImageProviderConfig backupConfig = aiImageConfigService.resolveProviderByCode(route.getBackupProviderCode(), route.getModel());
                 String resultImageUrl = generateAndSaveWithProvider(task, backupConfig, adminConfig, true);
                 return new AiImageGenerateResult(resultImageUrl, backupConfig.getProviderCode(), true);
             }
@@ -82,10 +90,10 @@ public class AiImageService
 
     private String generateAndSaveWithProvider(AiGenerationTask task, AiImageProviderConfig providerConfig, AiImageAdminConfig adminConfig, boolean fallbackUsed)
     {
-        AiImageProvider provider = providers.get(providerConfig.getProviderType());
+        AiImageProvider provider = providers.get(providerConfig.getAdapterType());
         if (provider == null)
         {
-            throw new ServiceException("暂不支持的生图通道类型：" + providerConfig.getProviderType());
+            throw new ServiceException("暂不支持的生图接口协议：" + providerConfig.getAdapterType());
         }
 
         AiImageGenerateRequest request = new AiImageGenerateRequest();
@@ -115,40 +123,36 @@ public class AiImageService
         }
     }
 
-    private boolean shouldFallback(AiImageAdminConfig adminConfig, AiImageProviderConfig failedProvider, Exception e)
+    private boolean shouldFallback(AiImageModelRouteConfig route, AiImageProviderConfig failedProvider, Exception e)
     {
-        if (AiImageConfigService.STRATEGY_MANUAL.equals(adminConfig.getFallbackStrategy()))
+        if (!Boolean.TRUE.equals(route.getFallbackEnabled()) || StringUtils.isBlank(route.getBackupProviderCode()))
         {
             return false;
         }
-        if (!AiImageConfigService.SLOT_PRIMARY.equals(failedProvider.getProviderCode()))
+        if (!route.getPrimaryProviderCode().equals(failedProvider.getProviderCode()))
         {
             return false;
         }
-        if (adminConfig.getBackupProvider() == null || !Boolean.TRUE.equals(adminConfig.getBackupProvider().getEnabled()))
+        if (route.getBackupProviderCode().equals(failedProvider.getProviderCode()))
         {
             return false;
         }
         return isFallbackEligibleError(normalizeErrorMessage(e));
     }
 
-    private boolean shouldBypassPrimary(AiImageAdminConfig adminConfig, AiImageProviderConfig providerConfig)
+    private boolean shouldBypassPrimary(AiImageAdminConfig adminConfig, AiImageModelRouteConfig route, AiImageProviderConfig providerConfig)
     {
-        if (!AiImageConfigService.STRATEGY_CIRCUIT_BREAKER.equals(adminConfig.getFallbackStrategy()))
+        if (!Boolean.TRUE.equals(route.getFallbackEnabled()) || StringUtils.isBlank(route.getBackupProviderCode()))
         {
             return false;
         }
-        if (!AiImageConfigService.SLOT_PRIMARY.equals(providerConfig.getProviderCode()))
-        {
-            return false;
-        }
-        if (adminConfig.getBackupProvider() == null || !Boolean.TRUE.equals(adminConfig.getBackupProvider().getEnabled()))
+        if (!route.getPrimaryProviderCode().equals(providerConfig.getProviderCode()))
         {
             return false;
         }
 
         Long failures = callLogMapper.countRecentConsecutiveFailures(
-                AiImageConfigService.SLOT_PRIMARY,
+                providerConfig.getProviderCode(),
                 adminConfig.getCircuitBreakerCooldownMinutes());
         return failures != null && failures.longValue() >= adminConfig.getCircuitBreakerFailureThreshold().longValue();
     }
@@ -179,7 +183,8 @@ public class AiImageService
                 || lower.contains("reset") || lower.contains("closed") || lower.contains("connection")
                 || lower.contains("no bytes") || lower.contains("header parser")
                 || lower.contains("502") || lower.contains("503") || lower.contains("504")
-                || lower.contains("429") || message.contains("限流") || message.contains("繁忙");
+                || lower.contains("429") || message.contains("限流") || message.contains("繁忙")
+                || message.contains("流式响应连接异常") || message.contains("连接异常");
     }
 
     private boolean isMissingUsableResultError(String message)

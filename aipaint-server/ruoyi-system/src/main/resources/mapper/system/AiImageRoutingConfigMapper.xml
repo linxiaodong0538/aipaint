@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiImageRoutingConfigMapper">
+
+    <select id="selectProviders" resultType="com.ruoyi.system.domain.AiImageProviderRecord">
+        select provider_code as providerCode,
+               provider_name as providerName,
+               adapter_type as adapterType,
+               response_mode as responseMode,
+               base_url as baseUrl,
+               api_key as apiKey,
+               enabled,
+               sort_order as sortOrder,
+               remark
+        from ai_image_provider
+        order by sort_order asc, provider_code asc
+    </select>
+
+    <select id="selectProviderModels" resultType="com.ruoyi.system.domain.AiImageProviderModelRecord">
+        select provider_code as providerCode,
+               model,
+               enabled
+        from ai_image_provider_model
+        order by provider_code asc, model asc
+    </select>
+
+    <select id="selectModelRoutes" resultType="com.ruoyi.system.domain.AiImageModelRouteRecord">
+        select model,
+               enabled,
+               primary_provider_code as primaryProviderCode,
+               backup_provider_code as backupProviderCode,
+               fallback_enabled as fallbackEnabled,
+               sort_order as sortOrder,
+               remark
+        from ai_image_model_route
+        order by sort_order asc, model asc
+    </select>
+
+    <delete id="deleteModelRoutes">
+        delete from ai_image_model_route
+    </delete>
+
+    <delete id="deleteProviderModels">
+        delete from ai_image_provider_model
+    </delete>
+
+    <delete id="deleteProviders">
+        delete from ai_image_provider
+    </delete>
+
+    <insert id="insertProvider" parameterType="com.ruoyi.system.domain.AiImageProviderRecord">
+        insert into ai_image_provider(
+            provider_code, provider_name, adapter_type, response_mode, base_url, api_key, enabled, sort_order, remark, create_time, update_time
+        ) values (
+            #{providerCode}, #{providerName}, #{adapterType}, #{responseMode}, #{baseUrl}, #{apiKey}, #{enabled}, #{sortOrder}, #{remark}, sysdate(), sysdate()
+        )
+    </insert>
+
+    <insert id="insertProviderModel" parameterType="com.ruoyi.system.domain.AiImageProviderModelRecord">
+        insert into ai_image_provider_model(
+            provider_code, model, enabled, create_time, update_time
+        ) values (
+            #{providerCode}, #{model}, #{enabled}, sysdate(), sysdate()
+        )
+    </insert>
+
+    <insert id="insertModelRoute" parameterType="com.ruoyi.system.domain.AiImageModelRouteRecord">
+        insert into ai_image_model_route(
+            model, enabled, primary_provider_code, backup_provider_code, fallback_enabled, sort_order, remark, create_time, update_time
+        ) values (
+            #{model}, #{enabled}, #{primaryProviderCode}, #{backupProviderCode}, #{fallbackEnabled}, #{sortOrder}, #{remark}, sysdate(), sysdate()
+        )
+    </insert>
+</mapper>
