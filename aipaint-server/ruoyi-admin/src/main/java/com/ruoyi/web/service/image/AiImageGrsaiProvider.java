@@ -267,7 +267,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
         {
             return saveBase64Image(url);
         }
-        return saveRemoteImage(url, providerConfig);
+        return url;
     }
 
     private String saveBase64Image(String b64Json) throws IOException

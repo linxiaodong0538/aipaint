@@ -58,6 +58,7 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         task.setTaskId(taskId);
         task.setStatus("processing");
         task.setProgress(10);
+        task.setRunStartTime(new Date());
         taskMapper.updateGenerationTask(task);
     }
 
@@ -87,9 +88,19 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         task.setStatus("success");
         task.setProgress(100);
         task.setResultImageUrl(resultImageUrl);
-        task.setPreviewImageUrl(resultImageUrl);
+        task.setPreviewImageUrl(resolvePreviewImageUrl(resultImageUrl));
         task.setFinishTime(new Date());
         taskMapper.updateGenerationTask(task);
+    }
+
+    private String resolvePreviewImageUrl(String resultImageUrl)
+    {
+        if (resultImageUrl == null)
+        {
+            return null;
+        }
+        int commaIndex = resultImageUrl.indexOf(',');
+        return commaIndex >= 0 ? resultImageUrl.substring(0, commaIndex) : resultImageUrl;
     }
 
     @Override
@@ -107,6 +118,16 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
         {
             creditService.refundForGenerationFailure(existingTask.getUserId(), taskId, existingTask.getCreditCost());
         }
+    }
+
+    @Override
+    public void updateArchivedResult(Long taskId, String resultImageUrl)
+    {
+        AiGenerationTask task = new AiGenerationTask();
+        task.setTaskId(taskId);
+        task.setResultImageUrl(resultImageUrl);
+        task.setPreviewImageUrl(resolvePreviewImageUrl(resultImageUrl));
+        taskMapper.updateGenerationTask(task);
     }
 
     @Override

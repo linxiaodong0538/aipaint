@@ -3,6 +3,7 @@ package com.ruoyi.web.service.image;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,12 +26,18 @@ public class AiImageTaskRunner
 
     private final AiImageService aiImageService;
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private final AiImageArchiveService archiveService;
 
-    public AiImageTaskRunner(IAiGenerationTaskService taskService, AiImageService aiImageService)
+    private final ExecutorService executorService;
+
+    public AiImageTaskRunner(IAiGenerationTaskService taskService, AiImageService aiImageService,
+            AiImageArchiveService archiveService,
+            @Value("${ai.image.task-runner.pool-size:4}") Integer poolSize)
     {
         this.taskService = taskService;
         this.aiImageService = aiImageService;
+        this.archiveService = archiveService;
+        this.executorService = Executors.newFixedThreadPool(normalizePoolSize(poolSize));
     }
 
     public void submit(Long taskId)
@@ -51,6 +58,7 @@ public class AiImageTaskRunner
 
             AiImageGenerateResult result = aiImageService.generateAndSave(task);
             taskService.markSuccess(taskId, result.getResultImageUrl(), result.getProviderCode());
+            archiveService.archiveAsync(taskId, result.getResultImageUrl());
         }
         catch (Exception e)
         {
@@ -74,5 +82,14 @@ public class AiImageTaskRunner
     public void shutdown()
     {
         executorService.shutdown();
+    }
+
+    private int normalizePoolSize(Integer poolSize)
+    {
+        if (poolSize == null)
+        {
+            return 4;
+        }
+        return Math.max(1, Math.min(16, poolSize.intValue()));
     }
 }

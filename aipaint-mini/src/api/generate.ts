@@ -35,6 +35,7 @@ export interface GenerationTask {
   previewImageUrl?: string;
   errorMessage?: string;
   creditCost?: number;
+  runStartTime?: string;
   createTime?: string;
   updateTime?: string;
   finishTime?: string;

@@ -577,7 +577,7 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         {
             return saveBase64Image(url);
         }
-        return saveRemoteImage(url, providerConfig);
+        return url;
     }
 
     private void appendResultUrls(StringBuilder results, String urls)

@@ -80,6 +80,10 @@ public class AiGenerationTask extends BaseEntity
     @Excel(name = "消耗积分")
     private Integer creditCost;
 
+    /** 开始运行时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date runStartTime;
+
     /** 完成时间 */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date finishTime;
@@ -252,6 +256,16 @@ public class AiGenerationTask extends BaseEntity
     public void setCreditCost(Integer creditCost)
     {
         this.creditCost = creditCost;
+    }
+
+    public Date getRunStartTime()
+    {
+        return runStartTime;
+    }
+
+    public void setRunStartTime(Date runStartTime)
+    {
+        this.runStartTime = runStartTime;
     }
 
     public Date getFinishTime()

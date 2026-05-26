@@ -225,6 +225,7 @@ public class AiImageConfigService
         normalized.setEnabled(Boolean.valueOf(Boolean.TRUE.equals(normalized.getEnabled())));
         normalized.setAdapterType(normalizeAdapterType(normalized.getAdapterType()));
         normalized.setResponseMode(normalizeResponseMode(normalized.getResponseMode(), normalized));
+        normalized.setSupportsBatch(Boolean.valueOf(!Boolean.FALSE.equals(normalized.getSupportsBatch())));
         normalized.setBaseUrl(blankToEmpty(normalized.getBaseUrl()));
         normalized.setApiKey(blankToEmpty(normalized.getApiKey()));
         if (!isSupportedAdapterType(normalized.getAdapterType()))
@@ -428,6 +429,7 @@ public class AiImageConfigService
         AiImageProviderConfig superapi = buildCompatProviderConfig(SLOT_PRIMARY, PROVIDER_SUPERAPI, "SuperAPI 中转站", ADAPTER_OPENAI_COMPATIBLE);
         superapi.setSupportedModels(Collections.singletonList(DEFAULT_MODEL));
         superapi.setModel(DEFAULT_MODEL);
+        superapi.setSupportsBatch(Boolean.TRUE);
         superapi.setSortOrder(Integer.valueOf(1));
         superapi.setRemark("默认 GPT 主通道");
         superapi.setResponseMode(RESPONSE_MODE_STREAM);
@@ -438,6 +440,7 @@ public class AiImageConfigService
         grsai.setProviderName("Grsai 中转站");
         grsai.setAdapterType(ADAPTER_GRSAI_ASYNC);
         grsai.setResponseMode(RESPONSE_MODE_JSON);
+        grsai.setSupportsBatch(Boolean.TRUE);
         grsai.setBaseUrl("");
         grsai.setApiKey("");
         grsai.setEnabled(Boolean.FALSE);
@@ -462,6 +465,7 @@ public class AiImageConfigService
         config.setBaseUrl(readString(prefix + ".baseUrl", ""));
         config.setApiKey(readString(prefix + ".apiKey", ""));
         config.setModel(readString(prefix + ".model", DEFAULT_MODEL));
+        config.setSupportsBatch(Boolean.TRUE);
         return config;
     }
 
@@ -627,6 +631,7 @@ public class AiImageConfigService
         config.setProviderName(record.getProviderName());
         config.setAdapterType(record.getAdapterType());
         config.setResponseMode(record.getResponseMode());
+        config.setSupportsBatch(Boolean.valueOf(!Boolean.FALSE.equals(record.getSupportsBatch())));
         config.setBaseUrl(record.getBaseUrl());
         config.setApiKey(record.getApiKey());
         config.setEnabled(record.getEnabled());
@@ -657,6 +662,7 @@ public class AiImageConfigService
         record.setProviderName(config.getProviderName());
         record.setAdapterType(config.getAdapterType());
         record.setResponseMode(config.getResponseMode());
+        record.setSupportsBatch(Boolean.valueOf(!Boolean.FALSE.equals(config.getSupportsBatch())));
         record.setBaseUrl(config.getBaseUrl());
         record.setApiKey(config.getApiKey());
         record.setEnabled(config.getEnabled());
