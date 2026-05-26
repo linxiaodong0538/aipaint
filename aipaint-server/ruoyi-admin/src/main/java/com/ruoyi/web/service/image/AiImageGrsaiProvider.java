@@ -65,8 +65,15 @@ public class AiImageGrsaiProvider implements AiImageProvider
         payload.put("model", StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel()));
         payload.put("prompt", request.getPrompt());
         payload.put("images", request.getImageUrls() == null ? new JSONArray() : request.getImageUrls());
-        payload.put("aspectRatio", StringUtils.defaultIfBlank(request.getRatio(), "1:1"));
-        payload.put("imageSize", normalizeImageSize(request.getResolution()));
+        if (usesPixelImageSize(request.getModel()))
+        {
+            payload.put("imageSize", StringUtils.defaultIfBlank(request.getSize(), "1024x1024"));
+        }
+        else
+        {
+            payload.put("aspectRatio", StringUtils.defaultIfBlank(request.getRatio(), "1:1"));
+            payload.put("imageSize", normalizeImageSize(request.getResolution()));
+        }
         payload.put("replyType", "async");
         payload.put("n", normalizeImageCount(request.getImageCount()));
 
@@ -232,6 +239,11 @@ public class AiImageGrsaiProvider implements AiImageProvider
             return "4K";
         }
         return "2K";
+    }
+
+    private boolean usesPixelImageSize(String model)
+    {
+        return "gpt-image-2".equals(model) || "gpt-image-2-vip".equals(model);
     }
 
     private int normalizeImageCount(Integer imageCount)

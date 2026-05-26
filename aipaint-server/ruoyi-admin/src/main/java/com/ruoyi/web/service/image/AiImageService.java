@@ -102,7 +102,6 @@ public class AiImageService
         request.setSize(task.getSize());
         request.setRatio(task.getRatio());
         request.setResolution(task.getResolution());
-        request.setQuality(task.getQuality());
         request.setImageCount(task.getImageCount());
         request.setOutputFormat(adminConfig.getOutputFormat());
         request.setOutputCompression(adminConfig.getOutputCompression());

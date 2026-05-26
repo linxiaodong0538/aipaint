@@ -259,7 +259,7 @@ const showProgressState = computed(() => !pageInitializing.value && taskState.va
 const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
-const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} CREDITS`);
+const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
 const taskPromptText = computed(() => taskPrompt.value || "未填写");
 const taskModelText = computed(() => formatModel(taskModel.value));
@@ -495,7 +495,10 @@ function formatCreateTime(value: string) {
 
 function formatModel(value: string) {
   if (value === "gpt-image-2" || value === "g-image-2") return "GPT-image-2";
+  if (value === "gpt-image-2-vip") return "GPT-image-2 VIP";
   if (value === "nano-banana-2") return "nano-banana-2";
+  if (value === "nano-banana-pro") return "nano-banana-pro";
+  if (value === "nano-banana") return "nano-banana";
   return value || "gpt-image-2";
 }
 

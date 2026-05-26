@@ -51,7 +51,6 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             payload.put("prompt", request.getPrompt());
             payload.put("size", resolvePayloadSize(request, providerConfig));
             payload.put("resolution", request.getResolution());
-            payload.put("quality", request.getQuality());
             payload.put("n", normalizeImageCount(request.getImageCount()));
             payload.put("response_format", "url");
             String outputFormat = normalizeOutputFormat(request.getOutputFormat());

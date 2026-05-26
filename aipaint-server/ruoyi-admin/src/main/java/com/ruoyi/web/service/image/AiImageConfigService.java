@@ -1,6 +1,7 @@
 package com.ruoyi.web.service.image;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -46,6 +47,12 @@ public class AiImageConfigService
     private static final String DEFAULT_MODEL = "gpt-image-2";
 
     private static final String MODEL_NANO_BANANA = "nano-banana-2";
+
+    private static final String MODEL_GPT_IMAGE_2_VIP = "gpt-image-2-vip";
+
+    private static final String MODEL_NANO_BANANA_PRO = "nano-banana-pro";
+
+    private static final String MODEL_NANO_BANANA_FAST = "nano-banana";
 
     private static final String PROVIDER_SUPERAPI = "superapi";
 
@@ -252,8 +259,7 @@ public class AiImageConfigService
         {
             if (ADAPTER_GRSAI_ASYNC.equals(provider.getAdapterType()))
             {
-                models.add(DEFAULT_MODEL);
-                models.add(MODEL_NANO_BANANA);
+                addDefaultGrsaiModels(models);
             }
             else
             {
@@ -436,8 +442,7 @@ public class AiImageConfigService
         grsai.setApiKey("");
         grsai.setEnabled(Boolean.FALSE);
         List<String> grsaiModels = new ArrayList<>();
-        grsaiModels.add(DEFAULT_MODEL);
-        grsaiModels.add(MODEL_NANO_BANANA);
+        addDefaultGrsaiModels(grsaiModels);
         grsai.setSupportedModels(grsaiModels);
         grsai.setModel(DEFAULT_MODEL);
         grsai.setSortOrder(Integer.valueOf(2));
@@ -564,16 +569,55 @@ public class AiImageConfigService
         gptRoute.setRemark("GPT 主用 SuperAPI，失败切 Grsai");
         routes.add(gptRoute);
 
+        AiImageModelRouteConfig gptVipRoute = new AiImageModelRouteConfig();
+        gptVipRoute.setModel(MODEL_GPT_IMAGE_2_VIP);
+        gptVipRoute.setEnabled(Boolean.TRUE);
+        gptVipRoute.setPrimaryProviderCode(PROVIDER_GRSAI);
+        gptVipRoute.setBackupProviderCode("");
+        gptVipRoute.setFallbackEnabled(Boolean.FALSE);
+        gptVipRoute.setSortOrder(Integer.valueOf(2));
+        gptVipRoute.setRemark("GPT VIP 固定走 Grsai");
+        routes.add(gptVipRoute);
+
         AiImageModelRouteConfig nanoRoute = new AiImageModelRouteConfig();
         nanoRoute.setModel(MODEL_NANO_BANANA);
         nanoRoute.setEnabled(Boolean.TRUE);
         nanoRoute.setPrimaryProviderCode(PROVIDER_GRSAI);
         nanoRoute.setBackupProviderCode("");
         nanoRoute.setFallbackEnabled(Boolean.FALSE);
-        nanoRoute.setSortOrder(Integer.valueOf(2));
-        nanoRoute.setRemark("nano-banana 固定走 Grsai");
+        nanoRoute.setSortOrder(Integer.valueOf(3));
+        nanoRoute.setRemark("nano-banana-2 固定走 Grsai");
         routes.add(nanoRoute);
+
+        AiImageModelRouteConfig nanoProRoute = new AiImageModelRouteConfig();
+        nanoProRoute.setModel(MODEL_NANO_BANANA_PRO);
+        nanoProRoute.setEnabled(Boolean.TRUE);
+        nanoProRoute.setPrimaryProviderCode(PROVIDER_GRSAI);
+        nanoProRoute.setBackupProviderCode("");
+        nanoProRoute.setFallbackEnabled(Boolean.FALSE);
+        nanoProRoute.setSortOrder(Integer.valueOf(4));
+        nanoProRoute.setRemark("nano-banana-pro 固定走 Grsai");
+        routes.add(nanoProRoute);
+
+        AiImageModelRouteConfig nanoFastRoute = new AiImageModelRouteConfig();
+        nanoFastRoute.setModel(MODEL_NANO_BANANA_FAST);
+        nanoFastRoute.setEnabled(Boolean.TRUE);
+        nanoFastRoute.setPrimaryProviderCode(PROVIDER_GRSAI);
+        nanoFastRoute.setBackupProviderCode("");
+        nanoFastRoute.setFallbackEnabled(Boolean.FALSE);
+        nanoFastRoute.setSortOrder(Integer.valueOf(5));
+        nanoFastRoute.setRemark("nano-banana 固定走 Grsai");
+        routes.add(nanoFastRoute);
         return routes;
+    }
+
+    private void addDefaultGrsaiModels(Collection<String> models)
+    {
+        models.add(DEFAULT_MODEL);
+        models.add(MODEL_GPT_IMAGE_2_VIP);
+        models.add(MODEL_NANO_BANANA);
+        models.add(MODEL_NANO_BANANA_PRO);
+        models.add(MODEL_NANO_BANANA_FAST);
     }
 
     private AiImageProviderConfig fromProviderRecord(AiImageProviderRecord record, List<String> supportedModels)

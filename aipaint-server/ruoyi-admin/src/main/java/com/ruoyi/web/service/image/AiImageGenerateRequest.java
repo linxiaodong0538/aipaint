@@ -17,8 +17,6 @@ public class AiImageGenerateRequest
 
     private String resolution;
 
-    private String quality;
-
     private Integer imageCount;
 
     private String outputFormat;
@@ -75,16 +73,6 @@ public class AiImageGenerateRequest
     public void setResolution(String resolution)
     {
         this.resolution = resolution;
-    }
-
-    public String getQuality()
-    {
-        return quality;
-    }
-
-    public void setQuality(String quality)
-    {
-        this.quality = quality;
     }
 
     public Integer getImageCount()

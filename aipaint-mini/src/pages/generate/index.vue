@@ -90,36 +90,44 @@
         <!-- 模型选择 -->
         <view class="mb-[32rpx]">
           <text class="model-section-label font-mono">模型选择</text>
-          <view class="model-grid">
-            <view
-              v-for="item in models"
-              :key="item.value"
-              class="model-card"
-              :class="model === item.value ? 'model-card-active' : 'model-card-default'"
-              @tap="selectModel(item)"
-            >
+          <scroll-view
+            class="model-scroll"
+            scroll-x
+            enhanced
+            :bounces="false"
+            :show-scrollbar="false"
+          >
+            <view class="model-grid">
               <view
-                class="model-card-icon"
-                :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
+                v-for="item in models"
+                :key="item.value"
+                class="model-card"
+                :class="model === item.value ? 'model-card-active' : 'model-card-default'"
+                @tap="selectModel(item)"
               >
-                <text
-                  class="iconfont leading-none"
-                  :class="item.iconClass"
-                  :style="{ fontSize: '40rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
-                />
-              </view>
-              <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
-                <view class="model-card-title-row">
-                  <text class="model-card-title">{{ item.label }}</text>
+                <!-- <view
+                  class="model-card-icon"
+                  :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
+                >
                   <text
-                    v-if="model === item.value"
-                    class="iconfont icon-gou2x model-card-check"
+                    class="iconfont leading-none"
+                    :class="item.iconClass"
+                    :style="{ fontSize: '32rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
                   />
+                </view> -->
+                <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
+                  <view class="model-card-title-row">
+                    <text class="model-card-title">{{ item.label }}</text>
+                    <text
+                      v-if="model === item.value"
+                      class="iconfont icon-gou2x model-card-check"
+                    />
+                  </view>
+                  <text class="model-card-desc pt-[4rpx]">{{ item.description }}</text>
                 </view>
-                <text class="model-card-desc">{{ item.description }}</text>
               </view>
             </view>
-          </view>
+          </scroll-view>
         </view>
 
         <!-- 分辨率 -->
@@ -127,7 +135,7 @@
           <text class="model-section-label font-mono">分辨率</text>
           <view class="segmented-control">
             <button
-              v-for="item in qualities"
+              v-for="item in availableQualities"
               :key="item"
               class="segmented-item"
               :class="{ active: quality === item }"
@@ -160,29 +168,21 @@
                 :key="item.value"
                 class="ratio-chip"
                 :class="{ active: ratio === item.value }"
-                @tap="ratio = item.value"
+                @tap="selectRatio(item.value)"
               >
                 <view class="ratio-icon" :class="item.iconClass" />
                 <text class="ratio-chip-label">{{ item.label }}</text>
               </view>
+              <view
+                v-if="moreRatios.length > 0"
+                class="ratio-chip ratio-chip-more"
+                @tap="openMoreRatios"
+              >
+                <text class="ratio-more-dot">•••</text>
+                <text class="ratio-chip-label">更多</text>
+              </view>
             </view>
           </scroll-view>
-        </view>
-
-        <!-- 画质选择 -->
-        <view class="mb-[32rpx]">
-          <text class="model-section-label font-mono">画质选择</text>
-          <view class="segmented-control">
-            <button
-              v-for="item in imageQualities"
-              :key="item.value"
-              class="segmented-item"
-              :class="{ active: imageQuality === item.value }"
-              @tap="selectImageQuality(item.value)"
-            >
-              {{ item.label }}
-            </button>
-          </view>
         </view>
 
         <!-- 图片生成张数 -->
@@ -224,6 +224,32 @@
       </view>
     </view>
 
+    <!-- 更多比例 -->
+    <view v-if="showMoreRatios" class="ratio-drawer-overlay" @tap="closeMoreRatios">
+      <view class="ratio-drawer" :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }" @tap.stop>
+        <view class="ratio-drawer-handle" />
+        <view class="ratio-drawer-header">
+          <text class="ratio-drawer-title">更多比例</text>
+          <button class="ratio-drawer-close" @tap="closeMoreRatios">
+            <text class="ratio-drawer-close-text">×</text>
+          </button>
+        </view>
+        <view class="ratio-drawer-grid">
+          <view
+            v-for="item in moreRatios"
+            :key="item.value"
+            class="ratio-drawer-chip"
+            :class="{ active: ratio === item.value }"
+            @tap="selectRatioFromDrawer(item.value)"
+          >
+            <view class="ratio-icon" :class="item.iconClass" />
+            <text class="ratio-chip-label">{{ item.label }}</text>
+            <text class="ratio-drawer-size">{{ getRatioSizeText(item.value) }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <canvas
       canvas-id="reference-compress-canvas"
       id="reference-compress-canvas"
@@ -257,20 +283,38 @@ const REFERENCE_MAX_EDGE = 2048;
 const REFERENCE_COMPRESS_QUALITY = 0.82;
 const REFERENCE_COMPRESS_CANVAS_ID = "reference-compress-canvas";
 
-type ModelValue = "gpt-image-2" | "nano-banana-2";
+type ModelValue = "gpt-image-2" | "gpt-image-2-vip" | "nano-banana-2" | "nano-banana-pro" | "nano-banana";
 
 const models: Array<{
   value: ModelValue;
   label: string;
   description: string;
   iconClass: string;
+  baseCredits: number;
   enabled: boolean;
 }> = [
-{
+  {
     value: "gpt-image-2",
     label: "GPT-image-2",
     description: "全能艺术创作",
     iconClass: "icon-magic",
+    baseCredits: 6,
+    enabled: true,
+  },
+  {
+    value: "gpt-image-2-vip",
+    label: "GPT-image-2 VIP",
+    description: "高优先级精修",
+    iconClass: "icon-huizhang",
+    baseCredits: 15,
+    enabled: true,
+  },
+  {
+    value: "nano-banana",
+    label: "nano-banana",
+    description: "轻量快速生成",
+    iconClass: "icon-images",
+    baseCredits: 15,
     enabled: true,
   },
   {
@@ -278,21 +322,126 @@ const models: Array<{
     label: "nano-banana-2",
     description: "写实摄影风格",
     iconClass: "icon-tupian",
+    baseCredits: 12,
     enabled: true,
-  }
+  },
+  {
+    value: "nano-banana-pro",
+    label: "nano-banana-pro",
+    description: "专业细节增强",
+    iconClass: "icon-line-medalxunzhang-02",
+    baseCredits: 20,
+    enabled: true,
+  },
 
 ];
 
 const qualities = ["1K", "2K", "4K"] as const;
+type QualityValue = (typeof qualities)[number];
 const counts = [1, 2, 3, 4] as const;
-const ratios = [
+type RatioValue =
+  | "1:1"
+  | "16:9"
+  | "9:16"
+  | "4:3"
+  | "3:4"
+  | "3:2"
+  | "2:3"
+  | "5:4"
+  | "4:5"
+  | "21:9"
+  | "9:21"
+  | "1:3"
+  | "3:1"
+  | "2:1"
+  | "1:2";
+type RatioOption = { value: RatioValue; label: string; iconClass: string };
+type SizeMap = Partial<Record<RatioValue, Partial<Record<QualityValue, string>>>>;
+
+const ratios: RatioOption[] = [
   { value: "1:1", label: "1:1", iconClass: "ratio-icon-square" },
-  { value: "4:3", label: "4:3", iconClass: "ratio-icon-landscape" },
-  { value: "3:4", label: "3:4", iconClass: "ratio-icon-portrait" },
   { value: "16:9", label: "16:9", iconClass: "ratio-icon-wide" },
   { value: "9:16", label: "9:16", iconClass: "ratio-icon-tall" },
+  { value: "4:3", label: "4:3", iconClass: "ratio-icon-landscape" },
+  { value: "3:4", label: "3:4", iconClass: "ratio-icon-portrait" },
+  { value: "3:2", label: "3:2", iconClass: "ratio-icon-landscape" },
+  { value: "2:3", label: "2:3", iconClass: "ratio-icon-portrait" },
+  { value: "5:4", label: "5:4", iconClass: "ratio-icon-landscape" },
+  { value: "4:5", label: "4:5", iconClass: "ratio-icon-portrait" },
+  { value: "21:9", label: "21:9", iconClass: "ratio-icon-ultrawide" },
+  { value: "9:21", label: "9:21", iconClass: "ratio-icon-tall" },
+  { value: "1:3", label: "1:3", iconClass: "ratio-icon-tall" },
+  { value: "3:1", label: "3:1", iconClass: "ratio-icon-ultrawide" },
   { value: "2:1", label: "2:1", iconClass: "ratio-icon-ultrawide" },
-] as const;
+  { value: "1:2", label: "1:2", iconClass: "ratio-icon-tall" },
+];
+
+const commonRatioValues: RatioValue[] = ["1:1", "16:9", "9:16", "4:3", "3:4", "2:1"];
+
+const defaultModelSizeMap: SizeMap = {
+  "1:1": {
+    "1K": "1024x1024",
+    "2K": "2048x2048",
+  },
+  "4:3": {
+    "1K": "1024x768",
+    "2K": "2048x1536",
+  },
+  "3:4": {
+    "1K": "768x1024",
+    "2K": "1536x2048",
+  },
+  "16:9": {
+    "1K": "1536x864",
+    "2K": "2048x1152",
+    "4K": "3840x2160",
+  },
+  "9:16": {
+    "1K": "864x1536",
+    "2K": "1152x2048",
+    "4K": "2160x3840",
+  },
+  "2:1": {
+    "1K": "2048x1024",
+    "2K": "2688x1344",
+    "4K": "3840x1920",
+  },
+};
+
+const modelSizeMaps: Partial<Record<ModelValue, SizeMap>> = {
+  "gpt-image-2": {
+    "1:1": { "1K": "1024x1024" },
+    "16:9": { "1K": "1672x941" },
+    "9:16": { "1K": "941x1672" },
+    "4:3": { "1K": "1443x1090" },
+    "3:4": { "1K": "1090x1443" },
+    "3:2": { "1K": "1536x1024" },
+    "2:3": { "1K": "1024x1536" },
+    "5:4": { "1K": "1408x1120" },
+    "4:5": { "1K": "1120x1408" },
+    "21:9": { "1K": "1920x832" },
+    "9:21": { "1K": "832x1920" },
+    "1:2": { "1K": "896x1792" },
+    "2:1": { "1K": "1792x896" },
+  },
+  "gpt-image-2-vip": {
+    "1:1": { "1K": "1024x1024", "2K": "2048x2048", "4K": "2880x2880" },
+    "16:9": { "1K": "1280x720", "2K": "2048x1152", "4K": "3840x2160" },
+    "9:16": { "1K": "720x1280", "2K": "1152x2048", "4K": "2160x3840" },
+    "4:3": { "1K": "1152x864", "2K": "2304x1728", "4K": "3264x2448" },
+    "3:4": { "1K": "864x1152", "2K": "1728x2304", "4K": "2448x3264" },
+    "3:2": { "1K": "1536x1024", "2K": "2048x1360", "4K": "3504x2336" },
+    "2:3": { "1K": "1024x1536", "2K": "1360x2048", "4K": "2336x3504" },
+    "5:4": { "1K": "1120x896", "2K": "2240x1792", "4K": "3200x2560" },
+    "4:5": { "1K": "896x1120", "2K": "1792x2240", "4K": "2560x3200" },
+    "21:9": { "1K": "1456x624", "2K": "2912x1248", "4K": "3840x1648" },
+    "9:21": { "1K": "624x1456", "2K": "1248x2912", "4K": "1648x3840" },
+    "1:3": { "2K": "688x2048", "4K": "1280x3840" },
+    "3:1": { "2K": "2048x688", "4K": "3840x1280" },
+    "2:1": { "1K": "1536x768", "2K": "3072x1536", "4K": "3840x1920" },
+    "1:2": { "1K": "768x1536", "2K": "1536x3072", "4K": "1920x3840" },
+  },
+};
 
 const statusBarHeight = ref(0);
 const safeAreaBottom = ref(0);
@@ -318,16 +467,11 @@ const maxReferenceImages = 4;
 const referenceImages = ref<string[]>([]);
 const canAddReferenceImages = computed(() => referenceImages.value.length < maxReferenceImages);
 const model = ref<ModelValue>("gpt-image-2");
-const quality = ref<(typeof qualities)[number]>("1K");
-const imageQualities = [
-  { value: "low", label: "低" },
-  { value: "medium", label: "中" },
-  { value: "high", label: "高" },
-] as const;
-const imageQuality = ref<(typeof imageQualities)[number]["value"]>("medium");
+const quality = ref<QualityValue>("1K");
 const count = ref<(typeof counts)[number]>(1);
-const ratio = ref<(typeof ratios)[number]["value"]>("1:1");
+const ratio = ref<RatioValue>("1:1");
 const generating = ref(false);
+const showMoreRatios = ref(false);
 const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
 const retryParamsStorageKey = "generate:retryParams";
@@ -347,18 +491,25 @@ interface ReferenceSelectedFile {
 }
 
 const creditCost = computed(() => {
-  return calculateCreditCost(mapImageSize(ratio.value, quality.value), count.value);
+  return calculateCreditCost(model.value, quality.value, count.value);
 });
 const compressCanvasWidth = ref(1);
 const compressCanvasHeight = ref(1);
 
-const hiddenRatiosFor4K = ["1:1", "4:3", "3:4"] as const;
-const visibleRatios = computed(() => (
-  quality.value === "4K"
-    ? ratios.filter((item) => !hiddenRatiosFor4K.includes(item.value as (typeof hiddenRatiosFor4K)[number]))
-    : ratios
-));
-
+const activeSizeMap = computed(() => getModelSizeMap(model.value));
+const availableQualities = computed(() => qualities.filter((item) => hasAnyRatioForQuality(item)));
+const availableRatios = computed(() => ratios.filter((item) => Boolean(activeSizeMap.value[item.value]?.[quality.value])));
+const visibleRatios = computed(() => {
+  const primary = availableRatios.value.filter((item) => commonRatioValues.includes(item.value));
+  if (!commonRatioValues.includes(ratio.value)) {
+    const selected = availableRatios.value.find((item) => item.value === ratio.value);
+    if (selected) {
+      return [...primary, selected];
+    }
+  }
+  return primary;
+});
+const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
 const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
 
@@ -370,6 +521,14 @@ const scrollViewHeight = computed(() => {
 
 function rpxToPx(rpx: number) {
   return (windowWidth.value / 750) * rpx;
+}
+
+function getModelSizeMap(modelValue: ModelValue) {
+  return modelSizeMaps[modelValue] || defaultModelSizeMap;
+}
+
+function hasAnyRatioForQuality(resolutionValue: QualityValue) {
+  return ratios.some((item) => Boolean(activeSizeMap.value[item.value]?.[resolutionValue]));
 }
 
 function useRandomPrompt() {
@@ -398,9 +557,8 @@ function applyRetryParams() {
   model.value = normalizeRetryModel(params.model);
   ratio.value = normalizeRetryRatio(params.ratio);
   quality.value = normalizeRetryResolution(params.resolution, params.quality);
-  imageQuality.value = normalizeRetryImageQuality(params.quality, quality.value);
   count.value = normalizeRetryCount(params.count);
-  ensureRatioForResolution(quality.value);
+  ensureGenerationOptions();
 }
 
 function getRetryParams() {
@@ -454,13 +612,16 @@ function applyTemplate(value: Partial<TemplateItem>) {
   model.value = normalizeTemplateModel(value.aiEngine);
   ratio.value = normalizeTemplateRatio(value.ratio);
   quality.value = normalizeTemplateQuality(value);
-  imageQuality.value = mapQuality(quality.value);
-  ensureRatioForResolution(quality.value);
+  ensureGenerationOptions();
 }
 
 function normalizeTemplateModel(value?: string): ModelValue {
   if (!value) return "gpt-image-2";
   const normalized = value.toLowerCase();
+  const matchedModel = models.find((item) => normalized.includes(item.value.toLowerCase()));
+  if (matchedModel) {
+    return matchedModel.value;
+  }
   if (normalized.includes("nano-banana")) {
     return "nano-banana-2";
   }
@@ -470,14 +631,14 @@ function normalizeTemplateModel(value?: string): ModelValue {
   return "gpt-image-2";
 }
 
-function normalizeTemplateRatio(value?: string): (typeof ratios)[number]["value"] {
+function normalizeTemplateRatio(value?: string): RatioValue {
   if (!value) return "1:1";
   const normalized = value.replace(/\s/g, "");
   const matched = ratios.find((item) => normalized.includes(item.value));
   return matched?.value || "1:1";
 }
 
-function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualities)[number] {
+function normalizeTemplateQuality(value: Partial<TemplateItem>): QualityValue {
   const source = `${value.ratio || ""} ${value.title || ""} ${value.description || ""}`.toLowerCase();
   if (source.includes("1k")) return "1K";
   if (source.includes("4k") || source.includes("8k")) return "4K";
@@ -486,10 +647,11 @@ function normalizeTemplateQuality(value: Partial<TemplateItem>): (typeof qualiti
 }
 
 function normalizeRetryModel(value?: string): ModelValue {
-  return value === "gpt-image-2" || value === "nano-banana-2" ? value : "gpt-image-2";
+  const matchedModel = models.find((item) => item.value === value);
+  return matchedModel?.value || "gpt-image-2";
 }
 
-function normalizeRetryRatio(value?: string): (typeof ratios)[number]["value"] {
+function normalizeRetryRatio(value?: string): RatioValue {
   const matched = ratios.find((item) => item.value === value);
   return matched?.value || "1:1";
 }
@@ -497,20 +659,12 @@ function normalizeRetryRatio(value?: string): (typeof ratios)[number]["value"] {
 function normalizeRetryResolution(
   value?: string,
   imageQualityValue?: string,
-): (typeof qualities)[number] {
+): QualityValue {
   const matched = qualities.find((item) => item === value);
   if (matched) return matched;
   if (imageQualityValue === "low") return "1K";
   if (imageQualityValue === "high") return "4K";
   return "2K";
-}
-
-function normalizeRetryImageQuality(
-  value: string | undefined,
-  resolutionValue: (typeof qualities)[number],
-): (typeof imageQualities)[number]["value"] {
-  const matched = imageQualities.find((item) => item.value === value);
-  return matched?.value || mapQuality(resolutionValue);
 }
 
 function normalizeRetryCount(value?: string | number): (typeof counts)[number] {
@@ -693,37 +847,43 @@ function selectModel(item: (typeof models)[number]) {
     return;
   }
   model.value = item.value;
+  ensureGenerationOptions();
 }
 
-function selectResolution(value: (typeof qualities)[number]) {
+function selectResolution(value: QualityValue) {
   quality.value = value;
-  ensureRatioForResolution(value);
+  ensureGenerationOptions();
 }
 
-function selectImageQuality(value: (typeof imageQualities)[number]["value"]) {
-  imageQuality.value = value;
+function selectRatio(value: RatioValue) {
+  ratio.value = value;
 }
 
-function ensureRatioForResolution(value: (typeof qualities)[number]) {
-  if (value !== "4K") {
-    return;
+function openMoreRatios() {
+  showMoreRatios.value = true;
+}
+
+function closeMoreRatios() {
+  showMoreRatios.value = false;
+}
+
+function selectRatioFromDrawer(value: RatioValue) {
+  selectRatio(value);
+  closeMoreRatios();
+}
+
+function ensureGenerationOptions() {
+  if (!availableQualities.value.includes(quality.value)) {
+    quality.value = availableQualities.value[0] || "1K";
   }
-  if (hiddenRatiosFor4K.includes(ratio.value as (typeof hiddenRatiosFor4K)[number])) {
-    ratio.value = "9:16";
+
+  if (!availableRatios.value.some((item) => item.value === ratio.value)) {
+    ratio.value = availableRatios.value[0]?.value || "1:1";
   }
 }
 
-function mapQuality(value: (typeof qualities)[number]) {
-  const map: Record<(typeof qualities)[number], "low" | "medium" | "high"> = {
-    "1K": "low",
-    "2K": "medium",
-    "4K": "high",
-  };
-  return map[value];
-}
-
-function mapResolution(value: (typeof qualities)[number]) {
-  const map: Record<(typeof qualities)[number], "1K" | "2K" | "4K"> = {
+function mapResolution(value: QualityValue) {
+  const map: Record<QualityValue, "1K" | "2K" | "4K"> = {
     "1K": "1K",
     "2K": "2K",
     "4K": "4K",
@@ -732,47 +892,30 @@ function mapResolution(value: (typeof qualities)[number]) {
 }
 
 function mapImageSize(
-  ratioValue: (typeof ratios)[number]["value"],
-  resolutionValue: (typeof qualities)[number],
+  ratioValue: RatioValue,
+  resolutionValue: QualityValue,
 ) {
-  const sizeMap: Record<(typeof ratios)[number]["value"], Partial<Record<(typeof qualities)[number], string>>> = {
-    "1:1": {
-      "1K": "1024x1024",
-      "2K": "2048x2048",
-    },
-    "4:3": {
-      "1K": "1024x768",
-      "2K": "2048x1536",
-    },
-    "3:4": {
-      "1K": "768x1024",
-      "2K": "1536x2048",
-    },
-    "16:9": {
-      "1K": "1536x864",
-      "2K": "2048x1152",
-      "4K": "3840x2160",
-    },
-    "9:16": {
-      "1K": "864x1536",
-      "2K": "1152x2048",
-      "4K": "2160x3840",
-    },
-    "2:1": {
-      "1K": "2048x1024",
-      "2K": "2688x1344",
-      "4K": "3840x1920",
-    },
-  };
-
-  const mapped = sizeMap[ratioValue][resolutionValue];
-  return mapped || sizeMap["1:1"]["1K"] || "1024x1024";
+  const sizeMap = getModelSizeMap(model.value);
+  return sizeMap[ratioValue]?.[resolutionValue] || sizeMap["1:1"]?.["1K"] || "1024x1024";
 }
 
-function calculateCreditCost(size: string, imageCount: number) {
-  const [width = 0, height = 0] = size.split("x").map((value) => Number(value));
-  const pixels = width * height;
-  const singleCost = Math.max(5, Math.ceil((pixels / 8294400) * 20));
+function getRatioSizeText(ratioValue: RatioValue) {
+  return (activeSizeMap.value[ratioValue]?.[quality.value] || "").replace("x", " x ");
+}
+
+function calculateCreditCost(
+  modelValue: ModelValue,
+  resolutionValue: QualityValue,
+  imageCount: number,
+) {
+  const selected = models.find((item) => item.value === modelValue);
+  const baseCredits = selected?.baseCredits || models[0].baseCredits;
+  const multiplierMap: Record<(typeof qualities)[number], number> = {
+    "1K": 1,
+    "2K": 1.2,
+    "4K": 1.5,
+  };
+  const singleCost = Math.ceil(baseCredits * multiplierMap[resolutionValue]);
   return singleCost * imageCount;
 }
 
@@ -812,7 +955,6 @@ async function handleGenerate() {
       ratio: ratio.value,
       size: mapImageSize(ratio.value, quality.value),
       resolution: mapResolution(quality.value),
-      quality: imageQuality.value,
       n: count.value,
       image_urls: imageUrls,
     });
@@ -929,6 +1071,17 @@ async function handleGenerate() {
   box-shadow: 0 0 0 8rpx rgba(0, 0, 0, 0.1);
 }
 
+.ratio-chip-more {
+  border-style: dashed;
+}
+
+.ratio-more-dot {
+  height: 32rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 20rpx;
+}
+
 .ratio-icon {
   box-sizing: border-box;
   border: 3rpx solid currentColor;
@@ -972,6 +1125,103 @@ async function handleGenerate() {
   height: 18rpx;
 }
 
+.ratio-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.ratio-drawer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  box-sizing: border-box;
+  padding: 24rpx 32rpx 40rpx;
+  border-radius: 48rpx 48rpx 0 0;
+  background: #f9f9f9;
+  box-shadow: 0 -20rpx 80rpx rgba(0, 0, 0, 0.1);
+}
+
+.ratio-drawer-handle {
+  width: 96rpx;
+  height: 8rpx;
+  margin: 0 auto 32rpx;
+  border-radius: 9999rpx;
+  background: rgba(207, 196, 197, 0.5);
+}
+
+.ratio-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  padding: 0 8rpx;
+}
+
+.ratio-drawer-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 44rpx;
+  color: #1a1c1c;
+}
+
+.ratio-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64rpx;
+  height: 64rpx;
+  padding: 0;
+  border-radius: 9999rpx;
+  background: #eeeeee;
+}
+
+.ratio-drawer-close-text {
+  font-size: 42rpx;
+  font-weight: 300;
+  line-height: 58rpx;
+  color: #1a1c1c;
+}
+
+.ratio-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.ratio-drawer-chip {
+  display: flex;
+  box-sizing: border-box;
+  min-height: 132rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  border: 2rpx solid #cfc4c5;
+  border-radius: 24rpx;
+  background: #ffffff;
+  color: #1a1c1c;
+}
+
+.ratio-drawer-chip.active {
+  border-color: #000000;
+  background: #000000;
+  color: #ffffff;
+}
+
+.ratio-drawer-size {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 18rpx;
+  line-height: 24rpx;
+  opacity: 0.62;
+}
+
 .generate-btn {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -986,19 +1236,23 @@ async function handleGenerate() {
   color: #777;
 }
 
+.model-scroll {
+  width: 100%;
+}
+
 .model-grid {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 24rpx;
-  padding: 0 8rpx;
+  padding: 0 8rpx 8rpx;
 }
 
 .model-card {
   display: flex;
   box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
+  flex: none;
+  width: 260rpx;
   align-items: center;
   gap: 16rpx;
   padding: 24rpx;
