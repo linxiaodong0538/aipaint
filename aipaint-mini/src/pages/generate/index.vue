@@ -118,12 +118,14 @@
                 <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
                   <view class="model-card-title-row">
                     <text class="model-card-title">{{ item.label }}</text>
-                    <text
-                      v-if="model === item.value"
-                      class="iconfont icon-gou2x model-card-check"
-                    />
                   </view>
                   <text class="model-card-desc pt-[4rpx]">{{ item.description }}</text>
+                </view>
+                <view
+                  v-if="model === item.value"
+                  class="model-card-check"
+                >
+                  <view class="model-card-check-mark" />
                 </view>
               </view>
             </view>
@@ -1244,7 +1246,7 @@ async function handleGenerate() {
   display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 24rpx;
+  gap: 16rpx;
   padding: 0 8rpx 8rpx;
 }
 
@@ -1255,7 +1257,7 @@ async function handleGenerate() {
   width: 260rpx;
   align-items: center;
   gap: 16rpx;
-  padding: 24rpx;
+  padding: 12rpx 24rpx;
   border-radius: 24rpx;
 }
 
@@ -1293,6 +1295,7 @@ async function handleGenerate() {
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
   min-width: 0;
   color: #1a1c1c;
 }
@@ -1305,6 +1308,7 @@ async function handleGenerate() {
   display: flex;
   align-items: center;
   gap: 8rpx;
+  min-height: 36rpx;
 }
 
 .model-card-title {
@@ -1319,9 +1323,26 @@ async function handleGenerate() {
 }
 
 .model-card-check {
-  font-size: 28rpx;
-  line-height: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30rpx;
+  height: 30rpx;
+  box-sizing: border-box;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
   color: #ffffff;
+}
+
+.model-card-check-mark {
+  width: 8rpx;
+  height: 14rpx;
+  margin-top: -4rpx;
+  border-right: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
 }
 
 .model-card-desc {
