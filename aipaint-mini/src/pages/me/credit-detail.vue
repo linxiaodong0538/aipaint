@@ -1,7 +1,7 @@
 <template>
-  <view class="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-    <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
-      <view class="mx-auto min-h-screen max-w-[750rpx] px-[32rpx] pb-[200rpx] pt-[24rpx]">
+  <view class="h-screen overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+    <view class="mx-auto flex h-full min-h-0 max-w-[750rpx] flex-col px-[32rpx] pt-[24rpx]">
+      <view class="shrink-0">
         <section class="flex min-h-[196rpx] items-center justify-between rounded-[48rpx] bg-black px-[48rpx] py-[40rpx] text-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
           <view class="flex min-w-0 flex-1 flex-col">
             <text class="text-[28rpx] font-semibold leading-[38rpx] text-[rgba(255,255,255,0.7)]">
@@ -43,7 +43,7 @@
           enhanced
           :show-scrollbar="false"
         >
-          <view class="flex gap-[16rpx] py-[16rpx]">
+          <view class="flex gap-[16rpx] py-[16rpx] justify-center">
             <button
               v-for="filter in filters"
               :key="filter.value"
@@ -55,8 +55,15 @@
             </button>
           </view>
         </scroll-view>
+      </view>
 
-        <view class="mt-[32rpx] flex flex-col gap-[32rpx]">
+      <scroll-view
+        class="mt-[32rpx] min-h-0 flex-1"
+        scroll-y
+        enhanced
+        :show-scrollbar="false"
+      >
+        <view class="flex flex-col gap-[32rpx] pb-[200rpx]">
           <template v-for="group in groupedRecords" :key="group.month">
             <text class="block px-[16rpx] text-[28rpx] font-semibold leading-[40rpx] text-[#5f5e5e]">
               {{ group.month }}
@@ -77,7 +84,7 @@
                     <text class="iconfont text-[44rpx] leading-none" :class="[record.iconClass, record.iconColorClass]" />
                   </view>
 
-                  <view class="min-w-0 flex-1 gap-[2rpx]">
+                  <view class="min-w-0 flex-1 gap-[8rpx] grid">
                     <view class="flex min-w-0 items-center gap-[16rpx]">
                       <text class="block min-w-0 truncate text-[28rpx] font-bold leading-[40rpx]" :class="record.titleClass">
                         {{ record.title }}
@@ -102,8 +109,8 @@
             </view>
           </template>
         </view>
-      </view>
-    </scroll-view>
+      </scroll-view>
+    </view>
   </view>
 </template>
 
@@ -113,7 +120,7 @@ import { onShow } from "@dcloudio/uni-app";
 import { listCreditRecords, type CreditRecord as ApiCreditRecord } from "@/api/credit";
 import { useUserStore } from "@/store/modules/user";
 
-type FilterValue = "all" | "generate" | "signin" | "other";
+type FilterValue = "all" | "generate" | "other";
 
 type RecordTone = "success" | "failed" | "processing" | "income" | "expense" | "neutral";
 
@@ -140,7 +147,6 @@ interface CreditRecord {
 const filters: Array<{ label: string; value: FilterValue }> = [
   { label: "全部记录", value: "all" },
   { label: "生成相关", value: "generate" },
-  { label: "每日签到", value: "signin" },
   { label: "其他变动", value: "other" },
 ];
 
@@ -211,7 +217,6 @@ function mapCreditRecord(record: ApiCreditRecord): CreditRecord {
 
 function resolveFilterType(changeType: string): FilterValue {
   if (changeType === "GENERATION_CONSUME" || changeType === "GENERATION_REFUND") return "generate";
-  if (changeType === "SIGNIN") return "signin";
   return "other";
 }
 
@@ -288,8 +293,10 @@ function resolveMetaColorClass(tone: RecordTone) {
 }
 
 function resolveTimeColorClass(tone: RecordTone) {
-  if (tone === "failed") return "text-[rgba(126,117,118,0.5)]";
-  return "text-[#7e7576]";
+  // if (tone === "failed") return "text-[rgba(126,117,118,0.5)]";
+  // return "text-[#7e7576]";
+
+  return  "text-[rgba(126,117,118,0.5)]"
 }
 
 function resolveStatusLabel(record: ApiCreditRecord) {

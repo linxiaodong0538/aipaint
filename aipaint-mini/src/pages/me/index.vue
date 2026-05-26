@@ -112,7 +112,7 @@
                 新人礼包已到账
               </text>
               <text class="mt-[4rpx] block text-[22rpx] leading-[32rpx] text-[var(--app-on-surface-variant)]">
-                100积分，7天有效，约可生成16张基础1K图
+                100积分，7天有效
               </text>
             </view>
           </view>
@@ -140,9 +140,9 @@
                   {{ task.title }}
                 </text>
                 <text
-                  class="mt-[2rpx] block text-[22rpx] leading-[30rpx] text-[var(--app-on-surface-variant)]"
+                  class="mt-[2rpx] block text-[22rpx] leading-[30rpx] text-[var(--app-on-surface-variant)]" v-if="userStore.isLogin"
                 >
-                  {{ userStore.isLogin ? task.desc : "登录查看" }}
+                  {{ task.desc  }}
                 </text>
               </view>
             </view>
