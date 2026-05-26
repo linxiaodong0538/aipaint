@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -127,6 +128,22 @@ public class MiniGenerateController extends BaseController
         String normalizedStatus = normalizeStatus(status);
         List<AiGenerationTask> tasks = taskService.selectGenerationTasksByUserId(SecurityUtils.getUserId(), normalizedStatus);
         return success(tasks);
+    }
+
+    @DeleteMapping("/tasks/{taskId}")
+    public AjaxResult deleteTask(@PathVariable Long taskId)
+    {
+        Long userId = SecurityUtils.getUserId();
+        AiGenerationTask task = taskService.selectGenerationTaskByIdAndUserId(taskId, userId);
+        if (task == null)
+        {
+            return error("任务不存在");
+        }
+        if (!"success".equals(task.getStatus()))
+        {
+            return error("仅已完成作品可删除");
+        }
+        return taskService.deleteGenerationTask(taskId, userId) > 0 ? success() : error("删除失败");
     }
 
     private String normalizeRatio(String ratio)

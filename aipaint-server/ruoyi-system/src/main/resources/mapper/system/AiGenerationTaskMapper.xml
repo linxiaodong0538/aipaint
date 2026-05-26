@@ -42,12 +42,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectGenerationTaskByIdAndUserId" resultMap="AiGenerationTaskResult">
         <include refid="selectGenerationTaskVo"/>
-        where task_id = #{taskId} and user_id = #{userId}
+        where task_id = #{taskId} and user_id = #{userId} and status != 'deleted'
     </select>
 
     <select id="selectGenerationTasksByUserId" resultMap="AiGenerationTaskResult">
         <include refid="selectGenerationTaskVo"/>
-        where user_id = #{userId}
+        where user_id = #{userId} and status != 'deleted'
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -85,5 +85,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             update_time = sysdate()
         </set>
         where task_id = #{taskId}
+    </update>
+
+    <update id="markDeletedByIdAndUserId">
+        update ai_generation_task
+        set status = 'deleted',
+            progress = 100,
+            error_message = '用户删除',
+            finish_time = coalesce(finish_time, sysdate()),
+            update_time = sysdate()
+        where task_id = #{taskId}
+          and user_id = #{userId}
+          and status = 'success'
     </update>
 </mapper>

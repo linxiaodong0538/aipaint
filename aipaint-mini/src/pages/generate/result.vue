@@ -138,6 +138,10 @@
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskModelText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">比例</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskRatioText }}</text>
+            </view>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">尺寸</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskSizeText }}</text>
             </view>
@@ -149,13 +153,13 @@
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreditText }}</text>
             </view>
-            <!-- <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
               <view class="flex items-center gap-[12rpx]">
                 <view class="h-[12rpx] w-[12rpx] rounded-full bg-black" />
                 <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
               </view>
-            </view> -->
+            </view>
             <view class="col-span-2 flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
@@ -258,6 +262,7 @@ const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const showProgressState = computed(() => !pageInitializing.value && taskState.value !== "success");
 const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
+const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value));
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
@@ -500,6 +505,36 @@ function formatModel(value: string) {
   if (value === "nano-banana-pro") return "nano-banana-pro";
   if (value === "nano-banana") return "nano-banana";
   return value || "gpt-image-2";
+}
+
+function formatRatio(ratio: string, size: string) {
+  const normalizedRatio = ratio.trim().replace("：", ":").replace(/\s+/g, "");
+  if (/^\d+:\d+$/.test(normalizedRatio)) {
+    return normalizedRatio;
+  }
+
+  const match = size.match(/(\d+)\s*[xX]\s*(\d+)/);
+  if (!match) {
+    return "未知";
+  }
+
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return "未知";
+  }
+
+  const divisor = gcd(width, height);
+  return `${width / divisor}:${height / divisor}`;
+}
+
+function gcd(a: number, b: number): number {
+  while (b !== 0) {
+    const next = a % b;
+    a = b;
+    b = next;
+  }
+  return a;
 }
 
 function failTask(message: string) {

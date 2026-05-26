@@ -36,6 +36,7 @@ export interface GenerationTask {
   errorMessage?: string;
   creditCost?: number;
   createTime?: string;
+  updateTime?: string;
   finishTime?: string;
 }
 
@@ -111,4 +112,11 @@ export function listGenerationTasks() {
     url: "/mini/generate/tasks",
     method: "GET",
   }).then((tasks) => tasks.map(normalizeTaskImageUrls));
+}
+
+export function deleteGenerationTask(taskId: number) {
+  return request<void>({
+    url: `/mini/generate/tasks/${taskId}`,
+    method: "DELETE",
+  });
 }

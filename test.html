@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 
-<html class="light" lang="zh-CN" style=""><head>
+<html lang="zh-CN"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>AI生成 - 横向滑动芯片版</title>
+<title>积分明细 - 高级质感版</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
@@ -13,53 +14,53 @@
             theme: {
                 extend: {
                     "colors": {
+                        "primary-container": "#1b1b1b",
+                        "on-error": "#ffffff",
+                        "tertiary": "#000000",
+                        "surface-container-low": "#f3f3f4",
                         "error-container": "#ffdad6",
-                        "surface-dim": "#dadada",
-                        "secondary": "#5f5e5e",
-                        "on-surface-variant": "#4c4546",
-                        "on-secondary-fixed": "#1c1b1b",
+                        "surface-container": "#eeeeee",
                         "on-background": "#1a1c1c",
-                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "outline-variant": "#cfc4c5",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#2f3131",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "secondary": "#5f5e5e",
+                        "tertiary-container": "#1a1c1c",
+                        "background": "#f9f9f9",
+                        "surface-dim": "#dadada",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-secondary-fixed-variant": "#474746",
+                        "error": "#ba1a1a",
                         "outline": "#7e7576",
-                        "secondary-fixed": "#e5e2e1",
+                        "on-primary-fixed-variant": "#474747",
+                        "on-surface": "#1a1c1c",
+                        "tertiary-fixed": "#e2e2e2",
                         "on-error-container": "#93000a",
                         "surface-container-highest": "#e2e2e2",
-                        "on-primary-fixed-variant": "#474747",
-                        "on-primary-container": "#848484",
                         "primary-fixed-dim": "#c6c6c6",
-                        "surface-tint": "#5e5e5e",
-                        "outline-variant": "#cfc4c5",
-                        "surface": "#f9f9f9",
-                        "tertiary-fixed": "#e2e2e2",
-                        "tertiary": "#000000",
-                        "on-tertiary-container": "#838484",
-                        "surface-bright": "#f9f9f9",
-                        "inverse-on-surface": "#f0f1f1",
-                        "secondary-container": "#e2dfde",
-                        "inverse-surface": "#2f3131",
-                        "primary-fixed": "#e2e2e2",
-                        "secondary-fixed-dim": "#c8c6c5",
-                        "surface-container-low": "#f3f3f4",
-                        "surface-container-high": "#e8e8e8",
+                        "on-surface-variant": "#4c4546",
+                        "secondary-fixed": "#e5e2e1",
                         "on-tertiary": "#ffffff",
-                        "background": "#f9f9f9",
-                        "surface-container": "#eeeeee",
-                        "surface-variant": "#e2e2e2",
-                        "on-tertiary-fixed-variant": "#454747",
-                        "tertiary-container": "#1a1c1c",
-                        "on-secondary-fixed-variant": "#474746",
                         "on-primary-fixed": "#1b1b1b",
-                        "on-primary": "#ffffff",
-                        "primary-container": "#1b1b1b",
-                        "on-secondary-container": "#636262",
+                        "inverse-on-surface": "#f0f1f1",
                         "primary": "#000000",
-                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
                         "inverse-primary": "#c6c6c6",
+                        "surface": "#f9f9f9",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-variant": "#e2e2e2",
                         "surface-container-lowest": "#ffffff",
-                        "on-error": "#ffffff",
-                        "error": "#ba1a1a",
-                        "on-surface": "#1a1c1c",
-                        "on-secondary": "#ffffff"
+                        "on-primary-container": "#848484",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "secondary-container": "#e2dfde",
+                        "on-tertiary-container": "#838484",
+                        "on-secondary-container": "#636262",
+                        "surface-tint": "#5e5e5e",
+                        "primary-fixed": "#e2e2e2"
                     },
                     "borderRadius": {
                         "DEFAULT": "0.25rem",
@@ -70,33 +71,33 @@
                         "full": "9999px"
                     },
                     "spacing": {
+                        "stack-md": "16px",
+                        "unit": "8px",
                         "stack-sm": "8px",
                         "gutter": "24px",
                         "container-padding": "32px",
-                        "unit": "8px",
-                        "stack-md": "16px",
                         "stack-xl": "64px",
                         "stack-lg": "32px"
                     },
                     "fontFamily": {
-                        "headline-lg-mobile": ["Plus Jakarta Sans"],
-                        "body-md": ["Plus Jakarta Sans"],
-                        "body-lg": ["Plus Jakarta Sans"],
-                        "label-sm": ["Plus Jakarta Sans"],
                         "headline-md": ["Plus Jakarta Sans"],
-                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
                         "headline-lg": ["Plus Jakarta Sans"],
-                        "display": ["Plus Jakarta Sans"]
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"]
                     },
                     "fontSize": {
-                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
                         "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
                         "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
                     }
                 },
             },
@@ -109,163 +110,197 @@
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .inner-glow:hover {
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        .shadow-soft {
+            box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
         }
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f9f9f9;
+        .inner-glow {
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
-        ::-webkit-scrollbar { height: 0px; width: 0px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
     </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
 </head>
-<body class="text-on-surface antialiased">
-<!-- Top App Bar -->
-<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-2xl px-gutter py-2 flex justify-between items-center">
-<div class="flex items-center gap-3">
-<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
-<span class="material-symbols-outlined text-primary text-[20px]">arrow_back_ios_new</span>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
+<!-- Top AppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-4 bg-surface/80 backdrop-blur-xl shadow-sm">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high/50 transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined text-primary" data-icon="arrow_back">arrow_back</span>
 </button>
-<h1 class="font-headline-md text-[20px] text-primary">AI生成</h1>
-</div>
-<button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
-<span class="material-symbols-outlined text-primary text-[22px]">history</span>
+<h1 class="text-headline-md font-headline-md font-bold text-primary">积分明细</h1>
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high/50 transition-all duration-300 active:scale-95">
+<span class="material-symbols-outlined text-primary" data-icon="more_vert">more_vert</span>
 </button>
 </header>
-<main class="pt-16 pb-32 max-w-2xl mx-auto px-4 space-y-4">
-<!-- Reference Image Upload Area -->
-<section class="space-y-2">
-<div class="flex justify-between items-end px-1">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest">参考图片</label>
-<span class="text-[10px] text-outline">1张, 5MB以内</span>
+<main class="pt-24 px-4 max-w-lg mx-auto space-y-6">
+<!-- Hero Section: Total Balance -->
+<section class="flex items-center justify-between py-4 border-b border-outline-variant/30 px-2">
+<div class="flex flex-col">
+<p class="text-label-sm font-label-sm text-secondary">当前可用积分</p>
+<div class="flex items-baseline gap-1">
+<span class="text-headline-lg font-headline-lg text-primary">70</span>
+<span class="text-label-lg font-label-lg text-secondary">PTS</span>
 </div>
-<div class="w-full">
-<!-- Upload Trigger -->
-<div class="h-24 flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-all cursor-pointer group"><span class="material-symbols-outlined text-outline group-hover:scale-110 transition-transform text-[20px]">add_a_photo</span>
-<span class="text-[11px] text-on-surface-variant font-medium tracking-wide">点击上传图片</span></div>
+</div>
+<div class="flex gap-6">
+<div class="flex flex-col text-right">
+<p class="text-[10px] uppercase tracking-wider text-secondary opacity-70">本月消耗</p>
+<p class="text-label-lg font-label-lg font-bold text-primary">45</p>
+</div>
+<div class="flex flex-col text-right">
+<p class="text-[10px] uppercase tracking-wider text-secondary opacity-70">本月返还</p>
+<p class="text-label-lg font-label-lg font-bold text-primary">115</p>
+</div>
 </div>
 </section>
-<!-- Prompt Input -->
-<section class="space-y-2">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面描述</label>
-<div class="relative glass-card rounded-2xl p-3 focus-within:ring-2 ring-primary/5 transition-all">
-<textarea class="w-full bg-transparent border-none focus:ring-0 text-body-md font-body-md min-h-[80px] p-0 resize-none text-primary" maxlength="1000" placeholder="描述你想要的画面..."></textarea>
-<div class="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/30">
-<div class="flex items-center gap-1.5 cursor-pointer hover:opacity-70 transition-opacity">
-<span class="material-symbols-outlined text-[14px] text-primary" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
-<span class="text-[11px] font-medium text-secondary">Prompt</span>
+<!-- Filters -->
+<nav class="flex gap-2 overflow-x-auto py-2 no-scrollbar">
+<button class="px-6 py-2 rounded-full bg-primary text-on-primary text-label-lg font-label-lg whitespace-nowrap transition-all duration-300">全部记录</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">生成相关</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">每日签到</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">其他变动</button>
+</nav>
+<!-- Transaction List -->
+<section class="space-y-4">
+<h2 class="text-label-lg font-label-lg text-secondary px-2">2026年5月</h2>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
 </div>
+<div class="space-y-0.5">
 <div class="flex items-center gap-2">
-<span class="w-[1px] h-3 bg-outline-variant/30"></span>
-<span class="text-[10px] text-outline tracking-wider">支持中英文</span>
+<span class="text-label-lg font-label-lg font-bold">图片生成</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">成功</span>
 </div>
-</div></div>
-</section>
-<!-- Model Selection (Redesigned as Scrollable Chips) -->
-<section class="space-y-2">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">AI 模型</label>
-<div class="flex overflow-x-auto no-scrollbar gap-2 pb-1 -mx-4 px-4">
-<!-- Chip 1 -->
-<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
-<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
-<span class="material-symbols-outlined text-secondary text-[14px]">image</span>
-</div>
-<span class="text-[13px] font-semibold text-primary">G Image 2</span>
-</div>
-<!-- Chip 2 (Selected) -->
-<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-white transition-all cursor-pointer border border-primary shadow-lg shadow-primary/10 whitespace-nowrap">
-<div class="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-<span class="material-symbols-outlined text-white text-[14px]" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
-</div>
-<span class="text-[13px] font-semibold">Pro Model</span>
-<span class="material-symbols-outlined text-white text-[14px]">check_circle</span>
-</div>
-<!-- Chip 3 -->
-<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
-<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
-<span class="material-symbols-outlined text-secondary text-[14px]">brush</span>
-</div>
-<span class="text-[13px] font-semibold text-primary">V2.4 Anime</span>
-</div>
-<!-- Chip 4 -->
-<div class="flex-none flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer border border-transparent whitespace-nowrap">
-<div class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm">
-<span class="material-symbols-outlined text-secondary text-[14px]">camera</span>
-</div>
-<span class="text-[13px] font-semibold text-primary">Realistic</span>
+<p class="text-label-sm font-label-sm text-secondary">nano-banana-2 · 耗时 40s</p>
+<p class="text-[10px] text-outline">2026-05-25 17:17:06</p>
 </div>
 </div>
-</section>
-<!-- Controls Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-<!-- Quality & Count -->
-<div class="space-y-4">
-<section class="space-y-2">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">质量</label>
-<div class="flex gap-2">
-<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">1K</button>
-<button class="flex-1 py-1.5 rounded-lg bg-primary text-white text-[12px] font-semibold active:scale-95 shadow-sm">2K</button>
-<button class="flex-1 py-1.5 rounded-lg border border-outline-variant text-[12px] hover:bg-surface-container-high transition-all active:scale-95">4K</button>
+<div class="text-headline-md font-headline-md">-5</div>
 </div>
-</section>
-<section class="space-y-2">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">生成数量</label>
-<div class="flex gap-1 p-1 bg-surface-container-high rounded-xl">
-<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">1</button>
-<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">2</button>
-<button class="flex-1 py-1 rounded-lg bg-white text-primary text-[12px] font-bold shadow-sm">3</button>
-<button class="flex-1 py-1 rounded-lg text-[12px] hover:bg-white transition-all">4</button>
+<!-- Item 2 -->
+<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
 </div>
-</section>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="text-label-lg font-label-lg font-bold">图片生成</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">扣费</span>
 </div>
-<!-- Aspect Ratio -->
-<section class="space-y-2">
-<label class="font-label-lg text-[12px] text-secondary uppercase tracking-widest px-1">画面比例</label>
-<div class="grid grid-cols-4 gap-2">
-<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
-<div class="w-4 h-4 border border-primary/20 rounded-sm bg-primary/5"></div>
-<span class="text-[9px] font-bold">1:1</span>
-</button>
-<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-primary bg-primary/5 transition-all active:scale-95">
-<div class="w-5 h-4 border border-primary rounded-sm bg-primary/20"></div>
-<span class="text-[9px] font-bold">4:3</span>
-</button>
-<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
-<div class="w-5 h-3.5 border border-primary/20 rounded-sm bg-primary/5"></div>
-<span class="text-[9px] font-bold">3:2</span>
-</button>
-<button class="aspect-square flex flex-col items-center justify-center gap-1 rounded-xl border border-outline-variant hover:border-primary transition-all active:scale-95">
-<div class="w-6 h-3 border border-primary/20 rounded-sm bg-primary/5"></div>
-<span class="text-[9px] font-bold">16:9</span>
-</button>
+<p class="text-label-sm font-label-sm text-secondary">nano-banana-2 · 耗时 42s</p>
+<p class="text-[10px] text-outline">2026-05-25 17:10:51</p>
+</div>
+</div>
+<div class="text-headline-md font-headline-md">-5</div>
+</div>
+<!-- Item 3: Check-in Example -->
+<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" data-icon="event_available">event_available</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="text-label-lg font-label-lg font-bold">每日签到</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">完成</span>
+</div>
+<p class="text-label-sm font-label-sm text-secondary">连续签到 7 天奖励</p>
+<p class="text-[10px] text-outline">2026-05-25 09:30:12</p>
+</div>
+</div>
+<div class="text-headline-md font-headline-md text-primary">+10</div>
+</div>
+<!-- Item 4 -->
+<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="text-label-lg font-label-lg font-bold">图片生成</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">成功</span>
+</div>
+<p class="text-label-sm font-label-sm text-secondary">GPT-image-2 · 耗时 1分27s</p>
+<p class="text-[10px] text-outline">2026-05-25 16:39:19</p>
+</div>
+</div>
+<div class="text-headline-md font-headline-md">-5</div>
+</div>
+<!-- Item 5: Failed State -->
+<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center opacity-50">
+<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center gap-2">
+<span class="text-label-lg font-label-lg font-bold text-secondary">图片生成</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-bold">失败</span>
+</div>
+<p class="text-label-sm font-label-sm text-secondary opacity-50">GPT-image-2 · 耗时 17小时28分</p>
+<p class="text-[10px] text-outline opacity-50">2026-05-25 16:28:36</p>
+</div>
+</div>
+<div class="text-headline-md font-headline-md opacity-30">0</div>
+</div>
 </div>
 </section>
-</div>
 </main>
-<!-- Bottom Action Sheet -->
-<footer class="fixed bottom-0 left-0 w-full z-50 p-4">
-<div class="max-w-2xl mx-auto glass-card rounded-2xl p-3 flex items-center justify-between shadow-[0_-15px_40px_rgba(0,0,0,0.08)]"><div class="flex flex-col">
-<div class="flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px] text-primary" style='font-variation-settings: "FILL" 1;'>token</span>
-<span class="text-[20px] font-bold text-primary tracking-tight">8</span>
+<!-- Bottom Navigation Bar -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-6 bg-surface/90 backdrop-blur-2xl rounded-t-xl shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Create</span>
 </div>
-<p class="text-[10px] text-secondary font-medium tracking-wider">预计消耗</p>
+<div class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full px-5 py-1.5 transition-all duration-300 shadow-lg active:scale-90">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">History</span>
 </div>
-<button class="bg-primary text-white px-10 py-3.5 rounded-xl text-[15px] font-bold active:scale-95 transition-all inner-glow hover:opacity-90 flex items-center gap-2 shadow-lg">
-<span class="">立即生成</span>
-<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
-</button></div>
+<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Credits</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Profile</span>
+</div>
 </footer>
-<!-- Background Decoration -->
-<div class="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none opacity-10">
-<div class="absolute top-[5%] right-[-5%] w-[300px] h-[300px] bg-secondary-fixed/30 rounded-full blur-[80px]"></div>
-<div class="absolute bottom-[10%] left-[-10%] w-[400px] h-[400px] bg-tertiary-fixed/40 rounded-full blur-[100px]"></div>
-</div>
+<script>
+        // Smooth hover effect for transaction items
+        document.querySelectorAll('.group').forEach(item => {
+            item.addEventListener('touchstart', () => {
+                item.classList.add('scale-[0.98]');
+            });
+            item.addEventListener('touchend', () => {
+                item.classList.remove('scale-[0.98]');
+            });
+        });
+
+        // Toggle Active Filter (Simulated)
+        const filterBtns = document.querySelectorAll('nav button');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary');
+                    b.classList.add('bg-surface-container-high/50', 'text-secondary');
+                });
+                btn.classList.remove('bg-surface-container-high/50', 'text-secondary');
+                btn.classList.add('bg-primary', 'text-on-primary');
+            });
+        });
+    </script>
 </body></html>

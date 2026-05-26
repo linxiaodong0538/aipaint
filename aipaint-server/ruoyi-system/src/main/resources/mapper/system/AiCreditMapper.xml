@@ -25,6 +25,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="balanceAfter" column="balance_after" />
         <result property="relatedType"  column="related_type"  />
         <result property="relatedId"    column="related_id"    />
+        <result property="taskModel"    column="task_model"    />
+        <result property="taskStatus"   column="task_status"   />
+        <result property="taskDurationSeconds" column="task_duration_seconds" />
         <result property="remark"       column="remark"        />
         <result property="createTime"   column="create_time"   />
     </resultMap>
@@ -117,10 +120,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </insert>
 
     <select id="selectCreditRecordsByUserId" resultMap="AiCreditRecordResult">
-        select record_id, user_id, change_type, amount, balance_after, related_type, related_id, remark, create_time
-        from ai_credit_record
-        where user_id = #{userId}
-        order by create_time desc, record_id desc
+        select r.record_id, r.user_id, r.change_type, r.amount, r.balance_after, r.related_type, r.related_id,
+               t.model as task_model, t.status as task_status,
+               case
+                   when t.finish_time is null then null
+                   else timestampdiff(second, t.create_time, t.finish_time)
+               end as task_duration_seconds,
+               r.remark, r.create_time
+        from ai_credit_record r
+        left join ai_generation_task t
+          on r.related_type = 'GENERATION'
+         and t.task_id = cast(r.related_id as unsigned)
+        where r.user_id = #{userId}
+        order by r.create_time desc, r.record_id desc
         limit #{limit}
     </select>
 </mapper>

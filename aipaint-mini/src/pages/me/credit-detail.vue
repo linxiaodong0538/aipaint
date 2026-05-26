@@ -1,43 +1,54 @@
 <template>
-  <view class="min-h-screen bg-[#f8f8f8] text-[#1a1c1c]">
+  <view class="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
     <scroll-view class="h-screen" scroll-y enhanced :show-scrollbar="false">
       <view class="mx-auto min-h-screen max-w-[750rpx] px-[32rpx] pb-[200rpx] pt-[24rpx]">
-        <section class="mb-[64rpx]">
-          <view class="relative overflow-hidden rounded-[48rpx] bg-black px-[64rpx] py-[64rpx] text-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
-            <view class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_40%)] opacity-70" />
-            <view class="relative z-10">
-              <text class="mb-[8rpx] block text-[24rpx] font-medium uppercase tracking-[6rpx] text-white/70">
-                当前可用积分
+        <section class="flex min-h-[196rpx] items-center justify-between rounded-[48rpx] bg-black px-[48rpx] py-[40rpx] text-white shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)]">
+          <view class="flex min-w-0 flex-1 flex-col">
+            <text class="text-[28rpx] font-semibold leading-[38rpx] text-[rgba(255,255,255,0.7)]">
+              当前可用积分
+            </text>
+            <view class="mt-[8rpx] flex items-end gap-[8rpx]">
+              <text class="text-[72rpx] font-bold leading-[72rpx] text-white">
+                {{ creditBalanceText }}
               </text>
-              <view class="mb-[48rpx] flex items-end gap-[8rpx]">
-                <text class="text-[96rpx] font-bold leading-none tracking-[-2rpx] text-white">
-                  {{ creditBalanceText }}
-                </text>
-                <text class="pb-[10rpx] text-[48rpx] font-semibold leading-[56rpx] text-white/60">
-                  PTS
-                </text>
-              </view>
-              <view class="grid grid-cols-2 gap-[16rpx]">
-                <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
-                  <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月消耗</text>
-                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">{{ monthlyConsume }}</text>
-                </view>
-                <view class="rounded-[28rpx] bg-white/10 px-[24rpx] py-[20rpx]">
-                  <text class="block text-[22rpx] font-medium leading-[30rpx] text-white/50">本月返还</text>
-                  <text class="mt-[6rpx] block text-[34rpx] font-semibold leading-[42rpx] text-white">{{ monthlyIncome }}</text>
-                </view>
-              </view>
+              <text class="pb-[6rpx] text-[36rpx] font-semibold leading-[44rpx] text-[rgba(255,255,255,0.7)]">
+                PTS
+              </text>
+            </view>
+          </view>
+
+          <view class="ml-[40rpx] flex shrink-0 gap-[56rpx]">
+            <view class="flex flex-col text-right">
+              <text class="text-[26rpx] font-semibold leading-[36rpx] text-[rgba(255,255,255,0.55)]">
+                本月消耗
+              </text>
+              <text class="mt-[12rpx] text-[38rpx] font-bold leading-[46rpx] text-white">
+                {{ monthlyConsume }}
+              </text>
+            </view>
+            <view class="flex flex-col text-right">
+              <text class="text-[26rpx] font-semibold leading-[36rpx] text-[rgba(255,255,255,0.55)]">
+                本月返还
+              </text>
+              <text class="mt-[12rpx] text-[38rpx] font-bold leading-[46rpx] text-white">
+                {{ monthlyIncome }}
+              </text>
             </view>
           </view>
         </section>
 
-        <scroll-view class="mb-[32rpx] whitespace-nowrap" scroll-x enhanced :show-scrollbar="false">
-          <view class="flex gap-[24rpx] pb-[8rpx]">
+        <scroll-view
+          class="mt-[32rpx] w-full whitespace-nowrap"
+          scroll-x
+          enhanced
+          :show-scrollbar="false"
+        >
+          <view class="flex gap-[16rpx] py-[16rpx]">
             <button
               v-for="filter in filters"
               :key="filter.value"
-              class="inline-flex h-[72rpx] min-w-0 shrink-0 items-center justify-center rounded-full px-[32rpx] text-[24rpx] font-medium leading-[32rpx] active:scale-95"
-              :class="activeFilter === filter.value ? 'bg-black text-white' : 'bg-[#eeeeee] text-[#4c4546]'"
+              class="inline-flex shrink-0 items-center justify-center rounded-full px-[48rpx] py-[16rpx] text-[28rpx] font-semibold leading-[40rpx] active:scale-95"
+              :class="activeFilter === filter.value ? 'bg-black text-white' : 'bg-[rgba(232,232,232,0.5)] text-[#5f5e5e]'"
               @tap="activeFilter = filter.value"
             >
               {{ filter.label }}
@@ -45,45 +56,47 @@
           </view>
         </scroll-view>
 
-        <view class="flex flex-col gap-[16rpx]">
+        <view class="mt-[32rpx] flex flex-col gap-[32rpx]">
           <template v-for="group in groupedRecords" :key="group.month">
-            <view class="pt-[32rpx] pb-[8rpx]">
-              <text class="text-[24rpx] font-medium uppercase tracking-[6rpx] text-[#5f5e5e]">
-                {{ group.month }}
-              </text>
-            </view>
+            <text class="block px-[16rpx] text-[28rpx] font-semibold leading-[40rpx] text-[#5f5e5e]">
+              {{ group.month }}
+            </text>
 
-            <view
-              v-for="record in group.records"
-              :key="record.id"
-              class="flex items-center justify-between rounded-[40rpx] border border-[rgba(0,0,0,0.03)] bg-white px-[32rpx] py-[32rpx] shadow-[0_8rpx_24rpx_rgba(0,0,0,0.04)] active:scale-[0.99]"
-            >
-              <view class="flex min-w-0 items-center gap-[32rpx]">
-                <view
-                  class="flex h-[96rpx] w-[96rpx] shrink-0 items-center justify-center rounded-[24rpx]"
-                  :class="record.iconBackgroundClass"
-                >
-                  <text class="iconfont text-[44rpx] leading-none" :class="[record.iconClass, record.iconColorClass]" />
-                </view>
-                <view class="min-w-0">
-                  <text class="block truncate text-[28rpx] font-semibold leading-[40rpx] text-black">
-                    {{ record.title }}
-                  </text>
-                  <text class="mt-[4rpx] block text-[22rpx] font-medium leading-[32rpx] text-[#5f5e5e]">
-                    {{ record.time }}
-                  </text>
-                </view>
-              </view>
+            <view class="flex flex-col gap-[24rpx]">
+              <view
+                v-for="record in group.records"
+                :key="record.id"
+                class="flex items-center justify-between rounded-[24rpx] border p-[32rpx] shadow-[0_40rpx_80rpx_rgba(0,0,0,0.05)] active:scale-[0.98]"
+                :class="record.cardClass"
+              >
+                <view class="flex min-w-0 flex-1 items-center gap-[32rpx]">
+                  <view
+                    class="flex h-[96rpx] w-[96rpx] shrink-0 items-center justify-center rounded-[24rpx]"
+                    :class="record.iconBackgroundClass"
+                  >
+                    <text class="iconfont text-[44rpx] leading-none" :class="[record.iconClass, record.iconColorClass]" />
+                  </view>
 
-              <view class="ml-[24rpx] shrink-0 text-right">
-                <text class="block text-[36rpx] font-semibold leading-[48rpx] text-black">
+                  <view class="min-w-0 flex-1 gap-[2rpx]">
+                    <view class="flex min-w-0 items-center gap-[16rpx]">
+                      <text class="block min-w-0 truncate text-[28rpx] font-bold leading-[40rpx]" :class="record.titleClass">
+                        {{ record.title }}
+                      </text>
+                      <view class="inline-flex shrink-0 items-center rounded-full px-[16rpx] py-[2rpx]" :class="record.statusPillClass">
+                        <text class="text-[20rpx] font-bold leading-[28rpx]">{{ record.statusLabel }}</text>
+                      </view>
+                    </view>
+                    <text class="block truncate text-[24rpx] font-medium leading-[32rpx]" :class="record.metaColorClass">
+                      {{ record.meta }}
+                    </text>
+                    <text class="block text-[20rpx] leading-[28rpx]" :class="record.timeColorClass">
+                      {{ record.time }}
+                    </text>
+                  </view>
+                </view>
+
+                <text class="ml-[24rpx] shrink-0 text-[48rpx] font-semibold leading-[64rpx]" :class="record.amountColorClass">
                   {{ record.amount }}
-                </text>
-                <text
-                  class="mt-[4rpx] block text-[20rpx] leading-[28rpx]"
-                  :class="record.metaColorClass"
-                >
-                  {{ record.meta }}
                 </text>
               </view>
             </view>
@@ -100,7 +113,9 @@ import { onShow } from "@dcloudio/uni-app";
 import { listCreditRecords, type CreditRecord as ApiCreditRecord } from "@/api/credit";
 import { useUserStore } from "@/store/modules/user";
 
-type FilterValue = "all" | "generate" | "signin" | "reward";
+type FilterValue = "all" | "generate" | "signin" | "other";
+
+type RecordTone = "success" | "failed" | "processing" | "income" | "expense" | "neutral";
 
 interface CreditRecord {
   id: string;
@@ -111,16 +126,22 @@ interface CreditRecord {
   amount: string;
   meta: string;
   iconClass: string;
+  cardClass: string;
   iconBackgroundClass: string;
   iconColorClass: string;
+  titleClass: string;
+  amountColorClass: string;
   metaColorClass: string;
+  timeColorClass: string;
+  statusLabel: string;
+  statusPillClass: string;
 }
 
 const filters: Array<{ label: string; value: FilterValue }> = [
   { label: "全部记录", value: "all" },
-  { label: "图片生成", value: "generate" },
+  { label: "生成相关", value: "generate" },
   { label: "每日签到", value: "signin" },
-  { label: "任务奖励", value: "reward" },
+  { label: "其他变动", value: "other" },
 ];
 
 const activeFilter = ref<FilterValue>("all");
@@ -166,6 +187,7 @@ function mapCreditRecord(record: ApiCreditRecord): CreditRecord {
   const amount = record.amount || 0;
   const positive = amount > 0;
   const type = resolveFilterType(record.changeType);
+  const tone = resolveRecordTone(record, positive);
   return {
     id: String(record.recordId),
     type,
@@ -175,16 +197,22 @@ function mapCreditRecord(record: ApiCreditRecord): CreditRecord {
     amount: `${positive ? "+" : ""}${amount}`,
     meta: resolveMeta(record),
     iconClass: positive ? "icon-jinbi" : "icon-images",
-    iconBackgroundClass: positive ? "bg-[#eeeeee]" : "bg-[#eeeeee]",
-    iconColorClass: "text-black",
-    metaColorClass: positive ? "text-[#5f5e5e]/50" : "text-[#5f5e5e]/50",
+    cardClass: resolveCardClass(tone),
+    iconBackgroundClass: resolveIconBackgroundClass(tone),
+    iconColorClass: resolveIconColorClass(tone),
+    titleClass: resolveTitleClass(tone),
+    amountColorClass: resolveAmountColorClass(tone, positive),
+    metaColorClass: resolveMetaColorClass(tone),
+    timeColorClass: resolveTimeColorClass(tone),
+    statusLabel: resolveStatusLabel(record),
+    statusPillClass: resolveStatusPillClass(tone),
   };
 }
 
 function resolveFilterType(changeType: string): FilterValue {
-  if (changeType === "GENERATION_CONSUME") return "generate";
+  if (changeType === "GENERATION_CONSUME" || changeType === "GENERATION_REFUND") return "generate";
   if (changeType === "SIGNIN") return "signin";
-  return "reward";
+  return "other";
 }
 
 function resolveTitle(record: ApiCreditRecord) {
@@ -192,8 +220,8 @@ function resolveTitle(record: ApiCreditRecord) {
   if (changeType === "CREDIT_EXPIRE") return record.remark || "积分过期";
   if (changeType === "NEW_USER_GIFT") return "新人礼包";
   if (changeType === "SIGNIN") return "每日签到";
-  if (changeType === "GENERATION_CONSUME") return "生成图片";
-  if (changeType === "GENERATION_REFUND") return "生成失败退款";
+  if (changeType === "GENERATION_CONSUME") return "图片生成";
+  if (changeType === "GENERATION_REFUND") return "生成退款";
   if (changeType === "PAYMENT_MEMBERSHIP") return "会员赠送";
   if (changeType === "PAYMENT_ADDON") return "积分加量";
   return "积分变动";
@@ -201,7 +229,85 @@ function resolveTitle(record: ApiCreditRecord) {
 
 function resolveMeta(record: ApiCreditRecord) {
   if (record.changeType === "CREDIT_EXPIRE") return "已过期";
+  if (record.changeType === "GENERATION_CONSUME" || record.changeType === "GENERATION_REFUND") {
+    const parts = [
+      record.taskModel ? formatModel(record.taskModel) : "",
+      formatDuration(record.taskDurationSeconds),
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(" · ") : "生成任务";
+  }
   return record.remark || record.changeType;
+}
+
+function resolveRecordTone(record: ApiCreditRecord, positive: boolean): RecordTone {
+  if (record.changeType === "GENERATION_REFUND") return "failed";
+  if (record.changeType === "GENERATION_CONSUME") {
+    if (record.taskStatus === "success") return "success";
+    if (isFailedTaskStatus(record.taskStatus)) return "failed";
+    if (record.taskStatus === "pending" || record.taskStatus === "processing") return "processing";
+    return "expense";
+  }
+  if (record.changeType === "CREDIT_EXPIRE") return "failed";
+  if (positive) return "income";
+  return "expense";
+}
+
+function isFailedTaskStatus(status?: string) {
+  return status === "failed" || status === "violation";
+}
+
+function resolveIconBackgroundClass(_tone: RecordTone) {
+  if (_tone === "failed") return "bg-[#eeeeee] opacity-50";
+  if (_tone === "income") return "bg-black";
+  return "bg-[#eeeeee]";
+}
+
+function resolveIconColorClass(_tone: RecordTone) {
+  if (_tone === "income") return "text-white";
+  return "text-black";
+}
+
+function resolveAmountColorClass(tone: RecordTone, positive: boolean) {
+  if (tone === "failed") return "text-[rgba(0,0,0,0.3)]";
+  return "text-black";
+}
+
+function resolveCardClass(tone: RecordTone) {
+  if (tone === "failed") return "border-transparent bg-white";
+  return "border-transparent bg-white";
+}
+
+function resolveTitleClass(tone: RecordTone) {
+  if (tone === "failed") return "text-[#5f5e5e]";
+  return "text-black";
+}
+
+function resolveMetaColorClass(tone: RecordTone) {
+  if (tone === "failed") return "text-[rgba(95,94,94,0.5)]";
+  return "text-[rgba(95,94,94,0.5)]";
+}
+
+function resolveTimeColorClass(tone: RecordTone) {
+  if (tone === "failed") return "text-[rgba(126,117,118,0.5)]";
+  return "text-[#7e7576]";
+}
+
+function resolveStatusLabel(record: ApiCreditRecord) {
+  if (record.changeType === "GENERATION_REFUND") return "已退款";
+  if (record.changeType === "GENERATION_CONSUME") {
+    if (record.taskStatus === "success") return "成功";
+    if (isFailedTaskStatus(record.taskStatus)) return "失败";
+    if (record.taskStatus === "pending" || record.taskStatus === "processing") return "生成中";
+    return "扣费";
+  }
+  if (record.changeType === "CREDIT_EXPIRE") return "过期";
+  if ((record.amount || 0) > 0) return "入账";
+  return "扣减";
+}
+
+function resolveStatusPillClass(_tone: RecordTone) {
+  if (_tone === "failed") return "bg-[#ffdad6] text-[#93000a]";
+  return "bg-[#e8e8e8] text-[#4c4546]";
 }
 
 function formatMonth(value?: string) {
@@ -220,5 +326,32 @@ function isCurrentMonth(value: string) {
 
 function formatCredits(value: number) {
   return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatModel(value: string) {
+  if (value === "gpt-image-2" || value === "g-image-2") return "GPT-image-2";
+  if (value === "gpt-image-2-vip") return "GPT-image-2 VIP";
+  if (value === "nano-banana-2") return "nano-banana-2";
+  if (value === "nano-banana-pro") return "nano-banana-pro";
+  if (value === "nano-banana") return "nano-banana";
+  return value || "AI";
+}
+
+function formatDuration(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return "";
+  }
+  const seconds = Math.round(value);
+  if (seconds < 60) {
+    return `耗时 ${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes < 60) {
+    return remainingSeconds > 0 ? `耗时 ${minutes}分${remainingSeconds}s` : `耗时 ${minutes}分`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `耗时 ${hours}小时${remainingMinutes}分` : `耗时 ${hours}小时`;
 }
 </script>

@@ -8,6 +8,9 @@ export interface CreditRecord {
   balanceAfter: number;
   relatedType?: string;
   relatedId?: string;
+  taskModel?: string;
+  taskStatus?: string;
+  taskDurationSeconds?: number;
   remark?: string;
   createTime?: string;
 }

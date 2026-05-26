@@ -87,6 +87,7 @@
               :key="`${item.kind}-${item.taskId}`"
               class="relative flex flex-col bg-white border border-gray-100 break-inside-avoid rounded-[8rpx]"
               @tap="goTask(item)"
+              @longpress.stop="confirmDeleteTask(item)"
             >
               <view
                 v-if="item.kind === 'processing'"
@@ -161,7 +162,7 @@
               </view>
             </view>
 
-            <text class="mt-[48rpx] block text-[28rpx] leading-[50rpx] text-gray-400 tracking-widest">
+            <text class="mt-[48rpx] block text-[28rpx] leading-[50rpx] text-gray-400">
       
               {{ emptyTitle }}
             </text>
@@ -182,7 +183,7 @@
 import { computed, getCurrentInstance, nextTick, ref, watch } from "vue";
 import ZPaging from "z-paging/components/z-paging/z-paging.vue";
 import { onHide, onShow } from "@dcloudio/uni-app";
-import { listGenerationTasks, type GenerationTask } from "@/api/generate";
+import { deleteGenerationTask, listGenerationTasks, type GenerationTask } from "@/api/generate";
 import { useUserStore } from "@/store/modules/user";
 import { navigateTo, routes } from "@/utils/router";
 
@@ -221,6 +222,7 @@ const pagingWorks = ref<GalleryWork[]>([]);
 const savedScrollTop = ref(0);
 const resultDetailStorageKey = "generateResultDetailTask";
 const pageSize = 999;
+const staleProcessingThresholdMs = 30 * 60 * 1000;
 const instance = getCurrentInstance();
 const refresherTitleStyle = {
   fontSize: "28rpx",
@@ -231,6 +233,7 @@ const refresherTitleStyle = {
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let hasLoadedOnce = false;
 let pendingRestoreScrollTop = false;
+let suppressTapUntil = 0;
 
 interface PagingRef {
   complete(data?: GalleryWork[] | false, success?: boolean): Promise<unknown>;
@@ -240,7 +243,7 @@ interface PagingRef {
 
 const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
   tasks.value
-    .filter((task) => task.status === "pending" || task.status === "processing")
+    .filter((task) => isActiveProcessingTask(task))
     .map((task, index) => ({
       taskId: task.taskId,
       title: resolveTitle(task.prompt),
@@ -417,6 +420,25 @@ function estimateProgress(task: GenerationTask) {
   return Math.min(86, 24 + Math.floor(elapsedSeconds / 3) * 4);
 }
 
+function isActiveProcessingTask(task: GenerationTask) {
+  if (task.status !== "pending" && task.status !== "processing") {
+    return false;
+  }
+  return !isStaleProcessingTask(task);
+}
+
+function isStaleProcessingTask(task: GenerationTask) {
+  const referenceTime = task.updateTime || task.createTime;
+  if (!referenceTime) {
+    return false;
+  }
+  const timestamp = new Date(referenceTime.replace(/-/g, "/")).getTime();
+  if (!Number.isFinite(timestamp)) {
+    return false;
+  }
+  return Date.now() - timestamp > staleProcessingThresholdMs;
+}
+
 function formatWorkTime(value?: string) {
   if (!value) return "";
 
@@ -442,6 +464,9 @@ function formatWorkTime(value?: string) {
 }
 
 function goTask(work: GalleryWork) {
+  if (Date.now() < suppressTapUntil) {
+    return;
+  }
   const task = tasks.value.find((item) => item.taskId === work.taskId);
 
   if (work.kind === "completed" && task) {
@@ -451,6 +476,40 @@ function goTask(work: GalleryWork) {
   }
 
   navigateTo(routes.generateResult, { taskId: work.taskId });
+}
+
+function confirmDeleteTask(work: GalleryWork) {
+  suppressTapUntil = Date.now() + 800;
+  if (work.kind !== "completed") {
+    uni.showToast({ title: "生成中的作品暂不支持删除", icon: "none" });
+    return;
+  }
+  uni.showModal({
+    title: "删除作品",
+    content: "确定删除这条作品记录吗？",
+    confirmText: "删除",
+    confirmColor: "#ff4d4f",
+    success: (result) => {
+      if (result.confirm) {
+        void deleteTask(work.taskId);
+      }
+    },
+  });
+}
+
+async function deleteTask(taskId: number) {
+  const previousTasks = tasks.value;
+  tasks.value = tasks.value.filter((task) => task.taskId !== taskId);
+  syncPagingWorks();
+  try {
+    await deleteGenerationTask(taskId);
+    uni.showToast({ title: "已删除", icon: "success" });
+  } catch (error) {
+    tasks.value = previousTasks;
+    syncPagingWorks();
+    const message = error instanceof Error ? error.message : "删除失败";
+    uni.showToast({ title: message, icon: "none" });
+  }
 }
 
 function restoreScrollPosition() {

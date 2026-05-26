@@ -18,4 +18,6 @@ public interface AiGenerationTaskMapper
     public int insertGenerationTask(AiGenerationTask task);
 
     public int updateGenerationTask(AiGenerationTask task);
+
+    public int markDeletedByIdAndUserId(@Param("taskId") Long taskId, @Param("userId") Long userId);
 }

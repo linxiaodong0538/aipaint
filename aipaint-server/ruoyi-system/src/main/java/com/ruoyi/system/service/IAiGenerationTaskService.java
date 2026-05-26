@@ -27,4 +27,6 @@ public interface IAiGenerationTaskService
     public void markSuccess(Long taskId, String resultImageUrl, String providerCode);
 
     public void markFailed(Long taskId, String errorMessage);
+
+    public int deleteGenerationTask(Long taskId, Long userId);
 }

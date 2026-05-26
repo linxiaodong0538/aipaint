@@ -23,6 +23,12 @@ public class AiCreditRecord extends BaseEntity
 
     private String relatedId;
 
+    private String taskModel;
+
+    private String taskStatus;
+
+    private Integer taskDurationSeconds;
+
     public Long getRecordId()
     {
         return recordId;
@@ -91,5 +97,35 @@ public class AiCreditRecord extends BaseEntity
     public void setRelatedId(String relatedId)
     {
         this.relatedId = relatedId;
+    }
+
+    public String getTaskModel()
+    {
+        return taskModel;
+    }
+
+    public void setTaskModel(String taskModel)
+    {
+        this.taskModel = taskModel;
+    }
+
+    public String getTaskStatus()
+    {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(String taskStatus)
+    {
+        this.taskStatus = taskStatus;
+    }
+
+    public Integer getTaskDurationSeconds()
+    {
+        return taskDurationSeconds;
+    }
+
+    public void setTaskDurationSeconds(Integer taskDurationSeconds)
+    {
+        this.taskDurationSeconds = taskDurationSeconds;
     }
 }

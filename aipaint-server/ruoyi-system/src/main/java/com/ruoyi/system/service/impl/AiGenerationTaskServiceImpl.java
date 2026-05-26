@@ -108,4 +108,10 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
             creditService.refundForGenerationFailure(existingTask.getUserId(), taskId, existingTask.getCreditCost());
         }
     }
+
+    @Override
+    public int deleteGenerationTask(Long taskId, Long userId)
+    {
+        return taskMapper.markDeletedByIdAndUserId(taskId, userId);
+    }
 }
