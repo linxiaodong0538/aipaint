@@ -1,12 +1,12 @@
 <template>
   <view
-    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[16rpx] pt-[16rpx] text-(--app-on-surface)"
+    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[16rpx] text-(--app-on-surface)"
   >
-    <view class="flex shrink-0 flex-wrap gap-[20rpx]">
+    <view class="flex shrink-0 flex-wrap gap-[32rpx] px-[8rpx] pt-[24rpx] pb-[24rpx]">
       <view
         v-for="tab in tabs"
         :key="tab.value"
-        class="flex h-[64rpx] items-center justify-center rounded-full px-[28rpx] text-[28rpx] font-semibold leading-none"
+        class="flex h-[68rpx] items-center justify-center rounded-full px-[30rpx] text-[28rpx] font-semibold leading-none"
         :class="
           activeTab === tab.value
             ? 'bg-black text-white shadow-[0_12rpx_24rpx_rgba(0,0,0,0.12)]'
@@ -18,7 +18,7 @@
       </view>
     </view>
 
-    <view class="mt-[32rpx] min-h-0 flex-1 w-full">
+    <view class="min-h-0 flex-1 w-full">
       <z-paging
         ref="paging"
         v-model="pagingWorks"

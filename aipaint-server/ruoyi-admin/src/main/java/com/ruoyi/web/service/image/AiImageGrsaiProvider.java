@@ -29,7 +29,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
 
     private static final Duration QUERY_TIMEOUT = Duration.ofSeconds(30);
 
-    private static final Duration POLL_TIMEOUT = Duration.ofSeconds(140);
+    private static final Duration POLL_TIMEOUT = Duration.ofMinutes(5);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
