@@ -75,20 +75,19 @@
               placeholder-class="generate-prompt-placeholder"
             />
             <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
-              <button
+              <view
                 class="prompt-polish-btn"
                 :class="{ 'prompt-polish-btn-loading': polishingPrompt }"
-                :disabled="polishingPrompt"
                 @tap="handlePolishPrompt"
               >
-                <text class="iconfont icon-shanshan prompt-polish-icon leading-none" style="font-size: 28rpx"/>
-                <text class="prompt-polish-text">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
+                <text class="iconfont icon-magic prompt-polish-icon" style="font-size: 26rpx;"/>
+                <text class="prompt-polish-text">{{ polishingPrompt ? "润色中" : "润色" }}</text>
                 <view v-if="polishingPrompt" class="prompt-polish-dots">
                   <view class="prompt-polish-dot" />
                   <view class="prompt-polish-dot" />
                   <view class="prompt-polish-dot" />
                 </view>
-              </button>
+              </view>
               <view class="flex items-center gap-[16rpx]">
                 <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
                 <text class="text-[22rpx] leading-[28rpx] tracking-[2rpx] text-[#7e7576]">支持中英文</text>
@@ -1033,18 +1032,18 @@ async function handleGenerate() {
   generating.value = true;
 
   try {
-    const imageUrls = await uploadReferenceImages();
-    const result = await createImageGeneration({
-      prompt: prompt.value.trim(),
-      model: model.value,
-      ratio: ratio.value,
-      size: mapImageSize(ratio.value, quality.value),
-      resolution: mapResolution(quality.value),
-      n: count.value,
-      image_urls: imageUrls,
-    });
+    // const imageUrls = await uploadReferenceImages();
+    // const result = await createImageGeneration({
+    //   prompt: prompt.value.trim(),
+    //   model: model.value,
+    //   ratio: ratio.value,
+    //   size: mapImageSize(ratio.value, quality.value),
+    //   resolution: mapResolution(quality.value),
+    //   n: count.value,
+    //   image_urls: imageUrls,
+    // });
 
-    await navigateTo(routes.generateResult, { taskId: result.taskId });
+    await navigateTo(routes.generateResult);
   } catch (error) {
     const apiError = error as ApiError | undefined;
     if (apiError?.shown) {
@@ -1077,10 +1076,9 @@ async function handleGenerate() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
-  min-width: 168rpx;
+  gap: 8rpx;
   height: 56rpx;
-  padding: 0 20rpx;
+  padding: 0 24rpx;
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 9999rpx;
   background: #ffffff;
@@ -1101,27 +1099,41 @@ async function handleGenerate() {
   transform: scale(0.98);
 }
 
-.prompt-polish-btn[disabled] {
-  opacity: 0.86;
-}
-
 .prompt-polish-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 32rpx;
+  font-size: 28rpx;
+  line-height: 32rpx;
   color: currentColor;
   transform-origin: center;
 }
 
 .prompt-polish-text {
-  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  height: 32rpx;
+  font-size: 22rpx;
   font-family: serif;
   font-weight: 600;
-  line-height: 40rpx;
+  line-height: 32rpx;
   color: currentColor;
 }
 
 .prompt-polish-btn-loading {
-  border-color: rgba(0, 0, 0, 0.18);
-  background: #f4f4f5;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 8rpx 18rpx rgba(0, 0, 0, 0.05);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(0, 0, 0, 0.48);
+}
+
+.prompt-polish-btn-loading:active {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 .prompt-polish-btn-loading .prompt-polish-icon {
