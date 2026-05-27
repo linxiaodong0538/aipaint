@@ -31,7 +31,7 @@ public class MiniCreditController extends BaseController
     {
         Long userId = SecurityUtils.getUserId();
         boolean granted = creditService.grantDailySigninIfNeeded(userId);
-        AjaxResult ajax = success(granted ? "签到成功，+5 PTS" : "今天已签到");
+        AjaxResult ajax = success(granted ? "签到成功，+10 PTS" : "今天已签到");
         ajax.put("granted", granted);
         ajax.put("creditBalance", creditService.getAvailableBalance(userId));
         return ajax;

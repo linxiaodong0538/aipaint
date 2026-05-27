@@ -119,6 +119,11 @@
               </el-select>
             </template>
           </el-table-column>
+          <el-table-column label="支持批量生成" width="130" align="center">
+            <template #default="{ row }">
+              <el-switch v-model="row.supportsBatch" />
+            </template>
+          </el-table-column>
           <el-table-column label="支持模型" min-width="240">
             <template #default="{ row }">
               <el-select
@@ -286,6 +291,7 @@ function createProvider(overrides = {}) {
     enabled: false,
     adapterType: "openai-compatible",
     responseMode: "json",
+    supportsBatch: true,
     baseUrl: "",
     apiKey: "",
     model: "gpt-image-2",
@@ -409,6 +415,7 @@ function normalizeProviderList(providers, defaults) {
     ...provider,
     adapterType: normalizeAdapterType(provider.adapterType),
     responseMode: normalizeResponseMode(provider.responseMode, provider),
+    supportsBatch: provider.supportsBatch !== false,
     supportedModels: normalizeModels(provider.supportedModels || provider.model),
     sortOrder: Number(provider.sortOrder ?? index + 1)
   }))
@@ -591,6 +598,7 @@ function toPayload() {
       ...provider,
       adapterType: normalizeAdapterType(provider.adapterType),
       responseMode: provider.adapterType === "openai-compatible" ? normalizeResponseMode(provider.responseMode, provider) : "json",
+      supportsBatch: provider.supportsBatch !== false,
       model: normalizeModels(provider.supportedModels)[0],
       supportedModels: normalizeModels(provider.supportedModels)
     })),

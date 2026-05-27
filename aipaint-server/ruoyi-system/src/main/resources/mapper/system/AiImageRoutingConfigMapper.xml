@@ -9,6 +9,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                provider_name as providerName,
                adapter_type as adapterType,
                response_mode as responseMode,
+               supports_batch as supportsBatch,
                base_url as baseUrl,
                api_key as apiKey,
                enabled,
@@ -52,9 +53,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <insert id="insertProvider" parameterType="com.ruoyi.system.domain.AiImageProviderRecord">
         insert into ai_image_provider(
-            provider_code, provider_name, adapter_type, response_mode, base_url, api_key, enabled, sort_order, remark, create_time, update_time
+            provider_code, provider_name, adapter_type, response_mode, supports_batch, base_url, api_key, enabled, sort_order, remark, create_time, update_time
         ) values (
-            #{providerCode}, #{providerName}, #{adapterType}, #{responseMode}, #{baseUrl}, #{apiKey}, #{enabled}, #{sortOrder}, #{remark}, sysdate(), sysdate()
+            #{providerCode}, #{providerName}, #{adapterType}, #{responseMode}, #{supportsBatch}, #{baseUrl}, #{apiKey}, #{enabled}, #{sortOrder}, #{remark}, sysdate(), sysdate()
         )
     </insert>
 

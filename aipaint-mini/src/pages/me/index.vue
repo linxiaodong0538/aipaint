@@ -257,7 +257,7 @@ const showNewUserGiftCard = computed(() => {
 });
 
 const tasks: TaskItem[] = [
-  { title: "每日签到", desc: "+5 PTS", iconClass: "icon-qiandao", fontSize: "38", action: "signin" },
+  { title: "每日签到", desc: "+10 PTS", iconClass: "icon-qiandao", fontSize: "38", action: "signin" },
 ];
 
 const menuItems: MenuItem[] = [
@@ -315,7 +315,7 @@ async function handleSignin() {
       await userStore.fetchProfile();
     }
     uni.showToast({
-      title: result.granted ? "签到成功，+5 PTS" : "今天已签到",
+      title: result.granted ? "签到成功，+10 PTS" : "今天已签到",
       icon: "none",
     });
   } finally {

@@ -29,7 +29,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
 
     private static final Duration QUERY_TIMEOUT = Duration.ofSeconds(30);
 
-    private static final Duration POLL_TIMEOUT = Duration.ofSeconds(140);
+    private static final Duration POLL_TIMEOUT = Duration.ofMinutes(5);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
@@ -267,7 +267,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
         {
             return saveBase64Image(url);
         }
-        return saveRemoteImage(url, providerConfig);
+        return url;
     }
 
     private String saveBase64Image(String b64Json) throws IOException

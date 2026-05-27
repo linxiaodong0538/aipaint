@@ -1,10 +1,13 @@
 package com.ruoyi.web.service.image;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +113,7 @@ public class AiImageService
         long startTime = System.currentTimeMillis();
         try
         {
-            String resultImageUrl = provider.generateAndSave(request, providerConfig);
+            String resultImageUrl = generateAndSaveWithBatchPolicy(provider, request, providerConfig);
             ensureResultImageCount(task, resultImageUrl);
             recordCallLog(task, providerConfig, "success", fallbackUsed, System.currentTimeMillis() - startTime, null);
             return resultImageUrl;
@@ -119,6 +122,89 @@ public class AiImageService
         {
             recordCallLog(task, providerConfig, "failed", fallbackUsed, System.currentTimeMillis() - startTime, normalizeErrorMessage(e));
             throw e;
+        }
+    }
+
+    private String generateAndSaveWithBatchPolicy(AiImageProvider provider, AiImageGenerateRequest request, AiImageProviderConfig providerConfig)
+    {
+        int imageCount = request.getImageCount() == null ? 1 : Math.max(1, request.getImageCount().intValue());
+        if (imageCount <= 1 || !Boolean.FALSE.equals(providerConfig.getSupportsBatch()))
+        {
+            return provider.generateAndSave(request, providerConfig);
+        }
+
+        List<CompletableFuture<String>> futures = new ArrayList<>();
+        for (int i = 0; i < imageCount; i++)
+        {
+            AiImageGenerateRequest singleRequest = copySingleImageRequest(request);
+            futures.add(CompletableFuture.supplyAsync(() -> provider.generateAndSave(singleRequest, providerConfig)));
+        }
+
+        StringBuilder resultUrls = new StringBuilder();
+        RuntimeException firstFailure = null;
+        try
+        {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }
+        catch (CompletionException e)
+        {
+            firstFailure = unwrapCompletionException(e);
+        }
+        for (CompletableFuture<String> future : futures)
+        {
+            try
+            {
+                appendResultUrls(resultUrls, future.join());
+            }
+            catch (CompletionException e)
+            {
+                if (firstFailure == null)
+                {
+                    firstFailure = unwrapCompletionException(e);
+                }
+            }
+        }
+        if (firstFailure != null)
+        {
+            throw firstFailure;
+        }
+        return resultUrls.toString();
+    }
+
+    private RuntimeException unwrapCompletionException(CompletionException e)
+    {
+        Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException)
+        {
+            return (RuntimeException) cause;
+        }
+        return new ServiceException(cause == null ? e.getMessage() : cause.getMessage());
+    }
+
+    private AiImageGenerateRequest copySingleImageRequest(AiImageGenerateRequest source)
+    {
+        AiImageGenerateRequest target = new AiImageGenerateRequest();
+        target.setModel(source.getModel());
+        target.setPrompt(source.getPrompt());
+        target.setSize(source.getSize());
+        target.setRatio(source.getRatio());
+        target.setResolution(source.getResolution());
+        target.setImageCount(Integer.valueOf(1));
+        target.setOutputFormat(source.getOutputFormat());
+        target.setOutputCompression(source.getOutputCompression());
+        target.setImageUrls(source.getImageUrls());
+        return target;
+    }
+
+    private void appendResultUrls(StringBuilder resultUrls, String urls)
+    {
+        for (String url : parseImageUrls(urls))
+        {
+            if (resultUrls.length() > 0)
+            {
+                resultUrls.append(',');
+            }
+            resultUrls.append(url);
         }
     }
 

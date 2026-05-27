@@ -22,6 +22,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="previewImageUrl" column="preview_image_url" />
         <result property="errorMessage"   column="error_message"    />
         <result property="creditCost"     column="credit_cost"      />
+        <result property="runStartTime"   column="run_start_time"   />
         <result property="finishTime"     column="finish_time"      />
         <result property="createBy"       column="create_by"        />
         <result property="createTime"     column="create_time"      />
@@ -31,7 +32,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectGenerationTaskVo">
         select task_id, user_id, provider_code, prompt, model, quality, ratio, size, resolution, image_urls, image_count, status, progress, result_image_url, preview_image_url, error_message,
-               credit_cost, finish_time, create_by, create_time, update_by, update_time
+               credit_cost, run_start_time, finish_time, create_by, create_time, update_by, update_time
         from ai_generation_task
     </sql>
 
@@ -80,6 +81,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="previewImageUrl != null">preview_image_url = #{previewImageUrl},</if>
             <if test="errorMessage != null">error_message = #{errorMessage},</if>
             <if test="creditCost != null">credit_cost = #{creditCost},</if>
+            <if test="runStartTime != null">run_start_time = #{runStartTime},</if>
             <if test="finishTime != null">finish_time = #{finishTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             update_time = sysdate()

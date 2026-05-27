@@ -13,7 +13,7 @@ public interface IAiCreditService
 
     public static final int NEW_USER_GIFT_VALID_DAYS = 7;
 
-    public static final int DAILY_SIGNIN_AMOUNT = 5;
+    public static final int DAILY_SIGNIN_AMOUNT = 10;
 
     public int getAvailableBalance(Long userId);
 

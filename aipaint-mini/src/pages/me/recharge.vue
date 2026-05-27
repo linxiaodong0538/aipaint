@@ -97,6 +97,9 @@
                   <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ Math.floor(plan.monthlyCredits / STANDARD_IMAGE_REFERENCE_COST) }}张</text>
                 </view>
               </view>
+              <text class="mt-[18rpx] block text-[22rpx] leading-[32rpx] text-[#777]">
+                按 gpt-image-2 1K 单张 {{ STANDARD_IMAGE_REFERENCE_COST }} 积分估算，不同模型和清晰度扣费不同。
+              </text>
             </button>
           </view>
         </section>
@@ -172,7 +175,7 @@
           <view class="rounded-[32rpx] bg-[#eeeeee] px-[32rpx] py-[28rpx]">
             <text class="block text-[26rpx] font-semibold leading-[36rpx] text-black">规则说明</text>
             <text class="mt-[12rpx] block text-[24rpx] leading-[38rpx] text-[#5f5e5e]">
-              会员套餐按月赠送积分；积分加量包只面向已开通会员的用户，用于临时补充额度。购买积分长期有效，会员每月赠送积分按会员规则有效。扣费时优先消耗即将过期的会员赠送积分，再消耗购买积分。
+              图片生成按模型基础价和清晰度计费，生成多张图按张数相乘。会员套餐按月赠送积分；积分加量包只面向已开通会员的用户，用于临时补充额度。购买积分长期有效，会员每月赠送积分按会员规则有效。扣费时优先消耗即将过期的积分批次，再消耗长期有效的购买积分。
             </text>
           </view>
         </section>
@@ -218,7 +221,7 @@ interface AddonPackage {
 
 const activeMode = ref<RechargeMode>("membership");
 const paying = ref(false);
-const STANDARD_IMAGE_REFERENCE_COST = 5;
+const STANDARD_IMAGE_REFERENCE_COST = 6;
 const userStore = useUserStore();
 
 const modes: Array<{ label: string; value: RechargeMode }> = [

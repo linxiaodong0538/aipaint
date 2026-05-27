@@ -17,6 +17,8 @@ public class AiImageProviderConfig
 
     private String responseMode;
 
+    private Boolean supportsBatch;
+
     private String baseUrl;
 
     private String apiKey;
@@ -77,6 +79,16 @@ public class AiImageProviderConfig
     public void setResponseMode(String responseMode)
     {
         this.responseMode = responseMode;
+    }
+
+    public Boolean getSupportsBatch()
+    {
+        return supportsBatch;
+    }
+
+    public void setSupportsBatch(Boolean supportsBatch)
+    {
+        this.supportsBatch = supportsBatch;
     }
 
     public String getBaseUrl()
