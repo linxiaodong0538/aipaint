@@ -7,7 +7,7 @@
         <!-- 参考图片 -->
         <view class="mb-[32rpx]">
           <view class="flex items-end justify-between">
-            <text class="model-section-label font-mono">参考图</text>
+            <text class="model-section-label font-mono">参考图（可选）</text>
             <text class="model-section-label font-mono">{{ referenceImages.length }}/{{ maxReferenceImages }}</text>
           </view>
           <view
@@ -229,7 +229,7 @@
     <!-- 更多比例 -->
     <view v-if="showMoreRatios" class="ratio-drawer-overlay" @tap="closeMoreRatios">
       <view class="ratio-drawer" :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }" @tap.stop>
-        <view class="ratio-drawer-handle" />
+        <!-- <view class="ratio-drawer-handle" /> -->
         <view class="ratio-drawer-header">
           <text class="ratio-drawer-title">更多比例</text>
           <button class="ratio-drawer-close" @tap="closeMoreRatios">
@@ -306,7 +306,7 @@ const models: Array<{
   {
     value: "gpt-image-2-vip",
     label: "GPT-image-2 VIP",
-    description: "高优先级精修",
+    description: "尺寸增强",
     iconClass: "icon-huizhang",
     baseCredits: 15,
     enabled: true,
@@ -1207,7 +1207,7 @@ async function handleGenerate() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24rpx;
+  margin-bottom: 80rpx;
   padding: 0 8rpx;
 }
 
