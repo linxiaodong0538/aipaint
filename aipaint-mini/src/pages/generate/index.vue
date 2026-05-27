@@ -242,7 +242,7 @@
         <view class="ratio-drawer-header">
           <view class="ratio-drawer-heading">
             <text class="ratio-drawer-title">更多比例</text>
-            <text class="ratio-drawer-subtitle">黑白画幅选择器</text>
+            <text class="ratio-drawer-subtitle">{{ selectedModelOption.label }}</text>
           </view>
           <button class="ratio-drawer-close" @tap="closeMoreRatios">
             <text class="ratio-drawer-close-text">×</text>
@@ -595,6 +595,7 @@ const moreRatios = computed(() => availableRatios.value.filter((item) => !common
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
 const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
 const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
+const selectedModelOption = computed(() => models.find((item) => item.value === model.value) || models[0]);
 
 const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
@@ -1555,8 +1556,8 @@ async function handleGenerate() {
   min-height: 92rpx;
   box-sizing: border-box;
   align-items: center;
-  gap: 14rpx;
-  padding: 14rpx;
+  gap: 16rpx;
+  padding: 24rpx;
   border: 3rpx solid rgba(0, 0, 0, 0.1);
   border-radius: 22rpx;
   background: #ffffff;
