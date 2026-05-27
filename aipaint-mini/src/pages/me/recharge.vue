@@ -97,8 +97,9 @@
                   <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ Math.floor(plan.monthlyCredits / STANDARD_IMAGE_REFERENCE_COST) }}张</text>
                 </view>
               </view>
-              <text class="mt-[18rpx] block text-[22rpx] leading-[32rpx] text-[#777]">
-                按 gpt-image-2 1K 单张 {{ STANDARD_IMAGE_REFERENCE_COST }} 积分估算，不同模型和清晰度扣费不同。
+              <text class="mt-[18rpx] whitespace-nowrap block text-[22rpx] leading-[32rpx] text-[#777]">
+        
+                按 gpt-image-2 1K 单张 {{ STANDARD_IMAGE_REFERENCE_COST }} 积分估算，不同模型和清晰度扣费不同
               </text>
             </button>
           </view>

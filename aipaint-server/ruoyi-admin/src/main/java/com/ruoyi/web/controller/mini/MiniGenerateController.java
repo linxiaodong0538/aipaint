@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
@@ -123,11 +124,12 @@ public class MiniGenerateController extends BaseController
     }
 
     @GetMapping("/tasks")
-    public AjaxResult listTasks(String status)
+    public TableDataInfo listTasks(String status)
     {
         String normalizedStatus = normalizeStatus(status);
+        startPage();
         List<AiGenerationTask> tasks = taskService.selectGenerationTasksByUserId(SecurityUtils.getUserId(), normalizedStatus);
-        return success(tasks);
+        return getDataTable(tasks);
     }
 
     @DeleteMapping("/tasks/{taskId}")
@@ -427,7 +429,9 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeStatus(String status)
     {
-        if ("pending".equals(status) || "processing".equals(status) || "success".equals(status) || "failed".equals(status))
+        if ("visible".equals(status) || "generating".equals(status)
+                || "pending".equals(status) || "processing".equals(status)
+                || "success".equals(status) || "failed".equals(status))
         {
             return status;
         }

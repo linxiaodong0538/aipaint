@@ -25,8 +25,11 @@
         height="100%"
         :fixed="false"
         :default-page-size="pageSize"
-        :loading-more-enabled="false"
+        :loading-more-enabled="true"
         :show-scrollbar="false"
+        loading-more-default-text="上滑加载更多"
+        loading-more-loading-text="加载中..."
+        loading-more-no-more-text="没有更多作品了"
         refresher-default-text="下拉刷新"
         refresher-pulling-text="释放刷新"
         refresher-refreshing-text=" "
@@ -83,7 +86,7 @@
             class="grid grid-cols-2 gap-[16rpx]"
           >
             <view
-              v-for="item in visibleWorks"
+              v-for="item in pagingWorks"
               :key="`${item.kind}-${item.taskId}`"
               class="relative flex flex-col bg-white border border-gray-100 break-inside-avoid rounded-[8rpx]"
               @tap="goTask(item)"
@@ -183,7 +186,7 @@
 import { computed, getCurrentInstance, nextTick, ref, watch } from "vue";
 import ZPaging from "z-paging/components/z-paging/z-paging.vue";
 import { onHide, onShow } from "@dcloudio/uni-app";
-import { deleteGenerationTask, listGenerationTasks, type GenerationTask } from "@/api/generate";
+import { deleteGenerationTask, listGenerationTasks, type GenerationTask, type GenerationStatus } from "@/api/generate";
 import { useUserStore } from "@/store/modules/user";
 import { navigateTo, routes } from "@/utils/router";
 
@@ -195,6 +198,7 @@ interface ProgressWork {
   meta: string;
   progress: number;
   image: string;
+  task: GenerationTask;
 }
 
 interface CompletedWork {
@@ -202,6 +206,7 @@ interface CompletedWork {
   title: string;
   image: string;
   timeText: string;
+  task: GenerationTask;
 }
 
 type GalleryWork =
@@ -217,11 +222,10 @@ const tabs: Array<{ label: string; value: TabValue }> = [
 const activeTab = ref<TabValue>("all");
 const userStore = useUserStore();
 const loading = ref(false);
-const tasks = ref<GenerationTask[]>([]);
 const pagingWorks = ref<GalleryWork[]>([]);
 const savedScrollTop = ref(0);
 const resultDetailStorageKey = "generateResultDetailTask";
-const pageSize = 999;
+const pageSize = 20;
 const staleProcessingThresholdMs = 30 * 60 * 1000;
 const instance = getCurrentInstance();
 const refresherTitleStyle = {
@@ -234,55 +238,17 @@ let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let hasLoadedOnce = false;
 let pendingRestoreScrollTop = false;
 let suppressTapUntil = 0;
+let firstPageTasks: GenerationTask[] = [];
 
 interface PagingRef {
   complete(data?: GalleryWork[] | false, success?: boolean): Promise<unknown>;
+  completeByTotal(data: GalleryWork[], total: number): Promise<unknown>;
+  completeByError(cause: string): Promise<unknown>;
   reload(animate?: boolean): Promise<unknown>;
   updateScrollViewScrollTop(scrollTop: number, animate?: boolean): void;
 }
 
-const inProgressWorks = computed<Array<ProgressWork & { kind: "processing" }>>(() => (
-  tasks.value
-    .filter((task) => isActiveProcessingTask(task))
-    .map((task, index) => ({
-      taskId: task.taskId,
-      title: resolveTitle(task.prompt),
-      meta: `${formatModel(task.model)} • ${formatQuality(task.quality)} • ${task.ratio}`,
-      progress: estimateProgress(task),
-      image: task.previewImageUrl || `/static/works/progress-${(index % 2) + 1}.jpg`,
-      kind: "processing" as const,
-    }))
-));
-
-const completedWorks = computed<Array<CompletedWork & { kind: "completed" }>>(() => (
-  tasks.value
-    .filter((task) => task.status === "success" && getTaskResultImages(task).length > 0)
-    .map((task) => ({
-      taskId: task.taskId,
-      title: resolveTitle(task.prompt),
-      image: getTaskResultImages(task)[0] || "",
-      timeText: formatWorkTime(task.finishTime || task.createTime),
-      kind: "completed" as const,
-    }))
-));
-
-const visibleWorks = computed<GalleryWork[]>(() => {
-  if (activeTab.value === "generating") return inProgressWorks.value;
-  if (activeTab.value === "completed") return completedWorks.value;
-
-  const inProgressTaskIds = new Set(inProgressWorks.value.map((item) => item.taskId));
-  const completedTaskIds = new Set(completedWorks.value.map((item) => item.taskId));
-
-  return tasks.value
-    .filter((task) => inProgressTaskIds.has(task.taskId) || completedTaskIds.has(task.taskId))
-    .map((task) => (
-      inProgressWorks.value.find((item) => item.taskId === task.taskId)
-      || completedWorks.value.find((item) => item.taskId === task.taskId)
-    ))
-    .filter((item): item is GalleryWork => !!item);
-});
-
-const hasVisibleWorks = computed(() => visibleWorks.value.length > 0);
+const hasVisibleWorks = computed(() => pagingWorks.value.length > 0);
 const emptyTitle = computed(() => {
   if (activeTab.value === "generating") return "暂无生成中作品";
   if (activeTab.value === "completed") return "暂无已完成作品";
@@ -299,7 +265,10 @@ function getPaging() {
 }
 
 function syncPagingWorks() {
-  pagingWorks.value = visibleWorks.value;
+  const refreshedWorks = firstPageTasks.map(toGalleryWork).filter((item): item is GalleryWork => !!item);
+  const refreshedTaskIds = new Set(refreshedWorks.map((item) => item.taskId));
+  const remainingWorks = pagingWorks.value.filter((item) => !refreshedTaskIds.has(item.taskId));
+  pagingWorks.value = [...refreshedWorks, ...remainingWorks];
 }
 
 onShow(() => {
@@ -310,7 +279,7 @@ onShow(() => {
     } else {
       pendingRestoreScrollTop = true;
       void nextTick(() => restoreScrollPosition());
-      void loadWorks(true);
+      void refreshFirstPage(true);
     }
     startRefreshTimer();
   }
@@ -329,8 +298,8 @@ watch(
       startRefreshTimer();
       return;
     }
-    tasks.value = [];
     pagingWorks.value = [];
+    firstPageTasks = [];
     savedScrollTop.value = 0;
     hasLoadedOnce = false;
     pendingRestoreScrollTop = false;
@@ -338,19 +307,29 @@ watch(
   },
 );
 
-watch(visibleWorks, syncPagingWorks);
+watch(activeTab, () => {
+  savedScrollTop.value = 0;
+  firstPageTasks = [];
+  pagingWorks.value = [];
+  void nextTick(() => getPaging()?.reload());
+});
 
-async function loadWorks(silent = false) {
+async function refreshFirstPage(silent = false) {
   if (!userStore.isLogin || loading.value) return;
 
   if (!silent) {
     loading.value = true;
   }
   try {
-    tasks.value = await listGenerationTasks();
+    const result = await listGenerationTasks({
+      status: resolveTaskStatusParam(),
+      pageNum: 1,
+      pageSize,
+    });
+    firstPageTasks = result.rows || [];
     syncPagingWorks();
   } catch {
-    tasks.value = [];
+    firstPageTasks = [];
     pagingWorks.value = [];
   } finally {
     if (!silent) {
@@ -359,17 +338,34 @@ async function loadWorks(silent = false) {
   }
 }
 
-async function queryWorks() {
+async function queryWorks(pageNo: number, queryPageSize: number) {
   if (!userStore.isLogin) {
-    await getPaging()?.complete([], true);
+    firstPageTasks = [];
+    await getPaging()?.completeByTotal([], 0);
     return;
   }
 
+  if (pageNo === 1) {
+    loading.value = true;
+  }
   try {
-    await loadWorks();
-    await getPaging()?.complete(pagingWorks.value, true);
-  } catch {
-    await getPaging()?.complete(false);
+    const result = await listGenerationTasks({
+      status: resolveTaskStatusParam(),
+      pageNum: pageNo,
+      pageSize: queryPageSize,
+    });
+    const rows = result.rows || [];
+    if (pageNo === 1) {
+      firstPageTasks = rows;
+    }
+    await getPaging()?.completeByTotal(rows.map(toGalleryWork).filter((item): item is GalleryWork => !!item), result.total || 0);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "作品加载失败";
+    await getPaging()?.completeByError(message);
+  } finally {
+    if (pageNo === 1) {
+      loading.value = false;
+    }
   }
 }
 
@@ -379,8 +375,42 @@ function handleScrollTopChange(scrollTop: number) {
 
 function handleLogin() {
   userStore.loginWithWechat()
-    .then(() => loadWorks())
+    .then(() => getPaging()?.reload())
     .catch(() => undefined);
+}
+
+function resolveTaskStatusParam(): GenerationStatus | "visible" | "generating" {
+  if (activeTab.value === "generating") return "generating";
+  if (activeTab.value === "completed") return "success";
+  return "visible";
+}
+
+function toGalleryWork(task: GenerationTask, index = 0): GalleryWork | null {
+  if (isActiveProcessingTask(task)) {
+    return {
+      taskId: task.taskId,
+      title: resolveTitle(task.prompt),
+      meta: `${formatModel(task.model)} • ${formatQuality(task.quality)} • ${task.ratio}`,
+      progress: estimateProgress(task),
+      image: task.previewImageUrl || `/static/works/progress-${(index % 2) + 1}.jpg`,
+      task,
+      kind: "processing",
+    };
+  }
+
+  const taskImages = getTaskResultImages(task);
+  if (task.status === "success" && taskImages.length > 0) {
+    return {
+      taskId: task.taskId,
+      title: resolveTitle(task.prompt),
+      image: taskImages[0] || "",
+      timeText: formatWorkTime(task.finishTime || task.createTime),
+      task,
+      kind: "completed",
+    };
+  }
+
+  return null;
 }
 
 function getTaskResultImages(task: GenerationTask) {
@@ -467,10 +497,8 @@ function goTask(work: GalleryWork) {
   if (Date.now() < suppressTapUntil) {
     return;
   }
-  const task = tasks.value.find((item) => item.taskId === work.taskId);
-
-  if (work.kind === "completed" && task) {
-    uni.setStorageSync(resultDetailStorageKey, task);
+  if (work.kind === "completed") {
+    uni.setStorageSync(resultDetailStorageKey, work.task);
     navigateTo(routes.generateResult, { taskId: work.taskId, from: "works" });
     return;
   }
@@ -498,15 +526,16 @@ function confirmDeleteTask(work: GalleryWork) {
 }
 
 async function deleteTask(taskId: number) {
-  const previousTasks = tasks.value;
-  tasks.value = tasks.value.filter((task) => task.taskId !== taskId);
-  syncPagingWorks();
+  const previousFirstPageTasks = firstPageTasks;
+  const previousPagingWorks = pagingWorks.value;
+  firstPageTasks = firstPageTasks.filter((task) => task.taskId !== taskId);
+  pagingWorks.value = pagingWorks.value.filter((work) => work.taskId !== taskId);
   try {
     await deleteGenerationTask(taskId);
     uni.showToast({ title: "已删除", icon: "success" });
   } catch (error) {
-    tasks.value = previousTasks;
-    syncPagingWorks();
+    firstPageTasks = previousFirstPageTasks;
+    pagingWorks.value = previousPagingWorks;
     const message = error instanceof Error ? error.message : "删除失败";
     uni.showToast({ title: message, icon: "none" });
   }
@@ -524,10 +553,17 @@ function restoreScrollPosition() {
 function startRefreshTimer() {
   stopRefreshTimer();
   refreshTimer = setInterval(() => {
-    if (userStore.isLogin && inProgressWorks.value.length > 0) {
-      void loadWorks(true);
+    if (userStore.isLogin && shouldRefreshCurrentTab()) {
+      void refreshFirstPage(true);
     }
   }, 5000);
+}
+
+function shouldRefreshCurrentTab() {
+  if (activeTab.value === "completed") {
+    return false;
+  }
+  return firstPageTasks.some((task) => isActiveProcessingTask(task));
 }
 
 function stopRefreshTimer() {

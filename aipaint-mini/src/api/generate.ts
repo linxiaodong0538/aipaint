@@ -18,6 +18,17 @@ export interface CreateImageGenerationResponse {
   taskId: number;
 }
 
+export interface GenerationTaskListParams {
+  status?: GenerationStatus | "visible" | "generating";
+  pageNum?: number;
+  pageSize?: number;
+}
+
+export interface GenerationTaskListResult {
+  rows: GenerationTask[];
+  total: number;
+}
+
 export interface GenerationTask {
   taskId: number;
   prompt: string;
@@ -108,11 +119,16 @@ export function getGenerationTask(taskId: number) {
   }).then(normalizeTaskImageUrls);
 }
 
-export function listGenerationTasks() {
-  return request<GenerationTask[]>({
+export function listGenerationTasks(params?: GenerationTaskListParams) {
+  return request<GenerationTaskListResult>({
     url: "/mini/generate/tasks",
     method: "GET",
-  }).then((tasks) => tasks.map(normalizeTaskImageUrls));
+    params,
+  }).then((result) => ({
+    ...result,
+    rows: (result.rows || []).map(normalizeTaskImageUrls),
+    total: result.total || 0,
+  }));
 }
 
 export function deleteGenerationTask(taskId: number) {
