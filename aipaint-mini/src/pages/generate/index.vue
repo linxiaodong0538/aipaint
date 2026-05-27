@@ -75,20 +75,19 @@
               placeholder-class="generate-prompt-placeholder"
             />
             <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
-              <button
+              <view
                 class="prompt-polish-btn"
                 :class="{ 'prompt-polish-btn-loading': polishingPrompt }"
-                :disabled="polishingPrompt"
                 @tap="handlePolishPrompt"
               >
-                <text class="iconfont icon-shanshan prompt-polish-icon leading-none" style="font-size: 28rpx"/>
-                <text class="prompt-polish-text">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
+                <text class="iconfont icon-magic prompt-polish-icon" style="font-size: 26rpx;"/>
+                <text class="prompt-polish-text">{{ polishingPrompt ? "润色中" : "润色" }}</text>
                 <view v-if="polishingPrompt" class="prompt-polish-dots">
                   <view class="prompt-polish-dot" />
                   <view class="prompt-polish-dot" />
                   <view class="prompt-polish-dot" />
                 </view>
-              </button>
+              </view>
               <view class="flex items-center gap-[16rpx]">
                 <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
                 <text class="text-[22rpx] leading-[28rpx] tracking-[2rpx] text-[#7e7576]">支持中英文</text>
@@ -239,26 +238,54 @@
     <!-- 更多比例 -->
     <view v-if="showMoreRatios" class="ratio-drawer-overlay" @tap="closeMoreRatios">
       <view class="ratio-drawer" :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }" @tap.stop>
-        <!-- <view class="ratio-drawer-handle" /> -->
+        <view class="ratio-drawer-handle" />
         <view class="ratio-drawer-header">
-          <text class="ratio-drawer-title">更多比例</text>
+          <view class="ratio-drawer-heading">
+            <text class="ratio-drawer-title">更多比例</text>
+            <text class="ratio-drawer-subtitle">{{ selectedModelOption.label }}</text>
+          </view>
           <button class="ratio-drawer-close" @tap="closeMoreRatios">
             <text class="ratio-drawer-close-text">×</text>
           </button>
         </view>
-        <view class="ratio-drawer-grid">
-          <view
-            v-for="item in moreRatios"
-            :key="item.value"
-            class="ratio-drawer-chip"
-            :class="{ active: ratio === item.value }"
-            @tap="selectRatioFromDrawer(item.value)"
-          >
-            <view class="ratio-icon" :class="item.iconClass" />
-            <text class="ratio-chip-label">{{ item.label }}</text>
-            <text class="ratio-drawer-size">{{ getRatioSizeText(item.value) }}</text>
+
+        <view class="ratio-drawer-stage">
+          <view class="ratio-drawer-stage-preview">
+            <view class="ratio-drawer-stage-frame">
+              <view class="ratio-icon ratio-drawer-stage-icon" :class="selectedRatioOption.iconClass" />
+            </view>
+          </view>
+          <view class="ratio-drawer-stage-copy">
+            <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
+            <text class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
+          </view>
+          <view class="ratio-drawer-stage-badge">
+            <text>{{ quality }}</text>
           </view>
         </view>
+
+        <scroll-view class="ratio-drawer-list-scroll" scroll-y enhanced :show-scrollbar="false">
+          <view class="ratio-drawer-list">
+            <view
+              v-for="item in moreRatios"
+              :key="item.value"
+              class="ratio-drawer-option"
+              :class="{ active: ratio === item.value }"
+              @tap="selectRatioFromDrawer(item.value)"
+            >
+              <view class="ratio-drawer-option-mark">
+                <view class="ratio-icon" :class="item.iconClass" />
+              </view>
+              <view class="ratio-drawer-option-copy">
+                <text class="ratio-drawer-option-label">{{ item.label }}</text>
+                <text class="ratio-drawer-option-size">{{ getRatioSizeText(item.value) }}</text>
+              </view>
+              <view class="ratio-drawer-option-check">
+                <view v-if="ratio === item.value" class="ratio-drawer-check-mark" />
+              </view>
+            </view>
+          </view>
+        </scroll-view>
       </view>
     </view>
 
@@ -567,6 +594,8 @@ const visibleRatios = computed(() => {
 const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
 const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
+const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
+const selectedModelOption = computed(() => models.find((item) => item.value === model.value) || models[0]);
 
 const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
@@ -1077,10 +1106,9 @@ async function handleGenerate() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
-  min-width: 168rpx;
+  gap: 8rpx;
   height: 56rpx;
-  padding: 0 20rpx;
+  padding: 0 24rpx;
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 9999rpx;
   background: #ffffff;
@@ -1101,27 +1129,41 @@ async function handleGenerate() {
   transform: scale(0.98);
 }
 
-.prompt-polish-btn[disabled] {
-  opacity: 0.86;
-}
-
 .prompt-polish-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 32rpx;
+  font-size: 28rpx;
+  line-height: 32rpx;
   color: currentColor;
   transform-origin: center;
 }
 
 .prompt-polish-text {
-  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  height: 32rpx;
+  font-size: 22rpx;
   font-family: serif;
   font-weight: 600;
-  line-height: 40rpx;
+  line-height: 32rpx;
   color: currentColor;
 }
 
 .prompt-polish-btn-loading {
-  border-color: rgba(0, 0, 0, 0.18);
-  background: #f4f4f5;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 8rpx 18rpx rgba(0, 0, 0, 0.05);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(0, 0, 0, 0.48);
+}
+
+.prompt-polish-btn-loading:active {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 .prompt-polish-btn-loading .prompt-polish-icon {
@@ -1312,8 +1354,8 @@ async function handleGenerate() {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
 }
 
 .ratio-drawer {
@@ -1322,87 +1364,283 @@ async function handleGenerate() {
   bottom: 0;
   left: 0;
   box-sizing: border-box;
-  padding: 24rpx 32rpx 40rpx;
-  border-radius: 48rpx 48rpx 0 0;
-  background: #f9f9f9;
-  box-shadow: 0 -20rpx 80rpx rgba(0, 0, 0, 0.1);
+  max-height: 78vh;
+  overflow: hidden;
+  padding: 18rpx 24rpx 40rpx;
+  border: 3rpx solid #111111;
+  border-bottom: 0;
+  border-radius: 44rpx 44rpx 0 0;
+  background: #ffffff;
+  box-shadow:
+    0 -28rpx 80rpx rgba(0, 0, 0, 0.18),
+    inset 0 -16rpx 0 #f3f3f3;
 }
 
 .ratio-drawer-handle {
-  width: 96rpx;
+  width: 84rpx;
   height: 8rpx;
-  margin: 0 auto 32rpx;
+  margin: 0 auto 24rpx;
   border-radius: 9999rpx;
-  background: rgba(207, 196, 197, 0.5);
+  background: #111111;
 }
 
 .ratio-drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 80rpx;
-  padding: 0 8rpx;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx 20rpx;
+  border-bottom: 3rpx solid #111111;
+}
+
+.ratio-drawer-heading {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
 .ratio-drawer-title {
-  font-size: 32rpx;
-  font-weight: 700;
+  font-size: 34rpx;
+  font-weight: 900;
   line-height: 44rpx;
-  color: #1a1c1c;
+  color: #111111;
+}
+
+.ratio-drawer-subtitle {
+  max-width: 460rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  line-height: 28rpx;
+  color: rgba(0, 0, 0, 0.42);
 }
 
 .ratio-drawer-close {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
+  width: 68rpx;
+  height: 68rpx;
   padding: 0;
-  border-radius: 9999rpx;
-  background: #eeeeee;
-}
-
-.ratio-drawer-close-text {
-  font-size: 42rpx;
-  font-weight: 300;
-  line-height: 58rpx;
-  color: #1a1c1c;
-}
-
-.ratio-drawer-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
-}
-
-.ratio-drawer-chip {
-  display: flex;
-  box-sizing: border-box;
-  min-height: 132rpx;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-  border: 2rpx solid #cfc4c5;
-  border-radius: 24rpx;
+  border: 3rpx solid #111111;
+  border-radius: 18rpx;
   background: #ffffff;
-  color: #1a1c1c;
 }
 
-.ratio-drawer-chip.active {
-  border-color: #000000;
-  background: #000000;
+.ratio-drawer-close:active {
+  background: #111111;
+  transform: scale(0.96);
+}
+
+.ratio-drawer-close:active .ratio-drawer-close-text {
   color: #ffffff;
 }
 
-.ratio-drawer-size {
+.ratio-drawer-close-text {
+  margin-top: -4rpx;
+  font-size: 44rpx;
+  font-weight: 300;
+  line-height: 64rpx;
+  color: #111111;
+}
+
+.ratio-drawer-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  min-height: 164rpx;
+  margin-bottom: 24rpx;
+  padding: 24rpx;
+  border: 3rpx solid #111111;
+  border-radius: 28rpx;
+  background:
+    linear-gradient(135deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%) 0 0 / 24rpx 24rpx,
+    #ffffff;
+}
+
+.ratio-drawer-stage-preview {
+  display: flex;
+  flex: none;
+  width: 156rpx;
+  height: 108rpx;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid #111111;
+  border-radius: 20rpx;
+  background: #f7f7f7;
+}
+
+.ratio-drawer-stage-frame {
+  display: flex;
+  width: 96rpx;
+  height: 66rpx;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed rgba(0, 0, 0, 0.32);
+  border-radius: 12rpx;
+  background: #ffffff;
+}
+
+.ratio-drawer-stage-icon {
+  color: #111111;
+  opacity: 1;
+}
+
+.ratio-drawer-stage-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.ratio-drawer-stage-label {
+  font-size: 44rpx;
+  font-weight: 900;
+  line-height: 54rpx;
+  color: #111111;
+}
+
+.ratio-drawer-stage-size {
+  margin-top: 8rpx;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 32rpx;
+  color: rgba(0, 0, 0, 0.48);
+}
+
+.ratio-drawer-stage-badge {
+  position: absolute;
+  top: -3rpx;
+  right: -3rpx;
+  display: flex;
+  min-width: 72rpx;
+  height: 42rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16rpx;
+  border: 3rpx solid #111111;
+  border-radius: 0 28rpx 0 18rpx;
+  background: #111111;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 900;
+  line-height: 42rpx;
+}
+
+.ratio-drawer-list-scroll {
+  max-height: 42vh;
+}
+
+.ratio-drawer-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+  padding-bottom: 8rpx;
+}
+
+.ratio-drawer-option {
+  display: flex;
+  min-width: 0;
+  min-height: 92rpx;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx;
+  border: 3rpx solid rgba(0, 0, 0, 0.1);
+  border-radius: 22rpx;
+  background: #ffffff;
+  color: #111111;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.ratio-drawer-option:active {
+  transform: scale(0.98);
+}
+
+.ratio-drawer-option.active {
+  border-color: #111111;
+  background: #111111;
+  color: #ffffff;
+}
+
+.ratio-drawer-option-mark {
+  display: flex;
+  flex: none;
+  width: 54rpx;
+  height: 54rpx;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid currentColor;
+  border-radius: 14rpx;
+}
+
+.ratio-drawer-option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.ratio-drawer-option-label {
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 32rpx;
+  color: currentColor;
+}
+
+.ratio-drawer-option-size {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 18rpx;
-  line-height: 24rpx;
-  opacity: 0.62;
+  font-weight: 600;
+  line-height: 26rpx;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.ratio-drawer-option.active .ratio-drawer-option-size {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.ratio-drawer-option-check {
+  display: flex;
+  flex: none;
+  width: 28rpx;
+  height: 28rpx;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2rpx solid currentColor;
+  border-radius: 9999rpx;
+  color: currentColor;
+}
+
+.ratio-drawer-check-mark {
+  width: 7rpx;
+  height: 12rpx;
+  margin-top: -3rpx;
+  border-right: 3rpx solid currentColor;
+  border-bottom: 3rpx solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
 }
 
 .generate-btn {

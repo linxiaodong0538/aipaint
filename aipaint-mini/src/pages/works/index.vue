@@ -30,6 +30,8 @@
         loading-more-default-text="上滑加载更多"
         loading-more-loading-text="加载中..."
         loading-more-no-more-text="没有更多作品了"
+        :loading-more-title-custom-style="{ fontSize: '24rpx', heigth: '160rpx' }"
+        :show-loading-more-no-more-line="true"
         refresher-default-text="下拉刷新"
         refresher-pulling-text="释放刷新"
         refresher-refreshing-text=" "
@@ -41,7 +43,7 @@
         @scrollTopChange="handleScrollTopChange"
         @query="queryWorks"
       >
-        <view class="pb-[120rpx]">
+        <view class="pb-[32rpx]">
           <view
             v-if="!userStore.isLogin"
             class="mt-[148rpx] flex flex-col items-center px-[12rpx] text-center"
@@ -142,7 +144,7 @@
             v-if="userStore.isLogin && loading"
             class="mt-[128rpx] flex flex-col items-center text-center"
           >
-            <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#231818] border-t-black" />
+            <view class="h-[64rpx] w-[64rpx] animate-spin rounded-full border-[6rpx] border-[#d7d7d7] border-t-[#8e8e8e]" />
             <text class="mt-[28rpx] text-[26rpx] font-medium leading-[36rpx] text-[#7d7d7d]">加载作品中...</text>
           </view>
         </view>
@@ -175,6 +177,14 @@
             >
               {{ emptyDescription }}
             </text>
+          </view>
+        </template>
+        <template #loadingMoreLoading>
+          <view class="flex h-[72rpx] items-center justify-center bg-(--app-background)">
+            <view class="flex h-[44rpx] items-center justify-center gap-[10rpx] rounded-full bg-white px-[24rpx]">
+              <view class="works-loading-more-spinner h-[24rpx] w-[24rpx] rounded-full border-[3rpx] border-[#d7d7d7] border-t-black" />
+              <text class="text-[24rpx] font-medium leading-[32rpx] text-[#7e7576]">加载中...</text>
+            </view>
           </view>
         </template>
       </z-paging>
@@ -610,6 +620,10 @@ function stopRefreshTimer() {
   animation-duration: 4s;
 }
 
+.works-loading-more-spinner {
+  animation: works-loading-more-spin 0.8s linear infinite;
+}
+
 @keyframes works-shimmer {
   0% {
     background-position: -200% 0;
@@ -623,6 +637,16 @@ function stopRefreshTimer() {
 @keyframes works-loader {
   100% {
     transform: rotate(1turn);
+  }
+}
+
+@keyframes works-loading-more-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
