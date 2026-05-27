@@ -75,9 +75,13 @@
               placeholder-class="generate-prompt-placeholder"
             />
             <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
-              <button class="flex items-center gap-[8rpx] bg-transparent p-0 active:opacity-70" @tap="useRandomPrompt">
+              <button
+                class="flex items-center gap-[8rpx] bg-transparent p-0 active:opacity-70 disabled:opacity-50"
+                :disabled="polishingPrompt"
+                @tap="handlePolishPrompt"
+              >
                 <text class="iconfont icon-shanshan leading-none text-black/50" style="font-size: 28rpx"/>
-                <text class="text-[24rpx] font-serif leading-[40rpx] text-black/50">Prompt</text>
+                <text class="text-[24rpx] font-serif leading-[40rpx] text-black/50">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
               </button>
               <view class="flex items-center gap-[16rpx]">
                 <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
@@ -268,16 +272,10 @@
 import { computed, nextTick, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
-import { createImageGeneration, uploadImage } from "@/api/generate";
+import { createImageGeneration, polishPromptStream, uploadImage } from "@/api/generate";
 import type { ApiError } from "@/utils/request";
 import { getTemplateDetail, type TemplateItem } from "@/api/template";
 import { useUserStore } from "@/store/modules/user";
-
-const prompts = [
-  "未来城市中的玻璃花园，清晨柔光，电影感构图，高级灰色调",
-  "水墨山谷中的白色建筑，云雾缭绕，留白构图，细腻纸张纹理",
-  "赛博街区的雨夜橱窗，霓虹反射，广角摄影，超现实氛围",
-];
 
 const REFERENCE_DIRECT_MAX_BYTES = 5 * 1024 * 1024;
 const REFERENCE_COMPRESSED_MAX_BYTES = 8 * 1024 * 1024;
@@ -521,6 +519,7 @@ const quality = ref<QualityValue>("1K");
 const count = ref<(typeof counts)[number]>(1);
 const ratio = ref<RatioValue>("1:1");
 const generating = ref(false);
+const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
 const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
@@ -579,11 +578,6 @@ function getModelSizeMap(modelValue: ModelValue) {
 
 function hasAnyRatioForQuality(resolutionValue: QualityValue) {
   return ratios.some((item) => Boolean(activeSizeMap.value[item.value]?.[resolutionValue]));
-}
-
-function useRandomPrompt() {
-  const currentIndex = prompts.indexOf(prompt.value);
-  prompt.value = prompts[(currentIndex + 1) % prompts.length];
 }
 
 onLoad((query) => {
@@ -979,6 +973,42 @@ async function uploadReferenceImages() {
     return await Promise.all(referenceImages.value.map((image) => uploadImage(image)));
   } finally {
     uni.hideLoading();
+  }
+}
+
+async function handlePolishPrompt() {
+  if (!userStore.isLogin) {
+    await userStore.loginWithWechat();
+    if (!userStore.isLogin) return;
+  }
+
+  const rawPrompt = prompt.value.trim();
+  if (!rawPrompt) {
+    uni.showToast({ title: "请输入画面描述", icon: "none" });
+    return;
+  }
+
+  if (polishingPrompt.value) return;
+  polishingPrompt.value = true;
+  try {
+    let receivedPrompt = "";
+    await polishPromptStream(rawPrompt, {
+      onChunk(chunk) {
+        receivedPrompt += chunk;
+        prompt.value = receivedPrompt;
+      },
+    });
+    uni.showToast({ title: "已润色", icon: "none" });
+  } catch (error) {
+    prompt.value = rawPrompt;
+    const apiError = error as ApiError | undefined;
+    if (apiError?.shown) {
+      return;
+    }
+    const message = error instanceof Error ? error.message : (apiError?.data?.msg || apiError?.data?.message || "Prompt 润色失败");
+    uni.showToast({ title: message, icon: "none" });
+  } finally {
+    polishingPrompt.value = false;
   }
 }
 

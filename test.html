@@ -1,306 +1,198 @@
-<!DOCTYPE html>
-
-<html lang="zh-CN"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>积分明细 - 高级质感版</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "primary-container": "#1b1b1b",
-                        "on-error": "#ffffff",
-                        "tertiary": "#000000",
-                        "surface-container-low": "#f3f3f4",
-                        "error-container": "#ffdad6",
-                        "surface-container": "#eeeeee",
-                        "on-background": "#1a1c1c",
-                        "on-tertiary-fixed": "#1a1c1c",
-                        "outline-variant": "#cfc4c5",
-                        "on-secondary": "#ffffff",
-                        "inverse-surface": "#2f3131",
-                        "secondary-fixed-dim": "#c8c6c5",
-                        "secondary": "#5f5e5e",
-                        "tertiary-container": "#1a1c1c",
-                        "background": "#f9f9f9",
-                        "surface-dim": "#dadada",
-                        "on-secondary-fixed": "#1c1b1b",
-                        "on-secondary-fixed-variant": "#474746",
-                        "error": "#ba1a1a",
-                        "outline": "#7e7576",
-                        "on-primary-fixed-variant": "#474747",
-                        "on-surface": "#1a1c1c",
-                        "tertiary-fixed": "#e2e2e2",
-                        "on-error-container": "#93000a",
-                        "surface-container-highest": "#e2e2e2",
-                        "primary-fixed-dim": "#c6c6c6",
-                        "on-surface-variant": "#4c4546",
-                        "secondary-fixed": "#e5e2e1",
-                        "on-tertiary": "#ffffff",
-                        "on-primary-fixed": "#1b1b1b",
-                        "inverse-on-surface": "#f0f1f1",
-                        "primary": "#000000",
-                        "on-primary": "#ffffff",
-                        "surface-bright": "#f9f9f9",
-                        "surface-container-high": "#e8e8e8",
-                        "inverse-primary": "#c6c6c6",
-                        "surface": "#f9f9f9",
-                        "tertiary-fixed-dim": "#c6c6c7",
-                        "surface-variant": "#e2e2e2",
-                        "surface-container-lowest": "#ffffff",
-                        "on-primary-container": "#848484",
-                        "on-tertiary-fixed-variant": "#454747",
-                        "secondary-container": "#e2dfde",
-                        "on-tertiary-container": "#838484",
-                        "on-secondary-container": "#636262",
-                        "surface-tint": "#5e5e5e",
-                        "primary-fixed": "#e2e2e2"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "2xl": "1.5rem",
-                        "3xl": "2rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "stack-md": "16px",
-                        "unit": "8px",
-                        "stack-sm": "8px",
-                        "gutter": "24px",
-                        "container-padding": "32px",
-                        "stack-xl": "64px",
-                        "stack-lg": "32px"
-                    },
-                    "fontFamily": {
-                        "headline-md": ["Plus Jakarta Sans"],
-                        "headline-lg-mobile": ["Plus Jakarta Sans"],
-                        "display": ["Plus Jakarta Sans"],
-                        "label-sm": ["Plus Jakarta Sans"],
-                        "headline-lg": ["Plus Jakarta Sans"],
-                        "body-lg": ["Plus Jakarta Sans"],
-                        "label-lg": ["Plus Jakarta Sans"],
-                        "body-md": ["Plus Jakarta Sans"]
-                    },
-                    "fontSize": {
-                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
-                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
-                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+<!DOCTYPE html><html class="light" lang="en"><head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Aspect Ratio Selector</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        "colors": {
+                            "outline-variant": "#cfc4c5",
+                            "outline": "#7e7576",
+                            "on-surface": "#1a1c1c",
+                            "surface": "#f9f9f9",
+                            "secondary-container": "#e2dfde",
+                            "surface-container-high": "#e8e8e8",
+                            "surface-container": "#eeeeee",
+                            "on-primary-container": "#848484",
+                            "on-tertiary-fixed": "#1a1c1c",
+                            "on-secondary-fixed": "#1c1b1b",
+                            "on-tertiary": "#ffffff",
+                            "on-secondary-container": "#636262",
+                            "on-secondary-fixed-variant": "#474746",
+                            "surface-tint": "#5e5e5e",
+                            "secondary": "#5f5e5e",
+                            "on-surface-variant": "#4c4546",
+                            "inverse-primary": "#c6c6c6",
+                            "on-primary-fixed": "#1b1b1b",
+                            "background": "#f9f9f9",
+                            "primary-fixed": "#e2e2e2",
+                            "on-tertiary-fixed-variant": "#454747",
+                            "on-error-container": "#93000a",
+                            "secondary-fixed-dim": "#c8c6c5",
+                            "primary": "#000000",
+                            "surface-dim": "#dadada",
+                            "secondary-fixed": "#e5e2e1",
+                            "surface-container-lowest": "#ffffff",
+                            "on-tertiary-container": "#838484",
+                            "on-primary-fixed-variant": "#474747",
+                            "tertiary-fixed-dim": "#c6c6c7",
+                            "on-background": "#1a1c1c",
+                            "on-primary": "#ffffff",
+                            "on-secondary": "#ffffff",
+                            "on-error": "#ffffff",
+                            "surface-container-highest": "#e2e2e2",
+                            "surface-bright": "#f9f9f9",
+                            "inverse-surface": "#2f3131",
+                            "inverse-on-surface": "#f0f1f1",
+                            "surface-variant": "#e2e2e2",
+                            "primary-fixed-dim": "#c6c6c6",
+                            "tertiary-container": "#1a1c1c",
+                            "tertiary": "#000000",
+                            "tertiary-fixed": "#e2e2e2",
+                            "primary-container": "#1b1b1b",
+                            "error-container": "#ffdad6",
+                            "error": "#ba1a1a",
+                            "surface-container-low": "#f3f3f4"
+                        },
+                        "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                        },
+                        "spacing": {
+                            "stack-xl": "64px",
+                            "stack-lg": "32px",
+                            "container-padding": "32px",
+                            "stack-md": "16px",
+                            "unit": "8px",
+                            "stack-sm": "8px",
+                            "gutter": "24px"
+                        },
+                        "fontFamily": {
+                            "label-sm": ["Plus Jakarta Sans"],
+                            "body-lg": ["Plus Jakarta Sans"],
+                            "label-lg": ["Plus Jakarta Sans"],
+                            "headline-lg-mobile": ["Plus Jakarta Sans"],
+                            "headline-lg": ["Plus Jakarta Sans"],
+                            "headline-md": ["Plus Jakarta Sans"],
+                            "display": ["Plus Jakarta Sans"],
+                            "body-md": ["Plus Jakarta Sans"]
+                        },
+                        "fontSize": {
+                            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                            "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                        }
                     }
-                },
-            },
+                }
+            }
+        </script>
+    <style>
+            body { font-family: 'Plus Jakarta Sans', sans-serif; }
+            .ratio-icon-box { transition: all 0.2s ease; }
+            .aspect-card:hover .ratio-icon-box { border-color: currentColor; }
+        </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
         }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .shadow-soft {
-            box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.05);
-        }
-        .inner-glow {
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-        }
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-</head>
-<body class="bg-background text-on-background font-body-md min-h-screen pb-32">
-<!-- Top AppBar -->
-<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-4 bg-surface/80 backdrop-blur-xl shadow-sm">
-<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high/50 transition-all duration-300 active:scale-95">
-<span class="material-symbols-outlined text-primary" data-icon="arrow_back">arrow_back</span>
-</button>
-<h1 class="text-headline-md font-headline-md font-bold text-primary">积分明细</h1>
-<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high/50 transition-all duration-300 active:scale-95">
-<span class="material-symbols-outlined text-primary" data-icon="more_vert">more_vert</span>
-</button>
-</header>
-<main class="pt-24 px-4 max-w-lg mx-auto space-y-6">
-<!-- Hero Section: Total Balance -->
-<section class="flex items-center justify-between py-4 border-b border-outline-variant/30 px-2">
-<div class="flex flex-col">
-<p class="text-label-sm font-label-sm text-secondary">当前可用积分</p>
-<div class="flex items-baseline gap-1">
-<span class="text-headline-lg font-headline-lg text-primary">70</span>
-<span class="text-label-lg font-label-lg text-secondary">PTS</span>
-</div>
-</div>
-<div class="flex gap-6">
-<div class="flex flex-col text-right">
-<p class="text-[10px] uppercase tracking-wider text-secondary opacity-70">本月消耗</p>
-<p class="text-label-lg font-label-lg font-bold text-primary">45</p>
-</div>
-<div class="flex flex-col text-right">
-<p class="text-[10px] uppercase tracking-wider text-secondary opacity-70">本月返还</p>
-<p class="text-label-lg font-label-lg font-bold text-primary">115</p>
-</div>
-</div>
-</section>
-<!-- Filters -->
-<nav class="flex gap-2 overflow-x-auto py-2 no-scrollbar">
-<button class="px-6 py-2 rounded-full bg-primary text-on-primary text-label-lg font-label-lg whitespace-nowrap transition-all duration-300">全部记录</button>
-<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">生成相关</button>
-<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">每日签到</button>
-<button class="px-6 py-2 rounded-full bg-surface-container-high/50 text-secondary text-label-lg font-label-lg whitespace-nowrap hover:bg-surface-container-high transition-all duration-300">其他变动</button>
-</nav>
-<!-- Transaction List -->
-<section class="space-y-4">
-<h2 class="text-label-lg font-label-lg text-secondary px-2">2026年5月</h2>
-<div class="space-y-3">
-<!-- Item 1 -->
-<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
-</div>
-<div class="space-y-0.5">
-<div class="flex items-center gap-2">
-<span class="text-label-lg font-label-lg font-bold">图片生成</span>
-<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">成功</span>
-</div>
-<p class="text-label-sm font-label-sm text-secondary">nano-banana-2 · 耗时 40s</p>
-<p class="text-[10px] text-outline">2026-05-25 17:17:06</p>
-</div>
-</div>
-<div class="text-headline-md font-headline-md">-5</div>
-</div>
-<!-- Item 2 -->
-<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
-</div>
-<div class="space-y-0.5">
-<div class="flex items-center gap-2">
-<span class="text-label-lg font-label-lg font-bold">图片生成</span>
-<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">扣费</span>
-</div>
-<p class="text-label-sm font-label-sm text-secondary">nano-banana-2 · 耗时 42s</p>
-<p class="text-[10px] text-outline">2026-05-25 17:10:51</p>
-</div>
-</div>
-<div class="text-headline-md font-headline-md">-5</div>
-</div>
-<!-- Item 3: Check-in Example -->
-<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-<span class="material-symbols-outlined text-on-primary" data-icon="event_available">event_available</span>
-</div>
-<div class="space-y-0.5">
-<div class="flex items-center gap-2">
-<span class="text-label-lg font-label-lg font-bold">每日签到</span>
-<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">完成</span>
-</div>
-<p class="text-label-sm font-label-sm text-secondary">连续签到 7 天奖励</p>
-<p class="text-[10px] text-outline">2026-05-25 09:30:12</p>
-</div>
-</div>
-<div class="text-headline-md font-headline-md text-primary">+10</div>
-</div>
-<!-- Item 4 -->
-<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center">
-<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
-</div>
-<div class="space-y-0.5">
-<div class="flex items-center gap-2">
-<span class="text-label-lg font-label-lg font-bold">图片生成</span>
-<span class="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-bold">成功</span>
-</div>
-<p class="text-label-sm font-label-sm text-secondary">GPT-image-2 · 耗时 1分27s</p>
-<p class="text-[10px] text-outline">2026-05-25 16:39:19</p>
-</div>
-</div>
-<div class="text-headline-md font-headline-md">-5</div>
-</div>
-<!-- Item 5: Failed State -->
-<div class="group bg-surface-container-lowest rounded-2xl p-4 shadow-soft flex items-center justify-between border border-transparent hover:border-outline-variant/30 transition-all duration-300">
-<div class="flex items-center gap-4">
-<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center opacity-50">
-<span class="material-symbols-outlined text-primary" data-icon="image">image</span>
-</div>
-<div class="space-y-0.5">
-<div class="flex items-center gap-2">
-<span class="text-label-lg font-label-lg font-bold text-secondary">图片生成</span>
-<span class="text-[10px] px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-bold">失败</span>
-</div>
-<p class="text-label-sm font-label-sm text-secondary opacity-50">GPT-image-2 · 耗时 17小时28分</p>
-<p class="text-[10px] text-outline opacity-50">2026-05-25 16:28:36</p>
-</div>
-</div>
-<div class="text-headline-md font-headline-md opacity-30">0</div>
-</div>
-</div>
-</section>
-</main>
-<!-- Bottom Navigation Bar -->
-<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-6 bg-surface/90 backdrop-blur-2xl rounded-t-xl shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
-<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
-<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Create</span>
-</div>
-<div class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full px-5 py-1.5 transition-all duration-300 shadow-lg active:scale-90">
-<span class="material-symbols-outlined" data-icon="history">history</span>
-<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">History</span>
-</div>
-<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
-<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
-<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Credits</span>
-</div>
-<div class="flex flex-col items-center justify-center text-secondary opacity-60 hover:opacity-100 hover:scale-110 transition-all duration-200 cursor-pointer">
-<span class="material-symbols-outlined" data-icon="person">person</span>
-<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Profile</span>
-</div>
-</footer>
-<script>
-        // Smooth hover effect for transaction items
-        document.querySelectorAll('.group').forEach(item => {
-            item.addEventListener('touchstart', () => {
-                item.classList.add('scale-[0.98]');
-            });
-            item.addEventListener('touchend', () => {
-                item.classList.remove('scale-[0.98]');
-            });
-        });
-
-        // Toggle Active Filter (Simulated)
-        const filterBtns = document.querySelectorAll('nav button');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => {
-                    b.classList.remove('bg-primary', 'text-on-primary');
-                    b.classList.add('bg-surface-container-high/50', 'text-secondary');
-                });
-                btn.classList.remove('bg-surface-container-high/50', 'text-secondary');
-                btn.classList.add('bg-primary', 'text-on-primary');
-            });
-        });
-    </script>
-</body></html>
+      </style>
+    </head>
+    <body class="bg-surface-dim h-screen w-screen flex items-end justify-center overflow-hidden antialiased relative">
+    <!-- Mock Background App Content (Out of focus) -->
+    <div aria-hidden="true" class="absolute inset-0 z-0 bg-surface flex flex-col pt-12 px-6 blur-sm opacity-50">
+    <div class="h-12 w-3/4 bg-surface-container-highest rounded-lg mb-8"></div>
+    <div class="grid grid-cols-2 gap-4">
+    <div class="h-48 bg-surface-container-highest rounded-2xl"></div>
+    <div class="h-48 bg-surface-container-highest rounded-2xl"></div>
+    <div class="h-48 bg-surface-container-highest rounded-2xl"></div>
+    <div class="h-48 bg-surface-container-highest rounded-2xl"></div>
+    </div>
+    </div>
+    <!-- Backdrop Overlay -->
+    <div class="absolute inset-0 bg-primary/20 backdrop-blur-sm z-10"></div>
+    <!-- Bottom Drawer -->
+    <div class="relative z-20 w-full max-w-md bg-surface-container-lowest rounded-t-xl shadow-2xl flex flex-col pb-0 pt-6 px-0 overflow-hidden"><!-- Drag Handle -->
+    <div class="w-full flex justify-center mb-4">
+    <div class="w-10 h-1 bg-outline-variant/30 rounded-full"></div>
+    </div>
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col">
+    <h2 class="font-headline-md text-headline-md text-on-surface uppercase tracking-tight">画面比例</h2>
+    <span class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-semibold">传感器配置</span>
+    </div>
+    <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors text-on-surface">
+    <span class="material-symbols-outlined" style="font-size: 24px;">close</span>
+    </button>
+    </div>
+    <!-- Professional Grid Matrix -->
+    <div class="grid grid-cols-2 border-t border-l border-outline-variant/30">
+    <!-- Card: 1:1 -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-5 h-5 border border-on-surface"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-secondary-container text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">社交</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">1:1</span>
+    <span class="font-label-sm text-on-surface-variant/70">1080 × 1080 PX</span>
+    </button>
+    <!-- Card: 16:9 (Active State Example) -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 bg-primary text-white text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-8 h-4.5 border border-white"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-white/20 text-[10px] font-bold uppercase tracking-wider text-white">高清视频</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">16:9</span>
+    <span class="font-label-sm text-white/70">1920 × 1080 PX</span>
+    </button>
+    <!-- Card: 4:3 -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-7 h-5 border border-on-surface"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-secondary-container text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">经典</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">4:3</span>
+    <span class="font-label-sm text-on-surface-variant/70">1440 × 1080 PX</span>
+    </button>
+    <!-- Card: 21:9 -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-8 h-3.5 border border-on-surface"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-secondary-container text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">电影</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">21:9</span>
+    <span class="font-label-sm text-on-surface-variant/70">2560 × 1080 PX</span>
+    </button>
+    <!-- Card: 9:16 -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-4 h-7 border border-on-surface"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-secondary-container text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">手机</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">9:16</span>
+    <span class="font-label-sm text-on-surface-variant/70">1080 × 1920 PX</span>
+    </button>
+    <!-- Card: 3:2 -->
+    <button class="flex flex-col p-5 border-r border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left">
+    <div class="flex justify-between items-start mb-4">
+    <div class="w-6 h-4 border border-on-surface"></div>
+    <span class="px-1.5 py-0.5 rounded-[2px] bg-secondary-container text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">全画幅</span>
+    </div>
+    <span class="font-headline-md text-headline-md leading-none mb-1">3:2</span>
+    <span class="font-label-sm text-on-surface-variant/70">1536 × 1024 PX</span>
+    </button>
+    </div></div>
+    </body></html>

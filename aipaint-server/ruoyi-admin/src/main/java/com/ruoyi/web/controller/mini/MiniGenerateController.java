@@ -1,9 +1,16 @@
 package com.ruoyi.web.controller.mini;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import jakarta.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.alibaba.fastjson2.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +27,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.AiGenerationTask;
 import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiGenerationTaskService;
+import com.ruoyi.web.service.AiPromptPolishService;
 import com.ruoyi.web.service.image.AiImageProviderConfig;
 import com.ruoyi.web.service.image.AiImageService;
 import com.ruoyi.web.service.image.AiImageTaskRunner;
@@ -52,6 +60,9 @@ public class MiniGenerateController extends BaseController
 
     @Autowired
     private IAiCreditService creditService;
+
+    @Autowired
+    private AiPromptPolishService aiPromptPolishService;
 
     @PostMapping("/image")
     public AjaxResult createImage(@RequestBody GenerateImageRequest request)
@@ -114,6 +125,75 @@ public class MiniGenerateController extends BaseController
         imageTaskRunner.submit(task.getTaskId());
 
         return success(new GenerateImageResponse(task.getTaskId()));
+    }
+
+    @PostMapping("/prompt/polish")
+    public AjaxResult polishPrompt(@RequestBody PolishPromptRequest request)
+    {
+        if (request == null || StringUtils.isBlank(request.getPrompt()))
+        {
+            return error("请输入画面描述");
+        }
+
+        try
+        {
+            return success(new PolishPromptResponse(aiPromptPolishService.polish(request.getPrompt())));
+        }
+        catch (ServiceException e)
+        {
+            return error(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/prompt/polish/stream", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void polishPromptStream(@RequestBody(required = false) Map<String, Object> request, HttpServletResponse response) throws IOException
+    {
+        String prompt = request == null ? "" : StringUtils.defaultString((String) request.get("prompt"));
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.TEXT_EVENT_STREAM_VALUE);
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
+
+        OutputStream outputStream = response.getOutputStream();
+        try
+        {
+            if (StringUtils.isBlank(prompt))
+            {
+                writeSseEvent(outputStream, "error", "请输入画面描述");
+                return;
+            }
+
+            aiPromptPolishService.polishStream(prompt, chunk -> {
+                try
+                {
+                    writeSseEvent(outputStream, "message", chunk);
+                }
+                catch (IOException e)
+                {
+                    throw new ServiceException("Prompt 润色失败：流式响应写入失败");
+                }
+            });
+            writeSseEvent(outputStream, "done", "");
+        }
+        catch (ServiceException e)
+        {
+            writeSseEvent(outputStream, "error", e.getMessage());
+        }
+        catch (Exception e)
+        {
+            writeSseEvent(outputStream, "error", "Prompt 润色失败：" + e.getMessage());
+        }
+    }
+
+    private void writeSseEvent(OutputStream outputStream, String event, String content) throws IOException
+    {
+        JSONObject data = new JSONObject();
+        data.put("content", StringUtils.defaultString(content));
+        String payload = "event: " + event + "\n"
+                + "data: " + data.toJSONString() + "\n\n";
+        outputStream.write(payload.getBytes(StandardCharsets.UTF_8));
+        outputStream.flush();
     }
 
     @GetMapping("/tasks/{taskId}")
@@ -594,6 +674,41 @@ public class MiniGenerateController extends BaseController
         public void setTaskId(Long taskId)
         {
             this.taskId = taskId;
+        }
+    }
+
+    public static class PolishPromptRequest
+    {
+        private String prompt;
+
+        public String getPrompt()
+        {
+            return prompt;
+        }
+
+        public void setPrompt(String prompt)
+        {
+            this.prompt = prompt;
+        }
+    }
+
+    public static class PolishPromptResponse
+    {
+        private String prompt;
+
+        public PolishPromptResponse(String prompt)
+        {
+            this.prompt = prompt;
+        }
+
+        public String getPrompt()
+        {
+            return prompt;
+        }
+
+        public void setPrompt(String prompt)
+        {
+            this.prompt = prompt;
         }
     }
 }
