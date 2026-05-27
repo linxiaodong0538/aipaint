@@ -242,30 +242,50 @@
         <view class="ratio-drawer-header">
           <view class="ratio-drawer-heading">
             <text class="ratio-drawer-title">更多比例</text>
-            <text class="ratio-drawer-subtitle">{{ quality }} 输出 · {{ model }}</text>
+            <text class="ratio-drawer-subtitle">黑白画幅选择器</text>
           </view>
           <button class="ratio-drawer-close" @tap="closeMoreRatios">
             <text class="ratio-drawer-close-text">×</text>
           </button>
         </view>
-        <view class="ratio-drawer-grid">
-          <view
-            v-for="item in moreRatios"
-            :key="item.value"
-            class="ratio-drawer-chip"
-            :class="{ active: ratio === item.value }"
-            @tap="selectRatioFromDrawer(item.value)"
-          >
-            <view class="ratio-drawer-preview">
-              <view class="ratio-icon" :class="item.iconClass" />
-            </view>
-            <text class="ratio-drawer-label">{{ item.label }}</text>
-            <text class="ratio-drawer-size">{{ getRatioSizeText(item.value) }}</text>
-            <view v-if="ratio === item.value" class="ratio-drawer-check">
-              <view class="ratio-drawer-check-mark" />
+
+        <view class="ratio-drawer-stage">
+          <view class="ratio-drawer-stage-preview">
+            <view class="ratio-drawer-stage-frame">
+              <view class="ratio-icon ratio-drawer-stage-icon" :class="selectedRatioOption.iconClass" />
             </view>
           </view>
+          <view class="ratio-drawer-stage-copy">
+            <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
+            <text class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
+          </view>
+          <view class="ratio-drawer-stage-badge">
+            <text>{{ quality }}</text>
+          </view>
         </view>
+
+        <scroll-view class="ratio-drawer-list-scroll" scroll-y enhanced :show-scrollbar="false">
+          <view class="ratio-drawer-list">
+            <view
+              v-for="item in moreRatios"
+              :key="item.value"
+              class="ratio-drawer-option"
+              :class="{ active: ratio === item.value }"
+              @tap="selectRatioFromDrawer(item.value)"
+            >
+              <view class="ratio-drawer-option-mark">
+                <view class="ratio-icon" :class="item.iconClass" />
+              </view>
+              <view class="ratio-drawer-option-copy">
+                <text class="ratio-drawer-option-label">{{ item.label }}</text>
+                <text class="ratio-drawer-option-size">{{ getRatioSizeText(item.value) }}</text>
+              </view>
+              <view class="ratio-drawer-option-check">
+                <view v-if="ratio === item.value" class="ratio-drawer-check-mark" />
+              </view>
+            </view>
+          </view>
+        </scroll-view>
       </view>
     </view>
 
@@ -574,6 +594,7 @@ const visibleRatios = computed(() => {
 const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
 const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
+const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
 
 const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
@@ -1332,10 +1353,8 @@ async function handleGenerate() {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background:
-    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.28) 0, rgba(255, 255, 255, 0) 38%),
-    rgba(0, 0, 0, 0.46);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
 }
 
 .ratio-drawer {
@@ -1346,34 +1365,32 @@ async function handleGenerate() {
   box-sizing: border-box;
   max-height: 78vh;
   overflow: hidden;
-  padding: 18rpx 32rpx 40rpx;
-  border: 2rpx solid rgba(255, 255, 255, 0.72);
+  padding: 18rpx 24rpx 40rpx;
+  border: 3rpx solid #111111;
   border-bottom: 0;
-  border-radius: 56rpx 56rpx 0 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 248, 246, 0.98) 54%, #f2efec 100%),
-    #f8f7f5;
+  border-radius: 44rpx 44rpx 0 0;
+  background: #ffffff;
   box-shadow:
-    0 -36rpx 96rpx rgba(0, 0, 0, 0.24),
-    inset 0 2rpx 0 rgba(255, 255, 255, 0.88);
+    0 -28rpx 80rpx rgba(0, 0, 0, 0.18),
+    inset 0 -16rpx 0 #f3f3f3;
 }
 
 .ratio-drawer-handle {
-  width: 88rpx;
-  height: 7rpx;
-  margin: 0 auto 26rpx;
+  width: 84rpx;
+  height: 8rpx;
+  margin: 0 auto 24rpx;
   border-radius: 9999rpx;
-  background: rgba(26, 28, 28, 0.16);
-  box-shadow: 0 2rpx 0 rgba(255, 255, 255, 0.9);
+  background: #111111;
 }
 
 .ratio-drawer-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 24rpx;
-  margin-bottom: 28rpx;
-  padding: 0 4rpx;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 0 4rpx 20rpx;
+  border-bottom: 3rpx solid #111111;
 }
 
 .ratio-drawer-heading {
@@ -1381,14 +1398,14 @@ async function handleGenerate() {
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 4rpx;
 }
 
 .ratio-drawer-title {
-  font-size: 36rpx;
-  font-weight: 800;
-  line-height: 46rpx;
-  color: #1a1c1c;
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 44rpx;
+  color: #111111;
 }
 
 .ratio-drawer-subtitle {
@@ -1396,10 +1413,11 @@ async function handleGenerate() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 22rpx;
-  font-weight: 500;
-  line-height: 30rpx;
-  color: rgba(26, 28, 28, 0.46);
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  line-height: 28rpx;
+  color: rgba(0, 0, 0, 0.42);
 }
 
 .ratio-drawer-close {
@@ -1407,19 +1425,21 @@ async function handleGenerate() {
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 72rpx;
-  height: 72rpx;
+  width: 68rpx;
+  height: 68rpx;
   padding: 0;
-  border-radius: 9999rpx;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow:
-    0 12rpx 28rpx rgba(0, 0, 0, 0.08),
-    inset 0 0 0 2rpx rgba(0, 0, 0, 0.04);
+  border: 3rpx solid #111111;
+  border-radius: 18rpx;
+  background: #ffffff;
 }
 
 .ratio-drawer-close:active {
-  background: #ece9e6;
+  background: #111111;
   transform: scale(0.96);
+}
+
+.ratio-drawer-close:active .ratio-drawer-close-text {
+  color: #ffffff;
 }
 
 .ratio-drawer-close-text {
@@ -1427,136 +1447,197 @@ async function handleGenerate() {
   font-size: 44rpx;
   font-weight: 300;
   line-height: 64rpx;
-  color: #1a1c1c;
+  color: #111111;
 }
 
-.ratio-drawer-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18rpx;
-  max-height: 54vh;
-  overflow-y: auto;
-  padding: 4rpx 0 8rpx;
-}
-
-.ratio-drawer-chip {
+.ratio-drawer-stage {
   position: relative;
   display: flex;
-  box-sizing: border-box;
-  min-height: 154rpx;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  overflow: hidden;
-  border: 2rpx solid rgba(78, 62, 55, 0.11);
+  gap: 22rpx;
+  min-height: 164rpx;
+  margin-bottom: 24rpx;
+  padding: 24rpx;
+  border: 3rpx solid #111111;
   border-radius: 28rpx;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 249, 247, 0.92)),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.035) 25%, transparent 25%) 0 0 / 24rpx 24rpx,
     #ffffff;
-  color: #1a1c1c;
-  box-shadow:
-    0 16rpx 36rpx rgba(49, 42, 38, 0.06),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
-  transition:
-    border-color 0.22s ease,
-    background-color 0.22s ease,
-    box-shadow 0.22s ease,
-    color 0.22s ease,
-    transform 0.22s ease;
 }
 
-.ratio-drawer-chip::before {
-  position: absolute;
-  top: -42rpx;
-  right: -42rpx;
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 9999rpx;
-  background: rgba(223, 214, 204, 0.38);
-  content: "";
-}
-
-.ratio-drawer-chip:active {
-  transform: scale(0.97);
-}
-
-.ratio-drawer-chip.active {
-  border-color: #1a1c1c;
-  background:
-    linear-gradient(180deg, #2a2b29 0%, #111211 100%),
-    #111211;
-  color: #ffffff;
-  box-shadow:
-    0 24rpx 44rpx rgba(0, 0, 0, 0.2),
-    0 0 0 6rpx rgba(26, 28, 28, 0.08);
-}
-
-.ratio-drawer-chip.active::before {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.ratio-drawer-preview {
+.ratio-drawer-stage-preview {
   display: flex;
-  width: 64rpx;
-  height: 48rpx;
+  flex: none;
+  width: 156rpx;
+  height: 108rpx;
   align-items: center;
   justify-content: center;
-  border-radius: 16rpx;
-  background: rgba(26, 28, 28, 0.04);
+  border: 3rpx solid #111111;
+  border-radius: 20rpx;
+  background: #f7f7f7;
+}
+
+.ratio-drawer-stage-frame {
+  display: flex;
+  width: 96rpx;
+  height: 66rpx;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed rgba(0, 0, 0, 0.32);
+  border-radius: 12rpx;
+  background: #ffffff;
+}
+
+.ratio-drawer-stage-icon {
+  color: #111111;
+  opacity: 1;
+}
+
+.ratio-drawer-stage-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.ratio-drawer-stage-label {
+  font-size: 44rpx;
+  font-weight: 900;
+  line-height: 54rpx;
+  color: #111111;
+}
+
+.ratio-drawer-stage-size {
+  margin-top: 8rpx;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 32rpx;
+  color: rgba(0, 0, 0, 0.48);
+}
+
+.ratio-drawer-stage-badge {
+  position: absolute;
+  top: -3rpx;
+  right: -3rpx;
+  display: flex;
+  min-width: 72rpx;
+  height: 42rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16rpx;
+  border: 3rpx solid #111111;
+  border-radius: 0 28rpx 0 18rpx;
+  background: #111111;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 900;
+  line-height: 42rpx;
+}
+
+.ratio-drawer-list-scroll {
+  max-height: 42vh;
+}
+
+.ratio-drawer-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+  padding-bottom: 8rpx;
+}
+
+.ratio-drawer-option {
+  display: flex;
+  min-width: 0;
+  min-height: 92rpx;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx;
+  border: 3rpx solid rgba(0, 0, 0, 0.1);
+  border-radius: 22rpx;
+  background: #ffffff;
+  color: #111111;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.ratio-drawer-option:active {
+  transform: scale(0.98);
+}
+
+.ratio-drawer-option.active {
+  border-color: #111111;
+  background: #111111;
+  color: #ffffff;
+}
+
+.ratio-drawer-option-mark {
+  display: flex;
+  flex: none;
+  width: 54rpx;
+  height: 54rpx;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid currentColor;
+  border-radius: 14rpx;
+}
+
+.ratio-drawer-option-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.ratio-drawer-option-label {
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 32rpx;
   color: currentColor;
 }
 
-.ratio-drawer-chip.active .ratio-drawer-preview {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.ratio-drawer-label {
+.ratio-drawer-option-size {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 26rpx;
-  font-weight: 700;
-  line-height: 32rpx;
-}
-
-.ratio-drawer-size {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 20rpx;
-  font-weight: 500;
+  font-size: 18rpx;
+  font-weight: 600;
   line-height: 26rpx;
-  color: rgba(26, 28, 28, 0.46);
+  color: rgba(0, 0, 0, 0.45);
 }
 
-.ratio-drawer-chip.active .ratio-drawer-size {
-  color: rgba(255, 255, 255, 0.62);
+.ratio-drawer-option.active .ratio-drawer-option-size {
+  color: rgba(255, 255, 255, 0.68);
 }
 
-.ratio-drawer-check {
-  position: absolute;
-  top: 12rpx;
-  right: 12rpx;
+.ratio-drawer-option-check {
   display: flex;
-  width: 30rpx;
-  height: 30rpx;
+  flex: none;
+  width: 28rpx;
+  height: 28rpx;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  border: 2rpx solid currentColor;
   border-radius: 9999rpx;
-  background: #ffffff;
-  color: #111211;
-  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.16);
+  color: currentColor;
 }
 
 .ratio-drawer-check-mark {
-  width: 8rpx;
-  height: 14rpx;
+  width: 7rpx;
+  height: 12rpx;
   margin-top: -3rpx;
-  border-right: 4rpx solid currentColor;
-  border-bottom: 4rpx solid currentColor;
+  border-right: 3rpx solid currentColor;
+  border-bottom: 3rpx solid currentColor;
   transform: rotate(45deg);
   transform-origin: center;
 }
