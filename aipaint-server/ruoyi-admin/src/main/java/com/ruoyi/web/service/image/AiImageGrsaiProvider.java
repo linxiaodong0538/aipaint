@@ -61,13 +61,14 @@ public class AiImageGrsaiProvider implements AiImageProvider
 
     private JSONObject createTask(AiImageGenerateRequest request, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
+        String model = StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel());
         JSONObject payload = new JSONObject();
-        payload.put("model", StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel()));
+        payload.put("model", model);
         payload.put("prompt", request.getPrompt());
         payload.put("images", request.getImageUrls() == null ? new JSONArray() : request.getImageUrls());
-        if (usesPixelImageSize(request.getModel()))
+        if (usesPixelAspectRatio(model))
         {
-            payload.put("imageSize", StringUtils.defaultIfBlank(request.getSize(), "1024x1024"));
+            payload.put("aspectRatio", StringUtils.defaultIfBlank(request.getSize(), "1024x1024"));
         }
         else
         {
@@ -241,7 +242,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
         return "2K";
     }
 
-    private boolean usesPixelImageSize(String model)
+    private boolean usesPixelAspectRatio(String model)
     {
         return "gpt-image-2".equals(model) || "gpt-image-2-vip".equals(model);
     }

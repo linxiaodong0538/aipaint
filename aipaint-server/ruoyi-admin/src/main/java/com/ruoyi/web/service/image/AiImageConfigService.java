@@ -590,7 +590,7 @@ public class AiImageConfigService
         nanoRoute.setBackupProviderCode("");
         nanoRoute.setFallbackEnabled(Boolean.FALSE);
         nanoRoute.setSortOrder(Integer.valueOf(3));
-        nanoRoute.setRemark("nano-banana-2 固定走 Grsai");
+        nanoRoute.setRemark("nano-banana-2 暂时走 Grsai");
         routes.add(nanoRoute);
 
         AiImageModelRouteConfig nanoProRoute = new AiImageModelRouteConfig();
@@ -600,7 +600,7 @@ public class AiImageConfigService
         nanoProRoute.setBackupProviderCode("");
         nanoProRoute.setFallbackEnabled(Boolean.FALSE);
         nanoProRoute.setSortOrder(Integer.valueOf(4));
-        nanoProRoute.setRemark("nano-banana-pro 固定走 Grsai");
+        nanoProRoute.setRemark("nano-banana-pro 暂时走 Grsai");
         routes.add(nanoProRoute);
 
         AiImageModelRouteConfig nanoFastRoute = new AiImageModelRouteConfig();
@@ -610,7 +610,7 @@ public class AiImageConfigService
         nanoFastRoute.setBackupProviderCode("");
         nanoFastRoute.setFallbackEnabled(Boolean.FALSE);
         nanoFastRoute.setSortOrder(Integer.valueOf(5));
-        nanoFastRoute.setRemark("nano-banana 固定走 Grsai");
+        nanoFastRoute.setRemark("nano-banana 暂时走 Grsai");
         routes.add(nanoFastRoute);
         return routes;
     }

@@ -279,7 +279,7 @@ const responseModes = [
   { label: "流式 SSE", value: "stream" }
 ]
 
-const modelOptions = ["gpt-image-2", "nano-banana-2"]
+const modelOptions = ["gpt-image-2", "gpt-image-2-vip", "nano-banana", "nano-banana-2", "nano-banana-pro"]
 
 const loading = ref(true)
 const submitting = ref(false)
@@ -335,7 +335,7 @@ function createForm() {
         providerName: "Grsai 中转站",
         adapterType: "grsai-async",
         responseMode: "json",
-        supportedModels: ["gpt-image-2", "nano-banana-2"],
+        supportedModels: ["gpt-image-2", "gpt-image-2-vip", "nano-banana", "nano-banana-2", "nano-banana-pro"],
         sortOrder: 2
       })
     ],
@@ -349,11 +349,32 @@ function createForm() {
         remark: "GPT 主用 SuperAPI，失败切 Grsai"
       }),
       createRoute({
-        model: "nano-banana-2",
+        model: "gpt-image-2-vip",
         primaryProviderCode: "grsai",
         fallbackEnabled: false,
         sortOrder: 2,
-        remark: "nano-banana 固定走 Grsai"
+        remark: "GPT VIP 暂时走 Grsai"
+      }),
+      createRoute({
+        model: "nano-banana",
+        primaryProviderCode: "grsai",
+        fallbackEnabled: false,
+        sortOrder: 3,
+        remark: "nano-banana 暂时走 Grsai"
+      }),
+      createRoute({
+        model: "nano-banana-2",
+        primaryProviderCode: "grsai",
+        fallbackEnabled: false,
+        sortOrder: 4,
+        remark: "nano-banana-2 暂时走 Grsai"
+      }),
+      createRoute({
+        model: "nano-banana-pro",
+        primaryProviderCode: "grsai",
+        fallbackEnabled: false,
+        sortOrder: 5,
+        remark: "nano-banana-pro 暂时走 Grsai"
       })
     ],
     healthStats: []

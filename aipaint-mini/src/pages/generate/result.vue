@@ -160,7 +160,11 @@
                 <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
               </view>
             </view>
-            <view class="col-span-2 flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">耗时</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskDurationText }}</text>
+            </view>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">创建时间</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreateTimeText }}</text>
             </view>
@@ -234,6 +238,9 @@ const taskSize = ref("");
 const taskImageCount = ref<number | null>(null);
 const taskCreditCost = ref<number | null>(null);
 const taskCreateTime = ref("");
+const taskRunStartTime = ref("");
+const taskFinishTime = ref("");
+const taskUpdateTime = ref("");
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
 const pageInitializing = ref(true);
@@ -266,6 +273,7 @@ const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
 const taskCreateTimeText = computed(() => formatCreateTime(taskCreateTime.value));
+const taskDurationText = computed(() => formatDurationSeconds(taskRunStartTime.value, taskFinishTime.value, taskCreateTime.value, taskUpdateTime.value));
 const taskPromptText = computed(() => taskPrompt.value || "未填写");
 const taskModelText = computed(() => formatModel(taskModel.value));
 const activeGeneratedImage = computed(() => generatedImages.value[activeGeneratedImageIndex.value] || "");
@@ -469,6 +477,9 @@ function applyTaskDetails(task: GenerationTask) {
   taskImageCount.value = typeof task.imageCount === "number" ? task.imageCount : null;
   taskCreditCost.value = typeof task.creditCost === "number" ? task.creditCost : null;
   taskCreateTime.value = task.createTime || task.finishTime || "";
+  taskRunStartTime.value = task.runStartTime || "";
+  taskFinishTime.value = task.finishTime || "";
+  taskUpdateTime.value = task.updateTime || "";
 }
 
 function hydrateCompletedTaskFromStorage(expectedTaskId: number) {
@@ -496,6 +507,21 @@ function formatCreateTime(value: string) {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${date.getFullYear()}年${month}月${day}日 ${hours}:${minutes}`;
+}
+
+function formatDurationSeconds(runStartTime: string, finishTime: string, createTime: string, updateTime: string) {
+  const startTimestamp = parseTaskTimestamp(runStartTime) || parseTaskTimestamp(createTime);
+  const finishTimestamp = parseTaskTimestamp(finishTime) || parseTaskTimestamp(updateTime);
+  if (!startTimestamp || !finishTimestamp || finishTimestamp < startTimestamp) {
+    return "--";
+  }
+  return `${Math.max(1, Math.round((finishTimestamp - startTimestamp) / 1000))}s`;
+}
+
+function parseTaskTimestamp(value: string) {
+  if (!value) return 0;
+  const timestamp = new Date(value.replace(/-/g, "/")).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function formatModel(value: string) {

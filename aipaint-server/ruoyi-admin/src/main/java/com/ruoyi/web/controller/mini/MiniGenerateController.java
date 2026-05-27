@@ -152,7 +152,9 @@ public class MiniGenerateController extends BaseController
                 || "16:9".equals(ratio) || "9:16".equals(ratio) || "2:1".equals(ratio)
                 || "3:2".equals(ratio) || "2:3".equals(ratio) || "5:4".equals(ratio)
                 || "4:5".equals(ratio) || "21:9".equals(ratio) || "9:21".equals(ratio)
-                || "1:3".equals(ratio) || "3:1".equals(ratio) || "1:2".equals(ratio))
+                || "1:3".equals(ratio) || "3:1".equals(ratio) || "1:2".equals(ratio)
+                || "1:4".equals(ratio) || "4:1".equals(ratio) || "1:8".equals(ratio)
+                || "8:1".equals(ratio))
         {
             return ratio;
         }
@@ -253,6 +255,10 @@ public class MiniGenerateController extends BaseController
         {
             return resolveGptImage2VipSize(ratio, resolution);
         }
+        if (isNanoBananaModel(model))
+        {
+            return resolveNanoBananaSize(model, ratio, resolution);
+        }
         return resolveDefaultSize(ratio, resolution);
     }
 
@@ -351,6 +357,42 @@ public class MiniGenerateController extends BaseController
         if ("16:9".equals(ratio)) return "1K".equals(resolution) ? "1536x864" : "2K".equals(resolution) ? "2048x1152" : "4K".equals(resolution) ? "3840x2160" : null;
         if ("9:16".equals(ratio)) return "1K".equals(resolution) ? "864x1536" : "2K".equals(resolution) ? "1152x2048" : "4K".equals(resolution) ? "2160x3840" : null;
         if ("2:1".equals(ratio)) return "1K".equals(resolution) ? "2048x1024" : "2K".equals(resolution) ? "2688x1344" : "4K".equals(resolution) ? "3840x1920" : null;
+        return null;
+    }
+
+    private boolean isNanoBananaModel(String model)
+    {
+        return MODEL_NANO_BANANA.equals(model) || MODEL_NANO_BANANA_2.equals(model)
+                || MODEL_NANO_BANANA_PRO.equals(model);
+    }
+
+    private String resolveNanoBananaSize(String model, String ratio, String resolution)
+    {
+        if ("1:1".equals(ratio)) return scaleSize(resolution, "1024x1024", "2048x2048", "4096x4096");
+        if ("16:9".equals(ratio)) return scaleSize(resolution, "1536x864", "2048x1152", "3840x2160");
+        if ("9:16".equals(ratio)) return scaleSize(resolution, "864x1536", "1152x2048", "2160x3840");
+        if ("4:3".equals(ratio)) return scaleSize(resolution, "1024x768", "2048x1536", "4096x3072");
+        if ("3:4".equals(ratio)) return scaleSize(resolution, "768x1024", "1536x2048", "3072x4096");
+        if ("3:2".equals(ratio)) return scaleSize(resolution, "1536x1024", "2048x1365", "3840x2560");
+        if ("2:3".equals(ratio)) return scaleSize(resolution, "1024x1536", "1365x2048", "2560x3840");
+        if ("5:4".equals(ratio)) return scaleSize(resolution, "1280x1024", "2048x1638", "3840x3072");
+        if ("4:5".equals(ratio)) return scaleSize(resolution, "1024x1280", "1638x2048", "3072x3840");
+        if ("21:9".equals(ratio)) return scaleSize(resolution, "1792x768", "2688x1152", "3840x1646");
+        if (MODEL_NANO_BANANA_2.equals(model))
+        {
+            if ("1:4".equals(ratio)) return scaleSize(resolution, "512x2048", "1024x4096", "1024x4096");
+            if ("4:1".equals(ratio)) return scaleSize(resolution, "2048x512", "4096x1024", "4096x1024");
+            if ("1:8".equals(ratio)) return scaleSize(resolution, "256x2048", "512x4096", "512x4096");
+            if ("8:1".equals(ratio)) return scaleSize(resolution, "2048x256", "4096x512", "4096x512");
+        }
+        return null;
+    }
+
+    private String scaleSize(String resolution, String size1k, String size2k, String size4k)
+    {
+        if ("1K".equals(resolution)) return size1k;
+        if ("2K".equals(resolution)) return size2k;
+        if ("4K".equals(resolution)) return size4k;
         return null;
     }
 

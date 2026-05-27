@@ -7,7 +7,7 @@ export type GenerationStatus = "pending" | "processing" | "success" | "failed";
 export interface CreateImageGenerationRequest {
   prompt: string;
   model: "gpt-image-2" | "gpt-image-2-vip" | "nano-banana-2" | "nano-banana-pro" | "nano-banana";
-  ratio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "5:4" | "4:5" | "21:9" | "9:21" | "1:3" | "3:1" | "2:1" | "1:2";
+  ratio: "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "5:4" | "4:5" | "21:9" | "9:21" | "1:3" | "3:1" | "2:1" | "1:2" | "1:4" | "4:1" | "1:8" | "8:1";
   size: string;
   resolution: "1K" | "2K" | "4K";
   n: 1 | 2 | 3 | 4;
