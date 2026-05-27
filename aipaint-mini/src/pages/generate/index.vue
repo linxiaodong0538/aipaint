@@ -81,8 +81,8 @@
                 :disabled="polishingPrompt"
                 @tap="handlePolishPrompt"
               >
-                <text class="iconfont icon-shanshan prompt-polish-icon leading-none text-black/50" style="font-size: 28rpx"/>
-                <text class="text-[24rpx] font-serif leading-[40rpx] text-black/50">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
+                <text class="iconfont icon-shanshan prompt-polish-icon leading-none" style="font-size: 28rpx"/>
+                <text class="prompt-polish-text">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
                 <view v-if="polishingPrompt" class="prompt-polish-dots">
                   <view class="prompt-polish-dot" />
                   <view class="prompt-polish-dot" />
@@ -1076,23 +1076,52 @@ async function handleGenerate() {
 .prompt-polish-btn {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  min-width: 148rpx;
-  height: 40rpx;
-  padding: 0;
-  background: transparent;
+  justify-content: center;
+  gap: 10rpx;
+  min-width: 168rpx;
+  height: 56rpx;
+  padding: 0 20rpx;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 9999rpx;
+  background: #ffffff;
+  color: #232424;
+  box-shadow: 0 8rpx 22rpx rgba(0, 0, 0, 0.02);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .prompt-polish-btn:active {
-  opacity: 0.7;
+  border-color: rgba(0, 0, 0, 0.16);
+  background: #f3f3f4;
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.04);
+  transform: scale(0.98);
 }
 
 .prompt-polish-btn[disabled] {
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 .prompt-polish-icon {
+  color: currentColor;
   transform-origin: center;
+}
+
+.prompt-polish-text {
+  font-size: 24rpx;
+  font-family: serif;
+  font-weight: 600;
+  line-height: 40rpx;
+  color: currentColor;
+}
+
+.prompt-polish-btn-loading {
+  border-color: rgba(0, 0, 0, 0.18);
+  background: #f4f4f5;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 8rpx 18rpx rgba(0, 0, 0, 0.05);
 }
 
 .prompt-polish-btn-loading .prompt-polish-icon {
