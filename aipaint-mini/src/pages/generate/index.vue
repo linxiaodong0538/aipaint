@@ -238,9 +238,12 @@
     <!-- 更多比例 -->
     <view v-if="showMoreRatios" class="ratio-drawer-overlay" @tap="closeMoreRatios">
       <view class="ratio-drawer" :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }" @tap.stop>
-        <!-- <view class="ratio-drawer-handle" /> -->
+        <view class="ratio-drawer-handle" />
         <view class="ratio-drawer-header">
-          <text class="ratio-drawer-title">更多比例</text>
+          <view class="ratio-drawer-heading">
+            <text class="ratio-drawer-title">更多比例</text>
+            <text class="ratio-drawer-subtitle">{{ quality }} 输出 · {{ model }}</text>
+          </view>
           <button class="ratio-drawer-close" @tap="closeMoreRatios">
             <text class="ratio-drawer-close-text">×</text>
           </button>
@@ -253,9 +256,14 @@
             :class="{ active: ratio === item.value }"
             @tap="selectRatioFromDrawer(item.value)"
           >
-            <view class="ratio-icon" :class="item.iconClass" />
-            <text class="ratio-chip-label">{{ item.label }}</text>
+            <view class="ratio-drawer-preview">
+              <view class="ratio-icon" :class="item.iconClass" />
+            </view>
+            <text class="ratio-drawer-label">{{ item.label }}</text>
             <text class="ratio-drawer-size">{{ getRatioSizeText(item.value) }}</text>
+            <view v-if="ratio === item.value" class="ratio-drawer-check">
+              <view class="ratio-drawer-check-mark" />
+            </view>
           </view>
         </view>
       </view>
@@ -1032,18 +1040,18 @@ async function handleGenerate() {
   generating.value = true;
 
   try {
-    // const imageUrls = await uploadReferenceImages();
-    // const result = await createImageGeneration({
-    //   prompt: prompt.value.trim(),
-    //   model: model.value,
-    //   ratio: ratio.value,
-    //   size: mapImageSize(ratio.value, quality.value),
-    //   resolution: mapResolution(quality.value),
-    //   n: count.value,
-    //   image_urls: imageUrls,
-    // });
+    const imageUrls = await uploadReferenceImages();
+    const result = await createImageGeneration({
+      prompt: prompt.value.trim(),
+      model: model.value,
+      ratio: ratio.value,
+      size: mapImageSize(ratio.value, quality.value),
+      resolution: mapResolution(quality.value),
+      n: count.value,
+      image_urls: imageUrls,
+    });
 
-    await navigateTo(routes.generateResult);
+    await navigateTo(routes.generateResult, { taskId: result.taskId });
   } catch (error) {
     const apiError = error as ApiError | undefined;
     if (apiError?.shown) {
@@ -1324,8 +1332,10 @@ async function handleGenerate() {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background:
+    radial-gradient(circle at 50% 100%, rgba(255, 255, 255, 0.28) 0, rgba(255, 255, 255, 0) 38%),
+    rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(10px);
 }
 
 .ratio-drawer {
@@ -1334,77 +1344,181 @@ async function handleGenerate() {
   bottom: 0;
   left: 0;
   box-sizing: border-box;
-  padding: 24rpx 32rpx 40rpx;
-  border-radius: 48rpx 48rpx 0 0;
-  background: #f9f9f9;
-  box-shadow: 0 -20rpx 80rpx rgba(0, 0, 0, 0.1);
+  max-height: 78vh;
+  overflow: hidden;
+  padding: 18rpx 32rpx 40rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.72);
+  border-bottom: 0;
+  border-radius: 56rpx 56rpx 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 248, 246, 0.98) 54%, #f2efec 100%),
+    #f8f7f5;
+  box-shadow:
+    0 -36rpx 96rpx rgba(0, 0, 0, 0.24),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.88);
 }
 
 .ratio-drawer-handle {
-  width: 96rpx;
-  height: 8rpx;
-  margin: 0 auto 32rpx;
+  width: 88rpx;
+  height: 7rpx;
+  margin: 0 auto 26rpx;
   border-radius: 9999rpx;
-  background: rgba(207, 196, 197, 0.5);
+  background: rgba(26, 28, 28, 0.16);
+  box-shadow: 0 2rpx 0 rgba(255, 255, 255, 0.9);
 }
 
 .ratio-drawer-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 80rpx;
-  padding: 0 8rpx;
+  gap: 24rpx;
+  margin-bottom: 28rpx;
+  padding: 0 4rpx;
+}
+
+.ratio-drawer-heading {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
 }
 
 .ratio-drawer-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  line-height: 44rpx;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 46rpx;
   color: #1a1c1c;
+}
+
+.ratio-drawer-subtitle {
+  max-width: 460rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22rpx;
+  font-weight: 500;
+  line-height: 30rpx;
+  color: rgba(26, 28, 28, 0.46);
 }
 
 .ratio-drawer-close {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   padding: 0;
   border-radius: 9999rpx;
-  background: #eeeeee;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 12rpx 28rpx rgba(0, 0, 0, 0.08),
+    inset 0 0 0 2rpx rgba(0, 0, 0, 0.04);
+}
+
+.ratio-drawer-close:active {
+  background: #ece9e6;
+  transform: scale(0.96);
 }
 
 .ratio-drawer-close-text {
-  font-size: 42rpx;
+  margin-top: -4rpx;
+  font-size: 44rpx;
   font-weight: 300;
-  line-height: 58rpx;
+  line-height: 64rpx;
   color: #1a1c1c;
 }
 
 .ratio-drawer-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16rpx;
+  gap: 18rpx;
+  max-height: 54vh;
+  overflow-y: auto;
+  padding: 4rpx 0 8rpx;
 }
 
 .ratio-drawer-chip {
+  position: relative;
   display: flex;
   box-sizing: border-box;
-  min-height: 132rpx;
+  min-height: 154rpx;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6rpx;
-  border: 2rpx solid #cfc4c5;
-  border-radius: 24rpx;
-  background: #ffffff;
+  gap: 8rpx;
+  overflow: hidden;
+  border: 2rpx solid rgba(78, 62, 55, 0.11);
+  border-radius: 28rpx;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 249, 247, 0.92)),
+    #ffffff;
   color: #1a1c1c;
+  box-shadow:
+    0 16rpx 36rpx rgba(49, 42, 38, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+  transition:
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.ratio-drawer-chip::before {
+  position: absolute;
+  top: -42rpx;
+  right: -42rpx;
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 9999rpx;
+  background: rgba(223, 214, 204, 0.38);
+  content: "";
+}
+
+.ratio-drawer-chip:active {
+  transform: scale(0.97);
 }
 
 .ratio-drawer-chip.active {
-  border-color: #000000;
-  background: #000000;
+  border-color: #1a1c1c;
+  background:
+    linear-gradient(180deg, #2a2b29 0%, #111211 100%),
+    #111211;
   color: #ffffff;
+  box-shadow:
+    0 24rpx 44rpx rgba(0, 0, 0, 0.2),
+    0 0 0 6rpx rgba(26, 28, 28, 0.08);
+}
+
+.ratio-drawer-chip.active::before {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ratio-drawer-preview {
+  display: flex;
+  width: 64rpx;
+  height: 48rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  background: rgba(26, 28, 28, 0.04);
+  color: currentColor;
+}
+
+.ratio-drawer-chip.active .ratio-drawer-preview {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ratio-drawer-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 32rpx;
 }
 
 .ratio-drawer-size {
@@ -1412,9 +1526,39 @@ async function handleGenerate() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 18rpx;
-  line-height: 24rpx;
-  opacity: 0.62;
+  font-size: 20rpx;
+  font-weight: 500;
+  line-height: 26rpx;
+  color: rgba(26, 28, 28, 0.46);
+}
+
+.ratio-drawer-chip.active .ratio-drawer-size {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.ratio-drawer-check {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  display: flex;
+  width: 30rpx;
+  height: 30rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999rpx;
+  background: #ffffff;
+  color: #111211;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.16);
+}
+
+.ratio-drawer-check-mark {
+  width: 8rpx;
+  height: 14rpx;
+  margin-top: -3rpx;
+  border-right: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
 }
 
 .generate-btn {
