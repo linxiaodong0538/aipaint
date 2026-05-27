@@ -76,12 +76,18 @@
             />
             <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
               <button
-                class="flex items-center gap-[8rpx] bg-transparent p-0 active:opacity-70 disabled:opacity-50"
+                class="prompt-polish-btn"
+                :class="{ 'prompt-polish-btn-loading': polishingPrompt }"
                 :disabled="polishingPrompt"
                 @tap="handlePolishPrompt"
               >
-                <text class="iconfont icon-shanshan leading-none text-black/50" style="font-size: 28rpx"/>
+                <text class="iconfont icon-shanshan prompt-polish-icon leading-none text-black/50" style="font-size: 28rpx"/>
                 <text class="text-[24rpx] font-serif leading-[40rpx] text-black/50">{{ polishingPrompt ? "润色中" : "Prompt" }}</text>
+                <view v-if="polishingPrompt" class="prompt-polish-dots">
+                  <view class="prompt-polish-dot" />
+                  <view class="prompt-polish-dot" />
+                  <view class="prompt-polish-dot" />
+                </view>
               </button>
               <view class="flex items-center gap-[16rpx]">
                 <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
@@ -998,7 +1004,6 @@ async function handlePolishPrompt() {
         prompt.value = receivedPrompt;
       },
     });
-    uni.showToast({ title: "已润色", icon: "none" });
   } catch (error) {
     prompt.value = rawPrompt;
     const apiError = error as ApiError | undefined;
@@ -1066,6 +1071,75 @@ async function handleGenerate() {
   font-size: 28rpx !important;
   line-height: 48rpx !important;
   letter-spacing: 8rpx !important;
+}
+
+.prompt-polish-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 148rpx;
+  height: 40rpx;
+  padding: 0;
+  background: transparent;
+}
+
+.prompt-polish-btn:active {
+  opacity: 0.7;
+}
+
+.prompt-polish-btn[disabled] {
+  opacity: 0.72;
+}
+
+.prompt-polish-icon {
+  transform-origin: center;
+}
+
+.prompt-polish-btn-loading .prompt-polish-icon {
+  animation: prompt-polish-spin 1.1s linear infinite;
+}
+
+.prompt-polish-dots {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  width: 32rpx;
+  height: 20rpx;
+}
+
+.prompt-polish-dot {
+  width: 5rpx;
+  height: 5rpx;
+  border-radius: 9999rpx;
+  background: rgba(0, 0, 0, 0.48);
+  animation: prompt-polish-pulse 0.9s ease-in-out infinite;
+}
+
+.prompt-polish-dot:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.prompt-polish-dot:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes prompt-polish-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes prompt-polish-pulse {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.86;
+    transform: translateY(-3rpx);
+  }
 }
 
 .reference-upload-box {
