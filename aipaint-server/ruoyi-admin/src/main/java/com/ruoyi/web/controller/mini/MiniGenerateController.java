@@ -230,7 +230,7 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeRatio(String ratio)
     {
-        if ("1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio)
+        if ("auto".equals(ratio) || "1:1".equals(ratio) || "3:4".equals(ratio) || "4:3".equals(ratio)
                 || "16:9".equals(ratio) || "9:16".equals(ratio) || "2:1".equals(ratio)
                 || "3:2".equals(ratio) || "2:3".equals(ratio) || "5:4".equals(ratio)
                 || "4:5".equals(ratio) || "21:9".equals(ratio) || "9:21".equals(ratio)
@@ -319,6 +319,10 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeImageSize(String model, String ratio, String resolution, String requestSize)
     {
+        if (MODEL_NANO_BANANA.equals(model))
+        {
+            return "";
+        }
         String expectedSize = StringUtils.defaultIfBlank(resolveExpectedSize(model, ratio, resolution), "1024x1024");
         if (StringUtils.isBlank(requestSize))
         {
@@ -450,6 +454,10 @@ public class MiniGenerateController extends BaseController
 
     private String resolveNanoBananaSize(String model, String ratio, String resolution)
     {
+        if (MODEL_NANO_BANANA.equals(model))
+        {
+            return resolveNanoBanana1KSize(ratio, resolution);
+        }
         if ("1:1".equals(ratio)) return scaleSize(resolution, "1024x1024", "2048x2048", "4096x4096");
         if ("16:9".equals(ratio)) return scaleSize(resolution, "1536x864", "2048x1152", "3840x2160");
         if ("9:16".equals(ratio)) return scaleSize(resolution, "864x1536", "1152x2048", "2160x3840");
@@ -467,6 +475,26 @@ public class MiniGenerateController extends BaseController
             if ("1:8".equals(ratio)) return scaleSize(resolution, "256x2048", "512x4096", "512x4096");
             if ("8:1".equals(ratio)) return scaleSize(resolution, "2048x256", "4096x512", "4096x512");
         }
+        return null;
+    }
+
+    private String resolveNanoBanana1KSize(String ratio, String resolution)
+    {
+        if (!"1K".equals(resolution))
+        {
+            return null;
+        }
+        if ("auto".equals(ratio)) return "1024x1024";
+        if ("1:1".equals(ratio)) return "1024x1024";
+        if ("16:9".equals(ratio)) return "1536x864";
+        if ("9:16".equals(ratio)) return "864x1536";
+        if ("4:3".equals(ratio)) return "1024x768";
+        if ("3:4".equals(ratio)) return "768x1024";
+        if ("3:2".equals(ratio)) return "1536x1024";
+        if ("2:3".equals(ratio)) return "1024x1536";
+        if ("5:4".equals(ratio)) return "1280x1024";
+        if ("4:5".equals(ratio)) return "1024x1280";
+        if ("21:9".equals(ratio)) return "1792x768";
         return null;
     }
 

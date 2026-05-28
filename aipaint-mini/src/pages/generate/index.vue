@@ -161,7 +161,7 @@
         <view class="mb-[32rpx]">
           <view class="flex items-center justify-between">
             <text class="model-section-label font-mono">画面比例</text>
-            <text class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
+            <text v-if="shouldShowImageSizeText" class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
           </view>
           <scroll-view
             class="ratio-scroll"
@@ -221,17 +221,20 @@
       :style="{ paddingBottom: `calc(18rpx + ${safeAreaBottom}px)` }"
     >
       <view class="mx-auto max-w-[750rpx]">
-        <button
-          class="generate-btn flex h-[112rpx] w-full items-center justify-center rounded-full bg-black px-[40rpx] shadow-[0_24rpx_46rpx_rgba(0,0,0,0.18)] active:scale-[0.96]"
-          :loading="generating"
-          :disabled="generating"
+        <view
+          class="generate-btn"
+          :class="{ 'generate-btn-working': generating }"
           @tap="handleGenerate"
         >
-          <view class="inline-flex items-center justify-center gap-[14rpx]">
-            <text class="iconfont icon-shanshan leading-none text-white" style="font-size: 36rpx;"/>
-            <text class="text-[28rpx] font-semibold leading-none text-white">{{ generating ? "提交中" : `开始生成 · ${creditCost}积分` }}</text>
+          <view v-if="generating" class="generate-working-content">
+            <view class="generate-spinner" aria-hidden="true" />
+            <text class="generate-working-title">提交中...</text>
           </view>
-        </button>
+          <view v-else class="generate-ready-content">
+            <text class="iconfont icon-shanshan generate-ready-icon" />
+            <text class="generate-ready-text">开始生成 · {{ creditCost }}积分</text>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -257,7 +260,7 @@
           </view>
           <view class="ratio-drawer-stage-copy">
             <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
-            <text class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
+            <text v-if="shouldShowImageSizeText" class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
           </view>
           <view class="ratio-drawer-stage-badge">
             <text>{{ quality }}</text>
@@ -278,7 +281,7 @@
               </view>
               <view class="ratio-drawer-option-copy">
                 <text class="ratio-drawer-option-label">{{ item.label }}</text>
-                <text class="ratio-drawer-option-size">{{ getRatioSizeText(item.value) }}</text>
+                <text v-if="shouldShowImageSizeText" class="ratio-drawer-option-size">{{ getRatioSizeText(item.value) }}</text>
               </view>
               <view class="ratio-drawer-option-check">
                 <view v-if="ratio === item.value" class="ratio-drawer-check-mark" />
@@ -373,6 +376,7 @@ const qualities = ["1K", "2K", "4K"] as const;
 type QualityValue = (typeof qualities)[number];
 const counts = [1, 2, 3, 4] as const;
 type RatioValue =
+  | "auto"
   | "1:1"
   | "16:9"
   | "9:16"
@@ -396,6 +400,7 @@ type RatioOption = { value: RatioValue; label: string; iconClass: string };
 type SizeMap = Partial<Record<RatioValue, Partial<Record<QualityValue, string>>>>;
 
 const ratios: RatioOption[] = [
+  { value: "auto", label: "Auto", iconClass: "ratio-icon-square" },
   { value: "1:1", label: "1:1", iconClass: "ratio-icon-square" },
   { value: "16:9", label: "16:9", iconClass: "ratio-icon-wide" },
   { value: "9:16", label: "9:16", iconClass: "ratio-icon-tall" },
@@ -417,7 +422,7 @@ const ratios: RatioOption[] = [
   { value: "8:1", label: "8:1", iconClass: "ratio-icon-ultrawide" },
 ];
 
-const commonRatioValues: RatioValue[] = ["1:1", "16:9", "9:16", "4:3", "3:4", "2:1"];
+const commonRatioValues: RatioValue[] = ["auto", "1:1", "16:9", "9:16", "4:3", "3:4"];
 
 const defaultModelSizeMap: SizeMap = {
   "1:1": {
@@ -483,16 +488,17 @@ const modelSizeMaps: Partial<Record<ModelValue, SizeMap>> = {
     "1:2": { "1K": "768x1536", "2K": "1536x3072", "4K": "1920x3840" },
   },
   "nano-banana": {
-    "1:1": { "1K": "1024x1024", "2K": "2048x2048", "4K": "4096x4096" },
-    "16:9": { "1K": "1536x864", "2K": "2048x1152", "4K": "3840x2160" },
-    "9:16": { "1K": "864x1536", "2K": "1152x2048", "4K": "2160x3840" },
-    "4:3": { "1K": "1024x768", "2K": "2048x1536", "4K": "4096x3072" },
-    "3:4": { "1K": "768x1024", "2K": "1536x2048", "4K": "3072x4096" },
-    "3:2": { "1K": "1536x1024", "2K": "2048x1365", "4K": "3840x2560" },
-    "2:3": { "1K": "1024x1536", "2K": "1365x2048", "4K": "2560x3840" },
-    "5:4": { "1K": "1280x1024", "2K": "2048x1638", "4K": "3840x3072" },
-    "4:5": { "1K": "1024x1280", "2K": "1638x2048", "4K": "3072x3840" },
-    "21:9": { "1K": "1792x768", "2K": "2688x1152", "4K": "3840x1646" },
+    "auto": { "1K": "1024x1024" },
+    "1:1": { "1K": "1024x1024" },
+    "16:9": { "1K": "1536x864" },
+    "9:16": { "1K": "864x1536" },
+    "4:3": { "1K": "1024x768" },
+    "3:4": { "1K": "768x1024" },
+    "3:2": { "1K": "1536x1024" },
+    "2:3": { "1K": "1024x1536" },
+    "5:4": { "1K": "1280x1024" },
+    "4:5": { "1K": "1024x1280" },
+    "21:9": { "1K": "1792x768" },
   },
   "nano-banana-2": {
     "1:1": { "1K": "1024x1024", "2K": "2048x2048", "4K": "4096x4096" },
@@ -552,6 +558,7 @@ const quality = ref<QualityValue>("1K");
 const count = ref<(typeof counts)[number]>(1);
 const ratio = ref<RatioValue>("1:1");
 const generating = ref(false);
+const mockGenerating = ref(false);
 const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
 const userStore = useUserStore();
@@ -593,7 +600,8 @@ const visibleRatios = computed(() => {
 });
 const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
 const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
-const selectedImageSizeText = computed(() => `${mapImageSize(ratio.value, quality.value).replace("x", " x ")}`);
+const shouldShowImageSizeText = computed(() => model.value !== "nano-banana");
+const selectedImageSizeText = computed(() => getRatioDisplayText(ratio.value));
 const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
 const selectedModelOption = computed(() => models.find((item) => item.value === model.value) || models[0]);
 
@@ -616,6 +624,11 @@ function hasAnyRatioForQuality(resolutionValue: QualityValue) {
 }
 
 onLoad((query) => {
+  if (query?.mockGenerating === "1") {
+    mockGenerating.value = true;
+    generating.value = true;
+  }
+
   if (query?.fromRetry) {
     applyRetryParams();
     return;
@@ -978,8 +991,25 @@ function mapImageSize(
   return sizeMap[ratioValue]?.[resolutionValue] || sizeMap["1:1"]?.["1K"] || "1024x1024";
 }
 
+function resolveRequestSize(
+  ratioValue: RatioValue,
+  resolutionValue: QualityValue,
+) {
+  if (model.value === "nano-banana") {
+    return "";
+  }
+  return mapImageSize(ratioValue, resolutionValue);
+}
+
+function getRatioDisplayText(ratioValue: RatioValue) {
+  if (model.value === "nano-banana") {
+    return ratioValue === "auto" ? "自动比例" : ratioValue;
+  }
+  return mapImageSize(ratioValue, quality.value).replace("x", " x ");
+}
+
 function getRatioSizeText(ratioValue: RatioValue) {
-  return (activeSizeMap.value[ratioValue]?.[quality.value] || "").replace("x", " x ");
+  return getRatioDisplayText(ratioValue);
 }
 
 function calculateCreditCost(
@@ -1047,6 +1077,8 @@ async function handlePolishPrompt() {
 }
 
 async function handleGenerate() {
+  if (mockGenerating.value) return;
+
   if (!userStore.isLogin) {
     await userStore.loginWithWechat();
     if (!userStore.isLogin) return;
@@ -1067,7 +1099,7 @@ async function handleGenerate() {
       prompt: prompt.value.trim(),
       model: model.value,
       ratio: ratio.value,
-      size: mapImageSize(ratio.value, quality.value),
+      size: resolveRequestSize(ratio.value, quality.value),
       resolution: mapResolution(quality.value),
       n: count.value,
       image_urls: imageUrls,
@@ -1644,7 +1676,105 @@ async function handleGenerate() {
 }
 
 .generate-btn {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 112rpx;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0 40rpx;
+  border: 0;
+  border-radius: 9999rpx;
+  background: #0b0b0b;
+  box-shadow: 0 24rpx 46rpx rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  touch-action: manipulation;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.generate-btn * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.generate-btn::after {
+  position: absolute;
+  inset: 2rpx;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+  border: 1rpx solid rgba(255, 255, 255, 0.16);
+}
+
+.generate-btn:active {
+  transform: scale(0.96);
+}
+
+.generate-btn-working {
+  background: #1b1b1b;
+  box-shadow: 0 18rpx 36rpx rgba(0, 0, 0, 0.14);
+}
+
+.generate-ready-content,
+.generate-working-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.generate-ready-content {
+  gap: 14rpx;
+}
+
+.generate-ready-icon {
+  font-size: 36rpx;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.generate-ready-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 34rpx;
+  color: #ffffff;
+}
+
+.generate-working-content {
+  gap: 14rpx;
+}
+
+.generate-working-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 34rpx;
+  color: #ffffff;
+}
+
+.generate-spinner {
+  flex: none;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.28);
+  border-top-color: #ffffff;
+  border-radius: 9999rpx;
+  animation: generate-spinner-spin 0.8s linear infinite;
+}
+
+@keyframes generate-spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .model-section-label {

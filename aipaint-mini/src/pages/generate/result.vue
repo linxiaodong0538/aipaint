@@ -535,6 +535,9 @@ function formatModel(value: string) {
 
 function formatRatio(ratio: string, size: string) {
   const normalizedRatio = ratio.trim().replace("：", ":").replace(/\s+/g, "");
+  if (normalizedRatio.toLowerCase() === "auto") {
+    return "自动比例";
+  }
   if (/^\d+:\d+$/.test(normalizedRatio)) {
     return normalizedRatio;
   }
