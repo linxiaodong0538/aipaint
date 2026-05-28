@@ -358,7 +358,7 @@ const models: Array<{
   {
     value: "nano-banana-2",
     label: "nano-banana-2",
-    description: "写实摄影风格",
+    description: "低价与高阶之间",
     iconClass: "icon-tupian",
     baseCredits: 12,
     enabled: true,
@@ -2053,6 +2053,7 @@ async function handleGenerate() {
   font-size: 20rpx;
   line-height: 28rpx;
   opacity: 0.7;
+  padding-left: 2rpx;
 }
 
 .model-card-text-active .model-card-desc {
