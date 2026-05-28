@@ -27,7 +27,7 @@
         </button>
 
         <text
-          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium leading-[22px]"
+          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium"
         >
           生图模板
         </text>
