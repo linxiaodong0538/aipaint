@@ -347,7 +347,7 @@ const models: Array<{
     label: "nano-banana",
     description: "轻量快速生成",
     iconClass: "icon-images",
-    baseCredits: 15,
+    baseCredits: 5,
     enabled: true,
   },
   {
