@@ -47,7 +47,8 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         try
         {
             JSONObject payload = new JSONObject();
-            payload.put("model", StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel()));
+            payload.put("model", StringUtils.defaultIfBlank(request.getProviderModel(),
+                    StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel())));
             payload.put("prompt", request.getPrompt());
             payload.put("size", resolvePayloadSize(request, providerConfig));
             payload.put("resolution", request.getResolution());

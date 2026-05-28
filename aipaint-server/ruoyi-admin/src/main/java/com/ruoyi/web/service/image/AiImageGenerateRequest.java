@@ -11,6 +11,8 @@ public class AiImageGenerateRequest
 
     private String model;
 
+    private String providerModel;
+
     private String size;
 
     private String ratio;
@@ -43,6 +45,16 @@ public class AiImageGenerateRequest
     public void setModel(String model)
     {
         this.model = model;
+    }
+
+    public String getProviderModel()
+    {
+        return providerModel;
+    }
+
+    public void setProviderModel(String providerModel)
+    {
+        this.providerModel = providerModel;
     }
 
     public String getSize()

@@ -165,7 +165,7 @@ public class AiImageConfigService
             routingConfigMapper.insertProvider(toProviderRecord(provider));
             for (String model : provider.getSupportedModels())
             {
-                routingConfigMapper.insertProviderModel(toProviderModelRecord(provider.getProviderCode(), model));
+                routingConfigMapper.insertProviderModel(toProviderModelRecord(provider, model));
             }
         }
         for (AiImageModelRouteConfig route : normalized.getModelRoutes())
@@ -233,6 +233,7 @@ public class AiImageConfigService
             throw new ServiceException("当前仅支持 openai-compatible、grsai-async 接口协议");
         }
         normalized.setSupportedModels(normalizeSupportedModels(normalized));
+        normalized.setProviderModelMap(normalizeProviderModelMap(normalized));
         normalized.setModel(normalized.getSupportedModels().get(0));
         normalized.setSortOrder(Integer.valueOf(normalizeInt(normalized.getSortOrder(), index + 1, 0, 9999)));
         normalized.setRemark(blankToEmpty(normalized.getRemark()));
@@ -268,6 +269,23 @@ public class AiImageConfigService
             }
         }
         return new ArrayList<>(models);
+    }
+
+    private Map<String, String> normalizeProviderModelMap(AiImageProviderConfig provider)
+    {
+        Map<String, String> modelMap = new LinkedHashMap<>();
+        Map<String, String> inputMap = provider.getProviderModelMap();
+        for (String model : provider.getSupportedModels())
+        {
+            String normalizedModel = normalizeModel(model);
+            String providerModel = inputMap == null ? null : inputMap.get(normalizedModel);
+            if (StringUtils.isBlank(providerModel) && inputMap != null)
+            {
+                providerModel = inputMap.get(model);
+            }
+            modelMap.put(normalizedModel, StringUtils.defaultIfBlank(providerModel, normalizedModel).trim());
+        }
+        return modelMap;
     }
 
     private List<AiImageModelRouteConfig> normalizeRoutes(List<AiImageModelRouteConfig> input, List<AiImageProviderConfig> providers)
@@ -353,6 +371,24 @@ public class AiImageConfigService
         }
     }
 
+    public String resolveProviderModel(AiImageProviderConfig provider, String model)
+    {
+        String normalizedModel = normalizeModel(model);
+        if (!supportsModel(provider, normalizedModel))
+        {
+            throw new ServiceException("生图通道 " + (provider == null ? "" : provider.getProviderCode()) + " 不支持模型：" + normalizedModel);
+        }
+        if (provider.getProviderModelMap() != null)
+        {
+            String providerModel = provider.getProviderModelMap().get(normalizedModel);
+            if (StringUtils.isNotBlank(providerModel))
+            {
+                return providerModel.trim();
+            }
+        }
+        return normalizedModel;
+    }
+
     private void upsert(String configKey, String configName, String configValue, String remark, String operator)
     {
         SysConfig existing = sysConfigMapper.checkConfigKeyUnique(configKey);
@@ -386,6 +422,7 @@ public class AiImageConfigService
         }
 
         Map<String, List<String>> modelMap = new LinkedHashMap<>();
+        Map<String, Map<String, String>> providerModelMap = new LinkedHashMap<>();
         List<AiImageProviderModelRecord> providerModels = routingConfigMapper.selectProviderModels();
         if (providerModels != null)
         {
@@ -393,8 +430,11 @@ public class AiImageConfigService
             {
                 if (Boolean.TRUE.equals(providerModel.getEnabled()) && StringUtils.isNotBlank(providerModel.getModel()))
                 {
+                    String model = normalizeModel(providerModel.getModel());
                     modelMap.computeIfAbsent(providerModel.getProviderCode(), key -> new ArrayList<>())
-                            .add(providerModel.getModel());
+                            .add(model);
+                    providerModelMap.computeIfAbsent(providerModel.getProviderCode(), key -> new LinkedHashMap<>())
+                            .put(model, StringUtils.defaultIfBlank(providerModel.getProviderModel(), model).trim());
                 }
             }
         }
@@ -403,6 +443,7 @@ public class AiImageConfigService
         for (AiImageProviderRecord record : providerRecords)
         {
             AiImageProviderConfig config = fromProviderRecord(record, modelMap.get(record.getProviderCode()));
+            config.setProviderModelMap(providerModelMap.getOrDefault(record.getProviderCode(), buildDefaultProviderModelMap(config.getSupportedModels())));
             providers.add(config);
         }
         return providers;
@@ -428,6 +469,7 @@ public class AiImageConfigService
         List<AiImageProviderConfig> providers = new ArrayList<>();
         AiImageProviderConfig superapi = buildCompatProviderConfig(SLOT_PRIMARY, PROVIDER_SUPERAPI, "SuperAPI 中转站", ADAPTER_OPENAI_COMPATIBLE);
         superapi.setSupportedModels(Collections.singletonList(DEFAULT_MODEL));
+        superapi.setProviderModelMap(buildDefaultProviderModelMap(superapi.getSupportedModels()));
         superapi.setModel(DEFAULT_MODEL);
         superapi.setSupportsBatch(Boolean.TRUE);
         superapi.setSortOrder(Integer.valueOf(1));
@@ -447,6 +489,7 @@ public class AiImageConfigService
         List<String> grsaiModels = new ArrayList<>();
         addDefaultGrsaiModels(grsaiModels);
         grsai.setSupportedModels(grsaiModels);
+        grsai.setProviderModelMap(buildDefaultProviderModelMap(grsaiModels));
         grsai.setModel(DEFAULT_MODEL);
         grsai.setSortOrder(Integer.valueOf(2));
         grsai.setRemark("支持 GPT 与 nano-banana 的中转站");
@@ -465,6 +508,7 @@ public class AiImageConfigService
         config.setBaseUrl(readString(prefix + ".baseUrl", ""));
         config.setApiKey(readString(prefix + ".apiKey", ""));
         config.setModel(readString(prefix + ".model", DEFAULT_MODEL));
+        config.setProviderModelMap(Collections.singletonMap(DEFAULT_MODEL, StringUtils.defaultIfBlank(config.getModel(), DEFAULT_MODEL)));
         config.setSupportsBatch(Boolean.TRUE);
         return config;
     }
@@ -624,6 +668,23 @@ public class AiImageConfigService
         models.add(MODEL_NANO_BANANA_FAST);
     }
 
+    private Map<String, String> buildDefaultProviderModelMap(List<String> models)
+    {
+        Map<String, String> modelMap = new LinkedHashMap<>();
+        if (models != null)
+        {
+            for (String model : models)
+            {
+                if (StringUtils.isNotBlank(model))
+                {
+                    String normalizedModel = normalizeModel(model);
+                    modelMap.put(normalizedModel, normalizedModel);
+                }
+            }
+        }
+        return modelMap;
+    }
+
     private AiImageProviderConfig fromProviderRecord(AiImageProviderRecord record, List<String> supportedModels)
     {
         AiImageProviderConfig config = new AiImageProviderConfig();
@@ -636,6 +697,7 @@ public class AiImageConfigService
         config.setApiKey(record.getApiKey());
         config.setEnabled(record.getEnabled());
         config.setSupportedModels(supportedModels == null ? Collections.emptyList() : supportedModels);
+        config.setProviderModelMap(buildDefaultProviderModelMap(config.getSupportedModels()));
         config.setModel(config.getSupportedModels().isEmpty() ? "" : config.getSupportedModels().get(0));
         config.setSortOrder(record.getSortOrder());
         config.setRemark(record.getRemark());
@@ -671,11 +733,12 @@ public class AiImageConfigService
         return record;
     }
 
-    private AiImageProviderModelRecord toProviderModelRecord(String providerCode, String model)
+    private AiImageProviderModelRecord toProviderModelRecord(AiImageProviderConfig provider, String model)
     {
         AiImageProviderModelRecord record = new AiImageProviderModelRecord();
-        record.setProviderCode(providerCode);
+        record.setProviderCode(provider.getProviderCode());
         record.setModel(model);
+        record.setProviderModel(resolveProviderModel(provider, model));
         record.setEnabled(Boolean.TRUE);
         return record;
     }

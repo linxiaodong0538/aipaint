@@ -139,6 +139,20 @@
               </el-select>
             </template>
           </el-table-column>
+          <el-table-column label="供应商模型映射" min-width="260">
+            <template #default="{ row }">
+              <div class="model-alias-list">
+                <div v-for="item in normalizeModels(row.supportedModels)" :key="item" class="model-alias-row">
+                  <span class="model-alias-label">{{ item }}</span>
+                  <el-input
+                    v-model.trim="row.providerModelMap[item]"
+                    :placeholder="item"
+                    @blur="ensureProviderModelMap(row)"
+                  />
+                </div>
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column label="Base URL" min-width="260">
             <template #default="{ row }">
               <el-input v-model.trim="row.baseUrl" :placeholder="baseUrlPlaceholder(row.adapterType)" />
@@ -296,6 +310,7 @@ function createProvider(overrides = {}) {
     apiKey: "",
     model: "gpt-image-2",
     supportedModels: ["gpt-image-2"],
+    providerModelMap: { "gpt-image-2": "gpt-image-2" },
     sortOrder: 0,
     remark: "",
     ...overrides
@@ -328,6 +343,7 @@ function createForm() {
         enabled: true,
         responseMode: "stream",
         supportedModels: ["gpt-image-2"],
+        providerModelMap: { "gpt-image-2": "gpt-image-2" },
         sortOrder: 1
       }),
       createProvider({
@@ -336,6 +352,13 @@ function createForm() {
         adapterType: "grsai-async",
         responseMode: "json",
         supportedModels: ["gpt-image-2", "gpt-image-2-vip", "nano-banana", "nano-banana-2", "nano-banana-pro"],
+        providerModelMap: {
+          "gpt-image-2": "gpt-image-2",
+          "gpt-image-2-vip": "gpt-image-2-vip",
+          "nano-banana": "nano-banana",
+          "nano-banana-2": "nano-banana-2",
+          "nano-banana-pro": "nano-banana-pro"
+        },
         sortOrder: 2
       })
     ],
@@ -438,6 +461,7 @@ function normalizeProviderList(providers, defaults) {
     responseMode: normalizeResponseMode(provider.responseMode, provider),
     supportsBatch: provider.supportsBatch !== false,
     supportedModels: normalizeModels(provider.supportedModels || provider.model),
+    providerModelMap: normalizeProviderModelMap(provider),
     sortOrder: Number(provider.sortOrder ?? index + 1)
   }))
 }
@@ -456,6 +480,20 @@ function normalizeModels(value) {
   const values = Array.isArray(value) ? value : [value]
   const models = values.map((item) => String(item || "").trim()).filter(Boolean)
   return Array.from(new Set(models.length > 0 ? models : ["gpt-image-2"]))
+}
+
+function normalizeProviderModelMap(provider) {
+  const supportedModels = normalizeModels(provider.supportedModels || provider.model)
+  const inputMap = provider.providerModelMap && typeof provider.providerModelMap === "object" ? provider.providerModelMap : {}
+  return supportedModels.reduce((map, model) => {
+    map[model] = String(inputMap[model] || model).trim() || model
+    return map
+  }, {})
+}
+
+function ensureProviderModelMap(provider) {
+  provider.supportedModels = normalizeModels(provider.supportedModels)
+  provider.providerModelMap = normalizeProviderModelMap(provider)
 }
 
 function normalizeAdapterType(value) {
@@ -550,6 +588,7 @@ function validateBeforeSubmit() {
     provider.providerCode = String(provider.providerCode || "").trim().toLowerCase()
     provider.providerName = String(provider.providerName || "").trim()
     provider.supportedModels = normalizeModels(provider.supportedModels)
+    provider.providerModelMap = normalizeProviderModelMap(provider)
     if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,31}$/.test(provider.providerCode)) {
       return "通道编码只能使用 1-32 位字母、数字、下划线或中划线"
     }
@@ -621,7 +660,8 @@ function toPayload() {
       responseMode: provider.adapterType === "openai-compatible" ? normalizeResponseMode(provider.responseMode, provider) : "json",
       supportsBatch: provider.supportsBatch !== false,
       model: normalizeModels(provider.supportedModels)[0],
-      supportedModels: normalizeModels(provider.supportedModels)
+      supportedModels: normalizeModels(provider.supportedModels),
+      providerModelMap: normalizeProviderModelMap(provider)
     })),
     modelRoutes: form.modelRoutes.map((route) => ({
       ...route,
@@ -712,6 +752,27 @@ loadConfig()
 
 .sort-input {
   width: 82px;
+}
+
+.model-alias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.model-alias-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(120px, 1.4fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.model-alias-label {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer-actions {

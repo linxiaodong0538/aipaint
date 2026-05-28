@@ -61,7 +61,8 @@ public class AiImageGrsaiProvider implements AiImageProvider
 
     private JSONObject createTask(AiImageGenerateRequest request, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
-        String model = StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel());
+        String model = StringUtils.defaultIfBlank(request.getProviderModel(),
+                StringUtils.defaultIfBlank(request.getModel(), providerConfig.getModel()));
         JSONObject payload = new JSONObject();
         payload.put("model", model);
         payload.put("prompt", request.getPrompt());

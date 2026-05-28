@@ -101,6 +101,7 @@ public class AiImageService
 
         AiImageGenerateRequest request = new AiImageGenerateRequest();
         request.setModel(task.getModel());
+        request.setProviderModel(aiImageConfigService.resolveProviderModel(providerConfig, task.getModel()));
         request.setPrompt(task.getPrompt());
         request.setSize(task.getSize());
         request.setRatio(task.getRatio());
@@ -185,6 +186,7 @@ public class AiImageService
     {
         AiImageGenerateRequest target = new AiImageGenerateRequest();
         target.setModel(source.getModel());
+        target.setProviderModel(source.getProviderModel());
         target.setPrompt(source.getPrompt());
         target.setSize(source.getSize());
         target.setRatio(source.getRatio());

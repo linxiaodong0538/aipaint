@@ -1,6 +1,7 @@
 package com.ruoyi.web.service.image;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 生图 Provider 配置
@@ -26,6 +27,8 @@ public class AiImageProviderConfig
     private String model;
 
     private List<String> supportedModels;
+
+    private Map<String, String> providerModelMap;
 
     private Integer sortOrder;
 
@@ -129,6 +132,16 @@ public class AiImageProviderConfig
     public void setSupportedModels(List<String> supportedModels)
     {
         this.supportedModels = supportedModels;
+    }
+
+    public Map<String, String> getProviderModelMap()
+    {
+        return providerModelMap;
+    }
+
+    public void setProviderModelMap(Map<String, String> providerModelMap)
+    {
+        this.providerModelMap = providerModelMap;
     }
 
     public Integer getSortOrder()

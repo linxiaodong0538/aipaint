@@ -13,6 +13,8 @@ public class AiImageProviderModelRecord extends BaseEntity
 
     private String model;
 
+    private String providerModel;
+
     private Boolean enabled;
 
     public String getProviderCode()
@@ -33,6 +35,16 @@ public class AiImageProviderModelRecord extends BaseEntity
     public void setModel(String model)
     {
         this.model = model;
+    }
+
+    public String getProviderModel()
+    {
+        return providerModel;
+    }
+
+    public void setProviderModel(String providerModel)
+    {
+        this.providerModel = providerModel;
     }
 
     public Boolean getEnabled()
