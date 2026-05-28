@@ -94,13 +94,12 @@
                 </view>
                 <view class="rounded-[24rpx] bg-[#f4f4f4] px-[18rpx] py-[16rpx]">
                   <text class="block text-[20rpx] leading-[28rpx] text-[#777]">约出图</text>
-                  <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ Math.floor(plan.monthlyCredits / STANDARD_IMAGE_REFERENCE_COST) }}张</text>
+                  <text class="mt-[4rpx] block text-[26rpx] font-bold leading-[34rpx] text-black">{{ formatImageCount(plan.monthlyCredits) }}张</text>
                 </view>
               </view>
-              <text class="mt-[18rpx] whitespace-nowrap block text-[22rpx] leading-[32rpx] text-[#777]">
-        
-                按 gpt-image-2 1K 单张 {{ STANDARD_IMAGE_REFERENCE_COST }} 积分估算，不同模型和清晰度扣费不同
-              </text>
+              <!-- <text class="mt-[18rpx] whitespace-nowrap block text-[22rpx] leading-[32rpx] text-[#777]">
+                按 nano-banana 单张 {{ NANO_BANANA_REFERENCE_COST }} 积分估算，不同模型和清晰度扣费不同
+              </text> -->
             </button>
           </view>
         </section>
@@ -117,7 +116,7 @@
           >
             <text class="block text-[28rpx] font-bold leading-[38rpx] text-white">开通会员后可购买积分加量包</text>
             <text class="mt-[8rpx] block text-[24rpx] leading-[36rpx] text-white/60">
-              积分加量用于临时补充额度，不替代会员套餐。
+              积分加量用于临时补充额度，长期有效。
             </text>
             <button
               class="mt-[24rpx] flex h-[72rpx] w-full items-center justify-center rounded-full bg-white text-[26rpx] font-semibold leading-none text-black active:scale-[0.98]"
@@ -162,6 +161,9 @@
                 </text>
                 <text class="mt-[4rpx] block text-[22rpx] leading-[30rpx] text-[#9a8f90]">
                   当前会员 {{ activeTier.addonBonus }}% 加赠
+                </text>
+                <text class="mt-[4rpx] block text-[22rpx] leading-[30rpx] text-[#9a8f90]">
+                  约出图 {{ formatImageCount(item.finalCredits) }} 张
                 </text>
               </view>
 
@@ -222,7 +224,7 @@ interface AddonPackage {
 
 const activeMode = ref<RechargeMode>("membership");
 const paying = ref(false);
-const STANDARD_IMAGE_REFERENCE_COST = 6;
+const NANO_BANANA_REFERENCE_COST = 5;
 const userStore = useUserStore();
 
 const modes: Array<{ label: string; value: RechargeMode }> = [
@@ -291,6 +293,10 @@ const addonCards = computed(() => {
 
 function formatCredits(value: number) {
   return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatImageCount(credits: number) {
+  return formatCredits(Math.floor(Math.max(0, credits) / NANO_BANANA_REFERENCE_COST));
 }
 
 onShow(() => {

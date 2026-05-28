@@ -273,7 +273,7 @@ const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}p
 const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const showProgressLayer = computed(() => !pageInitializing.value);
 const showResultLayer = computed(() => !pageInitializing.value && resultLayerMounted.value);
-const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || (taskModel.value === "nano-banana" ? "不适用" : "未知"));
+const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || (isNanoBananaModel(taskModel.value) ? "不适用" : "未知"));
 const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value));
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
@@ -666,6 +666,10 @@ function formatModel(value: string) {
   if (value === "nano-banana-pro") return "nano-banana-pro";
   if (value === "nano-banana") return "nano-banana";
   return value || "gpt-image-2";
+}
+
+function isNanoBananaModel(value: string) {
+  return value === "nano-banana" || value === "nano-banana-2" || value === "nano-banana-pro";
 }
 
 function formatRatio(ratio: string, size: string) {

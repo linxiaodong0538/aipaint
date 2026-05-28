@@ -329,7 +329,7 @@ public class MiniGenerateController extends BaseController
 
     private String normalizeImageSize(String model, String ratio, String resolution, String requestSize)
     {
-        if (MODEL_NANO_BANANA.equals(model))
+        if (isNanoBananaModel(model))
         {
             return "";
         }
@@ -468,6 +468,7 @@ public class MiniGenerateController extends BaseController
         {
             return resolveNanoBanana1KSize(ratio, resolution);
         }
+        if ("auto".equals(ratio)) return scaleSize(resolution, "1024x1024", "2048x2048", "4096x4096");
         if ("1:1".equals(ratio)) return scaleSize(resolution, "1024x1024", "2048x2048", "4096x4096");
         if ("16:9".equals(ratio)) return scaleSize(resolution, "1536x864", "2048x1152", "3840x2160");
         if ("9:16".equals(ratio)) return scaleSize(resolution, "864x1536", "1152x2048", "2160x3840");

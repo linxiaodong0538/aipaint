@@ -142,7 +142,7 @@
         </view>
 
         <!-- 分辨率 -->
-        <view class="mb-[32rpx]">
+        <view v-if="shouldShowResolutionOptions" class="mb-[32rpx]">
           <text class="model-section-label font-mono">分辨率</text>
           <view class="segmented-control">
             <button
@@ -264,7 +264,7 @@
             <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
             <text v-if="shouldShowImageSizeText" class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
           </view>
-          <view class="ratio-drawer-stage-badge">
+          <view v-if="shouldShowResolutionOptions" class="ratio-drawer-stage-badge">
             <text>{{ quality }}</text>
           </view>
         </view>
@@ -618,7 +618,8 @@ const visibleRatios = computed(() => {
 });
 const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
 const ratioScrollIntoView = computed(() => getRatioScrollId(ratio.value));
-const shouldShowImageSizeText = computed(() => model.value !== "nano-banana");
+const shouldShowResolutionOptions = computed(() => model.value !== "nano-banana");
+const shouldShowImageSizeText = computed(() => !isNanoBananaModel(model.value));
 const selectedImageSizeText = computed(() => getRatioDisplayText(ratio.value));
 const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
 const selectedModelOption = computed(() => models.find((item) => item.value === model.value) || models[0]);
@@ -674,9 +675,15 @@ function isRatioAvailableForQuality(
   resolutionValue: QualityValue,
 ) {
   if (ratioValue === "auto") {
-    return modelValue === "nano-banana" && resolutionValue === "1K";
+    return modelValue === "nano-banana"
+      ? resolutionValue === "1K"
+      : modelValue === "nano-banana-2" || modelValue === "nano-banana-pro";
   }
   return Boolean(getModelSizeMap(modelValue)[ratioValue]?.[resolutionValue]);
+}
+
+function isNanoBananaModel(modelValue: ModelValue) {
+  return modelValue === "nano-banana" || modelValue === "nano-banana-2" || modelValue === "nano-banana-pro";
 }
 
 function hasAnyRatioForQuality(resolutionValue: QualityValue) {
@@ -1079,6 +1086,10 @@ function selectRatioFromDrawer(value: RatioValue) {
 }
 
 function ensureGenerationOptions() {
+  if (model.value === "nano-banana") {
+    quality.value = "1K";
+  }
+
   if (!availableQualities.value.includes(quality.value)) {
     quality.value = availableQualities.value[0] || "1K";
   }
@@ -1109,14 +1120,14 @@ function resolveRequestSize(
   ratioValue: RatioValue,
   resolutionValue: QualityValue,
 ) {
-  if (model.value === "nano-banana") {
+  if (isNanoBananaModel(model.value)) {
     return "";
   }
   return mapImageSize(ratioValue, resolutionValue);
 }
 
 function getRatioDisplayText(ratioValue: RatioValue) {
-  if (model.value === "nano-banana") {
+  if (isNanoBananaModel(model.value)) {
     return ratioValue === "auto" ? "Auto" : ratioValue;
   }
   return mapImageSize(ratioValue, quality.value).replace("x", " x ");
