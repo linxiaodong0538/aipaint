@@ -10,13 +10,23 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="分类" prop="category">
+      <el-form-item label="分类" prop="categoryId">
         <el-select v-model="queryParams.categoryId" placeholder="请选择分类" clearable style="width: 180px">
           <el-option
             v-for="item in categoryOptions"
             :key="item.categoryId"
             :label="item.categoryName"
             :value="item.categoryId"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="标签" prop="tagId">
+        <el-select v-model="queryParams.tagId" placeholder="请选择标签" clearable filterable style="width: 180px">
+          <el-option
+            v-for="item in tagOptions"
+            :key="item.tagId"
+            :label="item.tagName"
+            :value="item.tagId"
           />
         </el-select>
       </el-form-item>
@@ -61,6 +71,16 @@
       </el-table-column>
       <el-table-column label="标题" align="center" prop="title" min-width="140" :show-overflow-tooltip="true" />
       <el-table-column label="分类" align="center" prop="categoryName" width="110" />
+      <el-table-column label="标签" align="center" min-width="180">
+        <template #default="scope">
+          <el-space wrap :size="4" v-if="scope.row.tags && scope.row.tags.length">
+            <el-tag v-for="tag in scope.row.tags" :key="tag.tagId" size="small" effect="plain">
+              {{ tag.tagName }}
+            </el-tag>
+          </el-space>
+          <span v-else style="color: #909399;">-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="AI引擎" align="center" prop="aiEngine" width="120" />
       <el-table-column label="比例" align="center" prop="ratio" width="90" />
       <el-table-column label="排序" align="center" prop="sort" width="80" />
@@ -105,7 +125,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="分类" prop="category">
+            <el-form-item label="分类" prop="categoryId">
               <el-select v-model="form.categoryId" placeholder="请选择分类">
                 <el-option
                   v-for="item in categoryOptions"
@@ -113,6 +133,24 @@
                   :label="item.categoryName"
                   :value="item.categoryId"
                 />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="标签" prop="tagIds">
+              <el-select v-model="form.tagIds" multiple filterable clearable placeholder="请选择模板标签" style="width: 100%;">
+                <el-option-group
+                  v-for="group in groupedTagOptions"
+                  :key="group.groupCode"
+                  :label="group.groupName"
+                >
+                  <el-option
+                    v-for="item in group.tags"
+                    :key="item.tagId"
+                    :label="item.tagName"
+                    :value="item.tagId"
+                  />
+                </el-option-group>
               </el-select>
             </el-form-item>
           </el-col>
@@ -176,13 +214,14 @@
 </template>
 
 <script setup name="Template">
-import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, changeTemplateStatus, optionselectTemplateCategory } from "@/api/system/template"
+import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate, changeTemplateStatus, optionselectTemplateCategory, optionselectTemplateTag } from "@/api/system/template"
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = useDict("sys_normal_disable")
 
 const templateList = ref([])
 const categoryOptions = ref([])
+const tagOptions = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -191,6 +230,25 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+const tagGroupOptions = [
+  { label: "风格", value: "style" },
+  { label: "用途", value: "use" },
+  { label: "主体", value: "subject" },
+  { label: "画面元素", value: "element" },
+  { label: "行业/场景", value: "scene" },
+  { label: "媒介/表现形式", value: "medium" },
+  { label: "构图/镜头", value: "composition" },
+  { label: "色彩/氛围", value: "color" },
+  { label: "模型/技术倾向", value: "technique" }
+]
+
+const groupedTagOptions = computed(() => tagGroupOptions
+  .map(group => ({
+    groupCode: group.value,
+    groupName: group.label,
+    tags: tagOptions.value.filter(tag => tag.groupCode === group.value)
+  }))
+  .filter(group => group.tags.length > 0))
 
 const data = reactive({
   form: {},
@@ -199,6 +257,7 @@ const data = reactive({
     pageSize: 10,
     title: undefined,
     categoryId: undefined,
+    tagId: undefined,
     status: undefined
   },
   rules: {
@@ -231,6 +290,7 @@ function reset() {
     templateId: undefined,
     title: undefined,
     categoryId: undefined,
+    tagIds: [],
     description: undefined,
     coverUrl: undefined,
     prompt: undefined,
@@ -269,7 +329,10 @@ function handleUpdate(row) {
   reset()
   const templateId = row.templateId || ids.value
   getTemplate(templateId).then(response => {
-    form.value = response.data
+    form.value = {
+      ...response.data,
+      tagIds: response.data.tagIds || (response.data.tags || []).map(item => item.tagId)
+    }
     open.value = true
     title.value = "修改模板"
   })
@@ -328,6 +391,13 @@ function loadCategoryOptions() {
   })
 }
 
+function loadTagOptions() {
+  optionselectTemplateTag().then(response => {
+    tagOptions.value = response.data || []
+  })
+}
+
 loadCategoryOptions()
+loadTagOptions()
 getList()
 </script>

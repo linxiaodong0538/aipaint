@@ -21,6 +21,7 @@ export interface TemplateItem {
   sort?: number;
   status?: string;
   createTime?: string;
+  tags?: TemplateTag[];
 }
 
 export interface TemplateListParams {
@@ -37,6 +38,13 @@ export interface TemplateListResult {
 export function getTemplateCategories() {
   return request<TemplateCategory[]>({
     url: "/mini/templates/categories",
+    method: "GET",
+  });
+}
+
+export function getTemplateTags() {
+  return request<TemplateTag[]>({
+    url: "/mini/templates/tags",
     method: "GET",
   });
 }
@@ -63,6 +71,14 @@ export interface TemplateCategory {
   categoryId: number;
   categoryName: string;
   categoryCode: string;
+  sort?: number;
+  status?: string;
+}
+
+export interface TemplateTag {
+  tagId: number;
+  tagName: string;
+  groupCode: "style" | "use" | "subject" | "element" | string;
   sort?: number;
   status?: string;
 }

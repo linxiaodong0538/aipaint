@@ -1,8 +1,10 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.AiTemplate;
 import com.ruoyi.system.domain.AiTemplateCategory;
+import com.ruoyi.system.domain.AiTemplateTag;
 
 /**
  * 生图模板 数据层
@@ -24,4 +26,14 @@ public interface AiTemplateMapper
     public int updateTemplate(AiTemplate template);
 
     public int deleteTemplateByIds(Long[] templateIds);
+
+    public int deleteTemplateTagByTemplateIds(Long[] templateIds);
+
+    public int deleteTemplateTagByTagIds(Long[] tagIds);
+
+    public int deleteTemplateTagByTemplateId(Long templateId);
+
+    public int batchTemplateTag(@Param("templateId") Long templateId, @Param("tagIds") Long[] tagIds);
+
+    public List<AiTemplateTag> selectTagsByTemplateIds(Long[] templateIds);
 }

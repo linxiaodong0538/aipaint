@@ -1,5 +1,6 @@
 package com.ruoyi.system.domain;
 
+import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -59,6 +60,15 @@ public class AiTemplate extends BaseEntity
     /** 状态（0正常 1停用） */
     @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
     private String status;
+
+    /** 标签ID集合 */
+    private Long[] tagIds;
+
+    /** 标签列表 */
+    private List<AiTemplateTag> tags;
+
+    /** 标签ID，仅用于查询筛选 */
+    private Long tagId;
 
     public Long getTemplateId()
     {
@@ -180,6 +190,36 @@ public class AiTemplate extends BaseEntity
         this.status = status;
     }
 
+    public Long[] getTagIds()
+    {
+        return tagIds;
+    }
+
+    public void setTagIds(Long[] tagIds)
+    {
+        this.tagIds = tagIds;
+    }
+
+    public List<AiTemplateTag> getTags()
+    {
+        return tags;
+    }
+
+    public void setTags(List<AiTemplateTag> tags)
+    {
+        this.tags = tags;
+    }
+
+    public Long getTagId()
+    {
+        return tagId;
+    }
+
+    public void setTagId(Long tagId)
+    {
+        this.tagId = tagId;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
@@ -194,6 +234,9 @@ public class AiTemplate extends BaseEntity
             .append("ratio", getRatio())
             .append("sort", getSort())
             .append("status", getStatus())
+            .append("tagIds", getTagIds())
+            .append("tags", getTags())
+            .append("tagId", getTagId())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())

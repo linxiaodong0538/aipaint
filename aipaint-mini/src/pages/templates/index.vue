@@ -2,20 +2,18 @@
   <view class="flex h-screen flex-col overflow-hidden bg-[#f8f8f8] font-sans text-[#1a1c1c]">
     <view
       class="relative shrink-0 overflow-hidden bg-black text-white"
-      :style="{
-        paddingTop: `${navLayout.menuButtonTop}px`,
-        paddingBottom: `${navLayout.navContentHeight - navLayout.menuButtonHeight}px`,
-      }"
+      :style="{ height: `${navLayout.totalHeight}px` }"
     >
+      <view :style="{ height: `${navLayout.statusBarHeight}px` }" />
       <view
         class="relative flex items-center px-[24rpx]"
         :style="{
-          height: `${navLayout.menuButtonHeight}px`,
+          height: `${navLayout.navContentHeight}px`,
           paddingRight: `${navLayout.menuButtonRight + navLayout.menuButtonGap}px`,
         }"
       >
         <button
-          class="m-0 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-white/12 p-0 text-white active:scale-95 active:bg-white/22"
+          class="m-0 flex h-[32px] min-w-[32px] max-w-[260rpx] shrink-0 items-center justify-center gap-[10rpx] rounded-full bg-white/16 px-[18rpx] py-0 text-white shadow-[inset_0_0_0_1rpx_rgba(255,255,255,0.08)] active:scale-95 active:bg-white/24"
           hover-class="none"
           aria-label="搜索模板"
           @tap="openSearch"
@@ -24,10 +22,16 @@
             <view class="search-mark__ring" />
             <view class="search-mark__handle" />
           </view>
+          <text
+            v-if="searchKeyword"
+            class="max-w-[150rpx] truncate text-[23rpx] font-semibold leading-[32px] text-white"
+          >
+            {{ searchKeyword }}
+          </text>
         </button>
 
         <text
-          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium"
+          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium leading-[22px]"
         >
           生图模板
         </text>
@@ -56,7 +60,7 @@
           <view
             v-for="template in filteredTemplates"
             :key="template.templateId"
-            class="mb-[24rpx] break-inside-avoid border border-gray-100 overflow-hidden rounded-[8rpx] bg-white active:scale-[0.98]"
+            class="mb-[24rpx] break-inside-avoid overflow-hidden rounded-[12rpx] border border-[rgba(0,0,0,0.04)] bg-white shadow-[0_10rpx_28rpx_rgba(0,0,0,0.04)] active:scale-[0.98]"
             @tap="goDetail(template)"
           >
             <image class="block w-full" mode="widthFix" :src="template.coverUrl" />
@@ -74,7 +78,8 @@
                 <text
                   v-for="tag in getTemplateTags(template)"
                   :key="tag"
-                  class="rounded-full bg-[#f0f0f0] px-[18rpx] py-[6rpx] text-[22rpx] font-semibold leading-[30rpx] text-[#1a1c1c]"
+                  class="min-h-[44rpx] rounded-full bg-[#f0f0f0] px-[18rpx] py-[7rpx] text-[22rpx] font-semibold leading-[30rpx] text-[#1a1c1c] active:bg-[#dedede]"
+                  @tap.stop="searchByTag(tag)"
                 >
                   {{ tag }}
                 </text>
@@ -108,137 +113,41 @@
       </view>
     </scroll-view>
 
-    <view
-      v-if="showSearchPanel"
-      class="fixed inset-0 z-50 flex flex-col bg-[#f8f8f8]"
-    >
-      <view
-        class="bg-black"
-        :style="{
-          paddingTop: `${navLayout.menuButtonTop}px`,
-          paddingBottom: `${navLayout.navContentHeight - navLayout.menuButtonHeight}px`,
-        }"
-      >
-        <view
-          class="relative flex items-center px-[24rpx]"
-          :style="{
-            height: `${navLayout.menuButtonHeight}px`,
-            paddingRight: `${navLayout.menuButtonRight + navLayout.menuButtonGap}px`,
-          }"
-        >
-          <text
-            class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium leading-[22px] text-white"
-          >
-            搜索模板
-          </text>
-        </view>
-      </view>
-
-      <view class="bg-white px-[32rpx] pb-[30rpx] pt-[24rpx] shadow-[0_10rpx_28rpx_rgba(0,0,0,0.04)]">
-        <view class="flex items-center gap-[18rpx]">
-          <view class="flex h-[76rpx] min-w-0 flex-1 items-center gap-[16rpx] rounded-full bg-[#f2f2f2] px-[24rpx]">
-            <view class="search-mark search-mark--input">
-              <view class="search-mark__ring" />
-              <view class="search-mark__handle" />
-            </view>
-            <input
-              v-model="searchDraft"
-              class="h-full min-w-0 flex-1 text-[28rpx] font-medium leading-[40rpx] text-black"
-              type="text"
-              confirm-type="search"
-              placeholder="搜索模板、风格、描述"
-              placeholder-class="text-[#9a9a9a]"
-              :focus="showSearchPanel"
-              @confirm="commitSearch"
-            />
-            <button
-              v-if="searchDraft"
-              class="m-0 flex h-[44rpx] w-[44rpx] items-center justify-center rounded-full bg-[#dedede] p-0 text-[30rpx] leading-none text-[#777] active:bg-[#d4d4d4]"
-              hover-class="none"
-              aria-label="清空搜索"
-              @tap="searchDraft = ''"
-            >
-              ×
-            </button>
-          </view>
-          <button
-            class="m-0 h-[76rpx] shrink-0 p-0 text-[28rpx] font-semibold leading-[76rpx] text-black active:opacity-65"
-            hover-class="none"
-            @tap="closeSearch"
-          >
-            取消
-          </button>
-        </view>
-      </view>
-
-      <view class="px-[32rpx] py-[28rpx]">
-        <view v-if="searchKeyword" class="mb-[28rpx] rounded-[18rpx] bg-white px-[26rpx] py-[22rpx]">
-          <text class="block text-[24rpx] leading-[32rpx] text-[#7a7a7a]">
-            正在当前分类中筛选
-          </text>
-          <text class="mt-[6rpx] block text-[30rpx] font-semibold leading-[40rpx] text-black">
-            “{{ searchKeyword }}” · {{ filteredTemplates.length }} 个结果
-          </text>
-        </view>
-
-        <view v-if="recentSearches.length">
-          <view class="mb-[18rpx] flex items-center justify-between">
-            <text class="text-[26rpx] font-semibold leading-[36rpx] text-black">最近搜索</text>
-            <button
-              class="m-0 p-0 text-[24rpx] leading-[36rpx] text-[#7a7a7a] active:opacity-70"
-              hover-class="none"
-              @tap="recentSearches = []"
-            >
-              清空
-            </button>
-          </view>
-          <view class="flex flex-wrap gap-[16rpx]">
-            <button
-              v-for="keyword in recentSearches"
-              :key="keyword"
-              class="m-0 rounded-full bg-white px-[24rpx] py-[12rpx] text-[26rpx] font-medium leading-[34rpx] text-black active:scale-95"
-              hover-class="none"
-              @tap="applyRecentSearch(keyword)"
-            >
-              {{ keyword }}
-            </button>
-          </view>
-        </view>
-
-        <view class="mt-[36rpx]">
-          <text class="mb-[18rpx] block text-[26rpx] font-semibold leading-[36rpx] text-black">按风格找灵感</text>
-          <view class="grid grid-cols-2 gap-[16rpx]">
-            <button
-              v-for="suggestion in searchSuggestions"
-              :key="suggestion"
-              class="m-0 flex min-h-[76rpx] items-center justify-center rounded-[18rpx] bg-white px-[18rpx] py-[14rpx] text-[26rpx] font-semibold leading-[34rpx] text-black active:scale-[0.98]"
-              hover-class="none"
-              @tap="applyRecentSearch(suggestion)"
-            >
-              {{ suggestion }}
-            </button>
-          </view>
-        </view>
-      </view>
-    </view>
+    <TemplateSearchPanel
+      :visible="showSearchPanel"
+      :keyword="searchKeyword"
+      :recent-searches="recentSearches"
+      :suggestions="searchSuggestions"
+      :result-count="filteredTemplates.length"
+      :nav-layout="navLayout"
+      @close="closeSearch"
+      @search="commitSearch"
+      @clear-recent="clearRecentSearches"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { navigateTo, routes } from "@/utils/router";
-import { getTemplateCategories, listTemplates, type TemplateCategory, type TemplateItem } from "@/api/template";
+import { getTemplateCategories, getTemplateTags as fetchTemplateTags, listTemplates, type TemplateCategory, type TemplateItem, type TemplateTag } from "@/api/template";
 import { getNavBarLayout } from "@/utils/nav-bar";
+import TemplateSearchPanel from "./components/TemplateSearchPanel.vue";
 
 const chips = ref<TemplateCategory[]>([{ categoryName: "全部", categoryId: 0, categoryCode: "all" }]);
 const activeChip = ref("全部");
 const templates = ref<TemplateItem[]>([]);
 const navLayout = getNavBarLayout();
 const showSearchPanel = ref(false);
-const searchDraft = ref("");
 const searchKeyword = ref("");
 const recentSearches = ref<string[]>([]);
-const searchSuggestions = ["极简主义", "水墨艺术", "超现实", "海报营销"];
+const templateTags = ref<TemplateTag[]>([]);
+const searchSuggestions = computed(() => {
+  const suggestions = templateTags.value.map((item) => item.tagName).filter(Boolean);
+  return (suggestions.length ? suggestions : defaultSearchSuggestions).slice(0, 8);
+});
+
+const defaultSearchSuggestions = ["极简主义", "水墨艺术", "电商主图", "产品摄影"];
 
 const filteredTemplates = computed(() => {
   const keyword = normalizeSearchText(searchKeyword.value);
@@ -258,6 +167,10 @@ async function loadCategories() {
   chips.value = [{ categoryName: "全部", categoryId: 0, categoryCode: "all" }, ...categories];
 }
 
+async function loadTags() {
+  templateTags.value = await fetchTemplateTags();
+}
+
 async function loadTemplates() {
   const selected = chips.value.find((item) => item.categoryName === activeChip.value);
   const params = !selected || selected.categoryCode === "all"
@@ -272,12 +185,14 @@ function getTemplateModelName(_template: TemplateItem) {
 }
 
 function getTemplateTags(template: TemplateItem) {
-  return [template.categoryName || "电影感"];
+  const tags = (template.tags || []).map((tag) => tag.tagName).filter(Boolean);
+  return tags.length ? tags.slice(0, 2) : [template.categoryName || "模板"];
 }
 
 function getTemplateSearchText(template: TemplateItem) {
   return normalizeSearchText([
     template.title,
+    ...(template.tags || []).map((tag) => tag.tagName),
     template.categoryName,
     template.description,
     template.prompt,
@@ -299,42 +214,41 @@ function goDetail(template: TemplateItem) {
 async function handleChipChange(chip: TemplateCategory) {
   activeChip.value = chip.categoryName;
   searchKeyword.value = "";
-  searchDraft.value = "";
   await loadTemplates();
 }
 
 function openSearch() {
-  searchDraft.value = searchKeyword.value;
   showSearchPanel.value = true;
 }
 
 function closeSearch() {
   showSearchPanel.value = false;
-  searchDraft.value = searchKeyword.value;
 }
 
-function commitSearch() {
-  const keyword = normalizeSearchText(searchDraft.value);
+function commitSearch(value: string) {
+  const keyword = normalizeSearchText(value);
   searchKeyword.value = keyword;
-  searchDraft.value = keyword;
   if (keyword) {
     recentSearches.value = [keyword, ...recentSearches.value.filter((item) => item !== keyword)].slice(0, 6);
   }
   showSearchPanel.value = false;
 }
 
-function applyRecentSearch(keyword: string) {
-  searchDraft.value = keyword;
-  commitSearch();
-}
-
 function clearSearch() {
-  searchDraft.value = "";
   searchKeyword.value = "";
 }
 
+function searchByTag(tag: string) {
+  searchKeyword.value = normalizeSearchText(tag);
+  recentSearches.value = [tag, ...recentSearches.value.filter((item) => item !== tag)].slice(0, 6);
+}
+
+function clearRecentSearches() {
+  recentSearches.value = [];
+}
+
 onMounted(async () => {
-  await Promise.all([loadCategories(), loadTemplates()]);
+  await Promise.all([loadCategories(), loadTemplates(), loadTags()]);
 });
 </script>
 
@@ -366,10 +280,6 @@ onMounted(async () => {
   background: currentColor;
   transform: rotate(45deg);
   transform-origin: center;
-}
-
-.search-mark--input {
-  color: #777;
 }
 
 .search-mark--nav {
