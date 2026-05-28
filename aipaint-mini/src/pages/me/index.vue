@@ -216,7 +216,7 @@ interface TaskItem {
 interface MenuItem {
   title: string;
   iconClass: string;
-  action: "credit-detail" | "recharge" | "works";
+  action: "credit-detail" | "recharge" | "works" | "invite-reward";
 }
 
 const navLayout = getNavBarLayout();
@@ -262,6 +262,7 @@ const tasks: TaskItem[] = [
 
 const menuItems: MenuItem[] = [
   { title: "积分明细", iconClass: "icon-jinbi", action: "credit-detail" },
+  { title: "邀请奖励", iconClass: "icon-ewailichengjiangli", action: "invite-reward" },
   { title: "我的作品", iconClass: "icon-images", action: "works" },
 ];
 
@@ -336,6 +337,11 @@ function handleMenuClick(item: MenuItem) {
 
   if (item.action === "recharge") {
     navigateTo(routes.recharge);
+    return;
+  }
+
+  if (item.action === "invite-reward") {
+    navigateTo(routes.inviteReward);
     return;
   }
 

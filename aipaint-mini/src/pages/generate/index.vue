@@ -341,7 +341,7 @@ const models: Array<{
   },
   {
     value: "gpt-image-2-vip",
-    label: "GPT-image-2 VIP",
+    label: "GPT-image-2-pro",
     description: "尺寸增强",
     iconClass: "icon-huizhang",
     baseCredits: 15,
@@ -349,7 +349,7 @@ const models: Array<{
   },
   {
     value: "nano-banana",
-    label: "nano-banana",
+    label: "Nano-banana",
     description: "轻量快速生成",
     iconClass: "icon-images",
     baseCredits: 5,
@@ -357,7 +357,7 @@ const models: Array<{
   },
   {
     value: "nano-banana-2",
-    label: "nano-banana-2",
+    label: "Nano-banana-2",
     description: "低价与高阶之间",
     iconClass: "icon-tupian",
     baseCredits: 12,
@@ -365,7 +365,7 @@ const models: Array<{
   },
   {
     value: "nano-banana-pro",
-    label: "nano-banana-pro",
+    label: "Nano-banana-pro",
     description: "专业细节增强",
     iconClass: "icon-line-medalxunzhang-02",
     baseCredits: 20,

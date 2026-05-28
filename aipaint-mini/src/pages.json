@@ -11,10 +11,10 @@
     {
       "path": "pages/templates/index",
       "style": {
+        "navigationStyle": "custom",
         "navigationBarTitleText": "生图模板",
         "navigationBarBackgroundColor": "#000000",
         "navigationBarTextStyle": "white"
-        // "navigationStyle": "custom"
       }
     },
     {
@@ -72,6 +72,14 @@
         "navigationBarTitleText": "积分充值",
         "navigationBarBackgroundColor": "#f8f8f8",
         "navigationBarTextStyle": "black"
+      }
+    },
+    {
+      "path": "pages/me/invite-reward",
+      "style": {
+        "navigationBarTitleText": "邀请奖励",
+        "navigationBarBackgroundColor": "#000000",
+        "navigationBarTextStyle": "white"
       }
     }
   ],
