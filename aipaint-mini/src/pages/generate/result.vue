@@ -637,11 +637,11 @@ function formatCreateTime(value: string) {
   const timestamp = new Date(value.replace(/-/g, "/")).getTime();
   if (!Number.isFinite(timestamp)) return value.slice(0, 16);
   const date = new Date(timestamp);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${date.getFullYear()}年${month}月${day}日 ${hours}:${minutes}`;
+  return `${date.getFullYear()}-${month}-${day} ${hours}:${minutes}`;
 }
 
 function formatDurationSeconds(runStartTime: string, finishTime: string, createTime: string, updateTime: string) {

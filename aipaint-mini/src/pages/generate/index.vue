@@ -310,7 +310,7 @@
 import { computed, nextTick, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { navigateTo, routes } from "@/utils/router";
-import { createImageGeneration, polishPromptStream, uploadImage } from "@/api/generate";
+import { createImageGeneration, getGenerationPricing, polishPromptStream, uploadImage, type GenerationPricing } from "@/api/generate";
 import type { ApiError } from "@/utils/request";
 import { getTemplateDetail, type TemplateItem } from "@/api/template";
 import { useUserStore } from "@/store/modules/user";
@@ -400,6 +400,21 @@ type RatioValue =
   | "8:1";
 type RatioOption = { value: RatioValue; label: string; iconClass: string };
 type SizeMap = Partial<Record<RatioValue, Partial<Record<QualityValue, string>>>>;
+type PricingModelValue = ModelValue | string;
+
+const fallbackBaseCredits: Record<ModelValue, number> = {
+  "gpt-image-2": 6,
+  "gpt-image-2-vip": 15,
+  "nano-banana": 5,
+  "nano-banana-2": 12,
+  "nano-banana-pro": 20,
+};
+
+const fallbackResolutionMultipliers: Record<QualityValue, number> = {
+  "1K": 1,
+  "2K": 1.2,
+  "4K": 1.5,
+};
 
 const ratios: RatioOption[] = [
   { value: "auto", label: "Auto", iconClass: "ratio-icon-square" },
@@ -563,6 +578,7 @@ const mockGenerating = ref(false);
 const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
 const ratioOptionsReady = ref(false);
+const generationPricing = ref<GenerationPricing | null>(null);
 const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
 const retryParamsStorageKey = "generate:retryParams";
@@ -668,6 +684,8 @@ function hasAnyRatioForQuality(resolutionValue: QualityValue) {
 }
 
 onLoad((query) => {
+  void loadGenerationPricing();
+
   if (query?.mockGenerating === "1") {
     mockGenerating.value = true;
     generating.value = true;
@@ -686,6 +704,14 @@ onLoad((query) => {
   ensureGenerationOptions();
   ratioOptionsReady.value = true;
 });
+
+async function loadGenerationPricing() {
+  try {
+    generationPricing.value = await getGenerationPricing();
+  } catch {
+    generationPricing.value = null;
+  }
+}
 
 function applyRetryParams() {
   const params = getRetryParams();
@@ -1105,15 +1131,42 @@ function calculateCreditCost(
   resolutionValue: QualityValue,
   imageCount: number,
 ) {
-  const selected = models.find((item) => item.value === modelValue);
-  const baseCredits = selected?.baseCredits || models[0].baseCredits;
-  const multiplierMap: Record<(typeof qualities)[number], number> = {
-    "1K": 1,
-    "2K": 1.2,
-    "4K": 1.5,
-  };
-  const singleCost = Math.ceil(baseCredits * multiplierMap[resolutionValue]);
+  const singleCost = resolveSingleCreditCost(modelValue, resolutionValue);
   return singleCost * imageCount;
+}
+
+function resolveSingleCreditCost(modelValue: ModelValue, resolutionValue: QualityValue) {
+  if (isConfiguredPricingEnabled(modelValue)) {
+    const configuredCost = generationPricing.value?.singleCreditCosts?.[modelValue]?.[resolutionValue];
+    if (typeof configuredCost === "number" && Number.isFinite(configuredCost) && configuredCost > 0) {
+      return Math.ceil(configuredCost);
+    }
+  }
+
+  const baseCredits = resolveBaseCredits(modelValue);
+  const multiplier = resolveResolutionMultiplier(resolutionValue);
+  return Math.ceil(baseCredits * multiplier);
+}
+
+function isConfiguredPricingEnabled(modelValue: PricingModelValue) {
+  const matched = generationPricing.value?.modelPricings?.find((item) => item.model === modelValue);
+  return !matched || matched.enabled !== false;
+}
+
+function resolveBaseCredits(modelValue: PricingModelValue) {
+  const matched = generationPricing.value?.modelPricings?.find((item) => item.model === modelValue && item.enabled !== false);
+  if (matched && Number.isFinite(Number(matched.baseCredits)) && Number(matched.baseCredits) > 0) {
+    return Number(matched.baseCredits);
+  }
+  return fallbackBaseCredits[modelValue as ModelValue] || fallbackBaseCredits["gpt-image-2"];
+}
+
+function resolveResolutionMultiplier(resolutionValue: QualityValue) {
+  const multiplier = generationPricing.value?.resolutionMultipliers?.[resolutionValue];
+  if (typeof multiplier === "number" && Number.isFinite(multiplier) && multiplier > 0) {
+    return multiplier;
+  }
+  return fallbackResolutionMultipliers[resolutionValue];
 }
 
 async function uploadReferenceImages() {

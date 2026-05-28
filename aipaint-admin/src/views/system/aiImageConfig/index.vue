@@ -84,6 +84,84 @@
       <el-card class="mb16" shadow="never">
         <template #header>
           <div class="section-header">
+            <span>模型价格</span>
+            <el-button type="primary" plain @click="addModelPricing">新增模型价格</el-button>
+          </div>
+        </template>
+
+        <el-row :gutter="16" class="pricing-multiplier-row">
+          <el-col :span="8">
+            <el-form-item label="1K 倍率">
+              <el-input-number v-model="form.resolutionMultipliers['1K']" :min="0.1" :max="100" :step="0.1" controls-position="right" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="2K 倍率">
+              <el-input-number v-model="form.resolutionMultipliers['2K']" :min="0.1" :max="100" :step="0.1" controls-position="right" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="4K 倍率">
+              <el-input-number v-model="form.resolutionMultipliers['4K']" :min="0.1" :max="100" :step="0.1" controls-position="right" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-table :data="form.modelPricings" border row-key="model">
+          <el-table-column label="启用" width="72" align="center">
+            <template #default="{ row }">
+              <el-switch v-model="row.enabled" />
+            </template>
+          </el-table-column>
+          <el-table-column label="模型" min-width="200">
+            <template #default="{ row }">
+              <el-select
+                v-model="row.model"
+                class="full-width"
+                filterable
+                allow-create
+                default-first-option
+                placeholder="选择或输入模型"
+              >
+                <el-option v-for="item in modelOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="基础价" width="150">
+            <template #default="{ row }">
+              <el-input-number v-model="row.baseCredits" :min="1" :max="9999" controls-position="right" class="credit-input" />
+            </template>
+          </el-table-column>
+          <el-table-column label="单张预览" min-width="220">
+            <template #default="{ row }">
+              <div class="pricing-preview">
+                <el-tag size="small">1K {{ previewCredit(row, "1K") }}</el-tag>
+                <el-tag size="small" type="success">2K {{ previewCredit(row, "2K") }}</el-tag>
+                <el-tag size="small" type="warning">4K {{ previewCredit(row, "4K") }}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="排序" width="100">
+            <template #default="{ row }">
+              <el-input-number v-model="row.sortOrder" :min="0" :max="9999" controls-position="right" class="sort-input" />
+            </template>
+          </el-table-column>
+          <el-table-column label="备注" min-width="180">
+            <template #default="{ row }">
+              <el-input v-model.trim="row.remark" placeholder="备注" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="90" fixed="right">
+            <template #default="{ $index }">
+              <el-button text type="danger" @click="removeModelPricing($index)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+
+      <el-card class="mb16" shadow="never">
+        <template #header>
+          <div class="section-header">
             <span>通道配置</span>
             <el-button type="primary" plain @click="addProvider">新增通道</el-button>
           </div>
@@ -330,12 +408,35 @@ function createRoute(overrides = {}) {
   }
 }
 
+function createModelPricing(overrides = {}) {
+  return {
+    model: "gpt-image-2",
+    baseCredits: 6,
+    enabled: true,
+    sortOrder: 0,
+    remark: "",
+    ...overrides
+  }
+}
+
 function createForm() {
   return {
     circuitBreakerFailureThreshold: 3,
     circuitBreakerCooldownMinutes: 10,
     outputFormat: "jpeg",
     outputCompression: 90,
+    resolutionMultipliers: {
+      "1K": 1,
+      "2K": 1.2,
+      "4K": 1.5
+    },
+    modelPricings: [
+      createModelPricing({ model: "gpt-image-2", baseCredits: 6, sortOrder: 1, remark: "全能艺术创作" }),
+      createModelPricing({ model: "gpt-image-2-vip", baseCredits: 15, sortOrder: 2, remark: "尺寸增强" }),
+      createModelPricing({ model: "nano-banana", baseCredits: 5, sortOrder: 3, remark: "轻量快速生成" }),
+      createModelPricing({ model: "nano-banana-2", baseCredits: 12, sortOrder: 4, remark: "写实摄影风格" }),
+      createModelPricing({ model: "nano-banana-pro", baseCredits: 20, sortOrder: 5, remark: "专业细节增强" })
+    ],
     providers: [
       createProvider({
         providerCode: "superapi",
@@ -448,9 +549,42 @@ function assignForm(data) {
   form.circuitBreakerCooldownMinutes = Number(data?.circuitBreakerCooldownMinutes || defaults.circuitBreakerCooldownMinutes)
   form.outputFormat = data?.outputFormat || defaults.outputFormat
   form.outputCompression = Number(data?.outputCompression ?? defaults.outputCompression)
+  form.resolutionMultipliers = normalizeResolutionMultipliers(data?.resolutionMultipliers, defaults.resolutionMultipliers)
+  form.modelPricings = normalizeModelPricingList(data?.modelPricings, defaults.modelPricings)
   form.providers = normalizeProviderList(data?.providers, defaults.providers)
   form.modelRoutes = normalizeRouteList(data?.modelRoutes, defaults.modelRoutes)
   form.healthStats = Array.isArray(data?.healthStats) ? data.healthStats : []
+}
+
+function normalizeResolutionMultipliers(value, defaults) {
+  const source = value && typeof value === "object" ? value : {}
+  return {
+    "1K": normalizeMultiplier(source["1K"], defaults["1K"]),
+    "2K": normalizeMultiplier(source["2K"], defaults["2K"]),
+    "4K": normalizeMultiplier(source["4K"], defaults["4K"])
+  }
+}
+
+function normalizeMultiplier(value, fallback) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue >= 0.1 && numericValue <= 100 ? numericValue : fallback
+}
+
+function normalizeModelPricingList(pricings, defaults) {
+  const source = Array.isArray(pricings) && pricings.length > 0 ? pricings : defaults
+  return source.map((pricing, index) => createModelPricing({
+    ...pricing,
+    model: String(pricing.model || "").trim() || "gpt-image-2",
+    baseCredits: normalizeBaseCredits(pricing.baseCredits, defaults[index]?.baseCredits || 6),
+    enabled: pricing.enabled !== false,
+    sortOrder: Number(pricing.sortOrder ?? index + 1),
+    remark: String(pricing.remark || "").trim()
+  }))
+}
+
+function normalizeBaseCredits(value, fallback) {
+  const numericValue = Number(value)
+  return Number.isInteger(numericValue) && numericValue >= 1 && numericValue <= 9999 ? numericValue : fallback
 }
 
 function normalizeProviderList(providers, defaults) {
@@ -551,6 +685,24 @@ function removeRoute(index) {
   form.modelRoutes.splice(index, 1)
 }
 
+function addModelPricing() {
+  const model = modelOptions.find((item) => !form.modelPricings.some((pricing) => pricing.model === item)) || ""
+  form.modelPricings.push(createModelPricing({
+    model,
+    sortOrder: form.modelPricings.length + 1
+  }))
+}
+
+function removeModelPricing(index) {
+  form.modelPricings.splice(index, 1)
+}
+
+function previewCredit(row, resolution) {
+  const baseCredits = Number(row.baseCredits || 0)
+  const multiplier = Number(form.resolutionMultipliers?.[resolution] || 1)
+  return `${Math.ceil(baseCredits * multiplier)} PTS`
+}
+
 function providerOptionsForModel(model) {
   const normalizedModel = String(model || "").trim()
   if (!normalizedModel) {
@@ -580,6 +732,16 @@ function baseUrlPlaceholder(adapterType) {
 }
 
 function validateBeforeSubmit() {
+  const multiplierMessage = validateResolutionMultipliers()
+  if (multiplierMessage) {
+    return multiplierMessage
+  }
+
+  const pricingMessage = validateModelPricings()
+  if (pricingMessage) {
+    return pricingMessage
+  }
+
   if (form.providers.length === 0) {
     return "请至少配置一个通道"
   }
@@ -648,12 +810,57 @@ function validateBeforeSubmit() {
   return ""
 }
 
+function validateResolutionMultipliers() {
+  for (const resolution of ["1K", "2K", "4K"]) {
+    const value = Number(form.resolutionMultipliers?.[resolution])
+    if (!Number.isFinite(value) || value < 0.1 || value > 100) {
+      return `${resolution} 倍率需为 0.1-100 的数字`
+    }
+    form.resolutionMultipliers[resolution] = value
+  }
+  return ""
+}
+
+function validateModelPricings() {
+  if (!Array.isArray(form.modelPricings) || form.modelPricings.length === 0) {
+    return "请至少配置一个模型价格"
+  }
+  const models = new Set()
+  for (const pricing of form.modelPricings) {
+    pricing.model = String(pricing.model || "").trim()
+    pricing.baseCredits = Number(pricing.baseCredits)
+    pricing.enabled = pricing.enabled !== false
+    pricing.sortOrder = Number(pricing.sortOrder || 0)
+    pricing.remark = String(pricing.remark || "").trim()
+    if (!pricing.model) {
+      return "模型价格的模型不能为空"
+    }
+    if (models.has(pricing.model)) {
+      return `模型价格重复：${pricing.model}`
+    }
+    models.add(pricing.model)
+    if (!Number.isInteger(pricing.baseCredits) || pricing.baseCredits < 1 || pricing.baseCredits > 9999) {
+      return `模型 ${pricing.model} 的基础价需为 1-9999 的整数`
+    }
+  }
+  return ""
+}
+
 function toPayload() {
   return {
     circuitBreakerFailureThreshold: form.circuitBreakerFailureThreshold,
     circuitBreakerCooldownMinutes: form.circuitBreakerCooldownMinutes,
     outputFormat: form.outputFormat,
     outputCompression: form.outputCompression,
+    resolutionMultipliers: normalizeResolutionMultipliers(form.resolutionMultipliers, createForm().resolutionMultipliers),
+    modelPricings: form.modelPricings.map((pricing) => ({
+      ...pricing,
+      model: String(pricing.model || "").trim(),
+      baseCredits: Number(pricing.baseCredits),
+      enabled: pricing.enabled !== false,
+      sortOrder: Number(pricing.sortOrder || 0),
+      remark: String(pricing.remark || "").trim()
+    })),
     providers: form.providers.map((provider) => ({
       ...provider,
       adapterType: normalizeAdapterType(provider.adapterType),
@@ -750,8 +957,22 @@ loadConfig()
   gap: 8px;
 }
 
+.pricing-multiplier-row {
+  margin-bottom: 8px;
+}
+
 .sort-input {
   width: 82px;
+}
+
+.credit-input {
+  width: 112px;
+}
+
+.pricing-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .model-alias-list {

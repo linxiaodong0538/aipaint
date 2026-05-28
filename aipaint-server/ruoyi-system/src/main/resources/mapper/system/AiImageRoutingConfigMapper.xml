@@ -4,6 +4,64 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.AiImageRoutingConfigMapper">
 
+    <select id="selectGlobalConfig" resultType="com.ruoyi.system.domain.AiImageGlobalConfigRecord">
+        select config_id as configId,
+               circuit_breaker_failure_threshold as circuitBreakerFailureThreshold,
+               circuit_breaker_cooldown_minutes as circuitBreakerCooldownMinutes,
+               output_format as outputFormat,
+               output_compression as outputCompression,
+               model_pricings as modelPricings,
+               resolution_multipliers as resolutionMultipliers,
+               remark
+        from ai_image_global_config
+        where config_id = 1
+        limit 1
+    </select>
+
+    <insert id="insertGlobalConfig" parameterType="com.ruoyi.system.domain.AiImageGlobalConfigRecord">
+        insert into ai_image_global_config(
+            config_id,
+            circuit_breaker_failure_threshold,
+            circuit_breaker_cooldown_minutes,
+            output_format,
+            output_compression,
+            model_pricings,
+            resolution_multipliers,
+            remark,
+            create_by,
+            create_time,
+            update_by,
+            update_time
+        ) values (
+            #{configId},
+            #{circuitBreakerFailureThreshold},
+            #{circuitBreakerCooldownMinutes},
+            #{outputFormat},
+            #{outputCompression},
+            #{modelPricings},
+            #{resolutionMultipliers},
+            #{remark},
+            #{createBy},
+            sysdate(),
+            #{updateBy},
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateGlobalConfig" parameterType="com.ruoyi.system.domain.AiImageGlobalConfigRecord">
+        update ai_image_global_config
+        set circuit_breaker_failure_threshold = #{circuitBreakerFailureThreshold},
+            circuit_breaker_cooldown_minutes = #{circuitBreakerCooldownMinutes},
+            output_format = #{outputFormat},
+            output_compression = #{outputCompression},
+            model_pricings = #{modelPricings},
+            resolution_multipliers = #{resolutionMultipliers},
+            remark = #{remark},
+            update_by = #{updateBy},
+            update_time = sysdate()
+        where config_id = #{configId}
+    </update>
+
     <select id="selectProviders" resultType="com.ruoyi.system.domain.AiImageProviderRecord">
         select provider_code as providerCode,
                provider_name as providerName,

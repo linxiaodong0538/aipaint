@@ -1,6 +1,7 @@
 package com.ruoyi.system.mapper;
 
 import java.util.List;
+import com.ruoyi.system.domain.AiImageGlobalConfigRecord;
 import com.ruoyi.system.domain.AiImageModelRouteRecord;
 import com.ruoyi.system.domain.AiImageProviderModelRecord;
 import com.ruoyi.system.domain.AiImageProviderRecord;
@@ -10,6 +11,12 @@ import com.ruoyi.system.domain.AiImageProviderRecord;
  */
 public interface AiImageRoutingConfigMapper
 {
+    public AiImageGlobalConfigRecord selectGlobalConfig();
+
+    public int insertGlobalConfig(AiImageGlobalConfigRecord config);
+
+    public int updateGlobalConfig(AiImageGlobalConfigRecord config);
+
     public List<AiImageProviderRecord> selectProviders();
 
     public List<AiImageProviderModelRecord> selectProviderModels();

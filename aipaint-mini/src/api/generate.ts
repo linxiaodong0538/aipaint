@@ -18,6 +18,20 @@ export interface CreateImageGenerationResponse {
   taskId: number;
 }
 
+export interface GenerationModelPricing {
+  model: string;
+  baseCredits: number;
+  enabled?: boolean;
+  sortOrder?: number;
+  remark?: string;
+}
+
+export interface GenerationPricing {
+  modelPricings: GenerationModelPricing[];
+  resolutionMultipliers: Record<string, number>;
+  singleCreditCosts: Record<string, Record<string, number>>;
+}
+
 export interface PolishPromptResponse {
   prompt: string;
 }
@@ -93,6 +107,13 @@ export function createImageGeneration(data: CreateImageGenerationRequest) {
     url: "/mini/generate/image",
     method: "POST",
     data,
+  });
+}
+
+export function getGenerationPricing() {
+  return request<GenerationPricing>({
+    url: "/mini/generate/pricing",
+    method: "GET",
   });
 }
 

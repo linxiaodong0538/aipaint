@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.system.domain.AiImageGlobalConfigRecord;
 import com.ruoyi.system.domain.AiImageModelRouteRecord;
 import com.ruoyi.system.domain.AiImageProviderHealthStats;
 import com.ruoyi.system.domain.AiImageProviderModelRecord;
@@ -30,6 +33,8 @@ import com.ruoyi.system.service.ISysConfigService;
 @Service
 public class AiImageConfigService
 {
+    private static final Long GLOBAL_CONFIG_ID = Long.valueOf(1L);
+
     public static final String SLOT_PRIMARY = "primary";
 
     public static final String SLOT_BACKUP = "backup";
@@ -66,6 +71,10 @@ public class AiImageConfigService
 
     private static final String KEY_OUTPUT_COMPRESSION = "ai.image.outputCompression";
 
+    private static final String KEY_PRICING_MODELS = "ai.image.pricing.models";
+
+    private static final String KEY_PRICING_RESOLUTION_MULTIPLIERS = "ai.image.pricing.resolutionMultipliers";
+
     @Autowired
     private ISysConfigService sysConfigService;
 
@@ -82,21 +91,52 @@ public class AiImageConfigService
     {
         List<AiImageProviderConfig> providers = loadProviderConfigs();
         List<AiImageModelRouteConfig> modelRoutes = loadModelRoutes();
+        AiImageGlobalConfigRecord globalConfig = loadGlobalConfig();
 
         AiImageAdminConfig config = new AiImageAdminConfig();
         config.setActiveProvider(resolveCompatActiveProvider(modelRoutes));
         config.setFallbackEnabled(Boolean.TRUE);
         config.setFallbackStrategy(STRATEGY_FALLBACK);
-        config.setCircuitBreakerFailureThreshold(readInt(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, 3, 1, 20));
-        config.setCircuitBreakerCooldownMinutes(readInt(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, 10, 1, 1440));
-        config.setOutputFormat(readOutputFormat());
-        config.setOutputCompression(Integer.valueOf(readInt(KEY_OUTPUT_COMPRESSION, 90, 0, 100)));
+        config.setCircuitBreakerFailureThreshold(Integer.valueOf(normalizeInt(globalConfig.getCircuitBreakerFailureThreshold(), 3, 1, 20)));
+        config.setCircuitBreakerCooldownMinutes(Integer.valueOf(normalizeInt(globalConfig.getCircuitBreakerCooldownMinutes(), 10, 1, 1440)));
+        config.setOutputFormat(normalizeOutputFormat(globalConfig.getOutputFormat()));
+        config.setOutputCompression(Integer.valueOf(normalizeInt(globalConfig.getOutputCompression(), 90, 0, 100)));
         config.setProviders(providers);
         config.setModelRoutes(modelRoutes);
+        config.setModelPricings(parseModelPricings(globalConfig.getModelPricings()));
+        config.setResolutionMultipliers(parseResolutionMultipliers(globalConfig.getResolutionMultipliers()));
         config.setPrimaryProvider(findProvider(providers, config.getActiveProvider()));
         config.setBackupProvider(resolveCompatBackupProvider(providers, modelRoutes));
         config.setHealthStats(buildHealthStats(providers));
         return config;
+    }
+
+    public AiImagePricingConfig getPricingConfig()
+    {
+        AiImagePricingConfig config = new AiImagePricingConfig();
+        AiImageGlobalConfigRecord globalConfig = loadGlobalConfig();
+        List<AiImageModelPricing> modelPricings = parseModelPricings(globalConfig.getModelPricings());
+        Map<String, Double> multipliers = parseResolutionMultipliers(globalConfig.getResolutionMultipliers());
+        config.setModelPricings(modelPricings);
+        config.setResolutionMultipliers(multipliers);
+        config.setSingleCreditCosts(buildSingleCreditCosts(modelPricings, multipliers));
+        return config;
+    }
+
+    public int calculateCreditCost(String model, String resolution, Integer imageCount)
+    {
+        int singleCost = calculateSingleCreditCost(model, resolution);
+        int count = imageCount == null ? 1 : Math.max(1, imageCount.intValue());
+        return singleCost * count;
+    }
+
+    public int calculateSingleCreditCost(String model, String resolution)
+    {
+        AiImageGlobalConfigRecord globalConfig = loadGlobalConfig();
+        AiImageModelPricing pricing = findPricing(parseModelPricings(globalConfig.getModelPricings()), model);
+        int baseCredits = pricing == null ? getDefaultModelBaseCredits(model) : pricing.getBaseCredits().intValue();
+        double multiplier = parseResolutionMultipliers(globalConfig.getResolutionMultipliers()).getOrDefault(normalizeResolutionKey(resolution), Double.valueOf(1.0D)).doubleValue();
+        return (int) Math.ceil(baseCredits * multiplier);
     }
 
     public AiImageProviderConfig resolveActiveProvider()
@@ -151,10 +191,8 @@ public class AiImageConfigService
     {
         AiImageAdminConfig normalized = normalizeForSave(config);
 
-        upsert(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, "AI生图-熔断失败阈值", String.valueOf(normalized.getCircuitBreakerFailureThreshold()), "连续失败达到该次数后临时熔断主通道", operator);
-        upsert(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, "AI生图-熔断冷却分钟", String.valueOf(normalized.getCircuitBreakerCooldownMinutes()), "只统计冷却窗口内的连续失败", operator);
-        upsert(KEY_OUTPUT_FORMAT, "AI生图-输出格式", normalized.getOutputFormat(), "支持 jpeg、png", operator);
-        upsert(KEY_OUTPUT_COMPRESSION, "AI生图-JPEG压缩强度", String.valueOf(normalized.getOutputCompression()), "范围 0-100，仅对 jpeg 有效", operator);
+        saveGlobalConfig(normalized, operator);
+        deleteLegacySysConfigKeys();
 
         routingConfigMapper.deleteModelRoutes();
         routingConfigMapper.deleteProviderModels();
@@ -186,8 +224,12 @@ public class AiImageConfigService
 
         List<AiImageProviderConfig> providers = normalizeProviders(config.getProviders());
         List<AiImageModelRouteConfig> routes = normalizeRoutes(config.getModelRoutes(), providers);
+        List<AiImageModelPricing> modelPricings = normalizeModelPricings(config.getModelPricings());
+        Map<String, Double> resolutionMultipliers = normalizeResolutionMultipliers(config.getResolutionMultipliers());
         config.setProviders(providers);
         config.setModelRoutes(routes);
+        config.setModelPricings(modelPricings);
+        config.setResolutionMultipliers(resolutionMultipliers);
         return config;
     }
 
@@ -308,6 +350,52 @@ public class AiImageConfigService
         return routes;
     }
 
+    private List<AiImageModelPricing> normalizeModelPricings(List<AiImageModelPricing> input)
+    {
+        List<AiImageModelPricing> source = input == null || input.isEmpty() ? buildDefaultModelPricings() : input;
+        List<AiImageModelPricing> modelPricings = new ArrayList<>();
+        Set<String> models = new LinkedHashSet<>();
+        int index = 0;
+        for (AiImageModelPricing pricing : source)
+        {
+            AiImageModelPricing normalized = normalizeModelPricing(pricing, index++);
+            if (!models.add(normalized.getModel()))
+            {
+                throw new ServiceException("模型价格重复：" + normalized.getModel());
+            }
+            modelPricings.add(normalized);
+        }
+        return modelPricings;
+    }
+
+    private AiImageModelPricing normalizeModelPricing(AiImageModelPricing pricing, int index)
+    {
+        AiImageModelPricing normalized = pricing == null ? new AiImageModelPricing() : pricing;
+        normalized.setModel(normalizeModel(normalized.getModel()));
+        normalized.setBaseCredits(Integer.valueOf(normalizeInt(normalized.getBaseCredits(), getDefaultModelBaseCredits(normalized.getModel()), 1, 9999)));
+        normalized.setEnabled(Boolean.valueOf(!Boolean.FALSE.equals(normalized.getEnabled())));
+        normalized.setSortOrder(Integer.valueOf(normalizeInt(normalized.getSortOrder(), index + 1, 0, 9999)));
+        normalized.setRemark(blankToEmpty(normalized.getRemark()));
+        return normalized;
+    }
+
+    private Map<String, Double> normalizeResolutionMultipliers(Map<String, Double> input)
+    {
+        Map<String, Double> defaults = buildDefaultResolutionMultipliers();
+        Map<String, Double> normalized = new LinkedHashMap<>();
+        for (String resolution : defaults.keySet())
+        {
+            Double rawValue = input == null ? null : input.get(resolution);
+            double value = rawValue == null ? defaults.get(resolution).doubleValue() : rawValue.doubleValue();
+            if (!Double.isFinite(value) || value < 0.1D || value > 100D)
+            {
+                value = defaults.get(resolution).doubleValue();
+            }
+            normalized.put(resolution, Double.valueOf(value));
+        }
+        return normalized;
+    }
+
     private AiImageModelRouteConfig normalizeRoute(AiImageModelRouteConfig route, Map<String, AiImageProviderConfig> providerMap, int index)
     {
         AiImageModelRouteConfig normalized = route == null ? new AiImageModelRouteConfig() : route;
@@ -389,28 +477,65 @@ public class AiImageConfigService
         return normalizedModel;
     }
 
-    private void upsert(String configKey, String configName, String configValue, String remark, String operator)
+    private AiImageGlobalConfigRecord loadGlobalConfig()
     {
-        SysConfig existing = sysConfigMapper.checkConfigKeyUnique(configKey);
-        if (existing == null)
+        AiImageGlobalConfigRecord config = routingConfigMapper.selectGlobalConfig();
+        return config == null ? buildGlobalConfigFromLegacySysConfig() : config;
+    }
+
+    private AiImageGlobalConfigRecord buildGlobalConfigFromLegacySysConfig()
+    {
+        AiImageGlobalConfigRecord config = new AiImageGlobalConfigRecord();
+        config.setConfigId(GLOBAL_CONFIG_ID);
+        config.setCircuitBreakerFailureThreshold(Integer.valueOf(readLegacyInt(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD, 3, 1, 20)));
+        config.setCircuitBreakerCooldownMinutes(Integer.valueOf(readLegacyInt(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES, 10, 1, 1440)));
+        config.setOutputFormat(readOutputFormat());
+        config.setOutputCompression(Integer.valueOf(readLegacyInt(KEY_OUTPUT_COMPRESSION, 90, 0, 100)));
+        config.setModelPricings(readLegacyString(KEY_PRICING_MODELS, JSON.toJSONString(buildDefaultModelPricings())));
+        config.setResolutionMultipliers(readLegacyString(KEY_PRICING_RESOLUTION_MULTIPLIERS, JSON.toJSONString(buildDefaultResolutionMultipliers())));
+        config.setRemark("AI生图全局配置");
+        return config;
+    }
+
+    private void saveGlobalConfig(AiImageAdminConfig config, String operator)
+    {
+        AiImageGlobalConfigRecord record = new AiImageGlobalConfigRecord();
+        record.setConfigId(GLOBAL_CONFIG_ID);
+        record.setCircuitBreakerFailureThreshold(config.getCircuitBreakerFailureThreshold());
+        record.setCircuitBreakerCooldownMinutes(config.getCircuitBreakerCooldownMinutes());
+        record.setOutputFormat(config.getOutputFormat());
+        record.setOutputCompression(config.getOutputCompression());
+        record.setModelPricings(JSON.toJSONString(config.getModelPricings()));
+        record.setResolutionMultipliers(JSON.toJSONString(config.getResolutionMultipliers()));
+        record.setRemark("AI生图全局配置");
+        record.setCreateBy(operator);
+        record.setUpdateBy(operator);
+
+        if (routingConfigMapper.selectGlobalConfig() == null)
         {
-            SysConfig config = new SysConfig();
-            config.setConfigName(configName);
-            config.setConfigKey(configKey);
-            config.setConfigValue(blankToEmpty(configValue));
-            config.setConfigType("Y");
-            config.setRemark(remark);
-            config.setCreateBy(operator);
-            sysConfigMapper.insertConfig(config);
+            routingConfigMapper.insertGlobalConfig(record);
             return;
         }
+        routingConfigMapper.updateGlobalConfig(record);
+    }
 
-        existing.setConfigName(configName);
-        existing.setConfigValue(blankToEmpty(configValue));
-        existing.setConfigType("Y");
-        existing.setRemark(remark);
-        existing.setUpdateBy(operator);
-        sysConfigMapper.updateConfig(existing);
+    private void deleteLegacySysConfigKeys()
+    {
+        deleteSysConfigKey(KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD);
+        deleteSysConfigKey(KEY_CIRCUIT_BREAKER_COOLDOWN_MINUTES);
+        deleteSysConfigKey(KEY_OUTPUT_FORMAT);
+        deleteSysConfigKey(KEY_OUTPUT_COMPRESSION);
+        deleteSysConfigKey(KEY_PRICING_MODELS);
+        deleteSysConfigKey(KEY_PRICING_RESOLUTION_MULTIPLIERS);
+    }
+
+    private void deleteSysConfigKey(String configKey)
+    {
+        SysConfig existing = sysConfigMapper.checkConfigKeyUnique(configKey);
+        if (existing != null && existing.getConfigId() != null)
+        {
+            sysConfigMapper.deleteConfigById(existing.getConfigId());
+        }
     }
 
     private List<AiImageProviderConfig> loadProviderConfigs()
@@ -464,6 +589,74 @@ public class AiImageConfigService
         return routes;
     }
 
+    private List<AiImageModelPricing> parseModelPricings(String value)
+    {
+        if (StringUtils.isBlank(value))
+        {
+            return buildDefaultModelPricings();
+        }
+        try
+        {
+            List<AiImageModelPricing> parsed = JSON.parseObject(value, new TypeReference<List<AiImageModelPricing>>(){});
+            return normalizeModelPricings(parsed);
+        }
+        catch (Exception e)
+        {
+            return buildDefaultModelPricings();
+        }
+    }
+
+    private Map<String, Double> parseResolutionMultipliers(String value)
+    {
+        if (StringUtils.isBlank(value))
+        {
+            return buildDefaultResolutionMultipliers();
+        }
+        try
+        {
+            Map<String, Double> parsed = JSON.parseObject(value, new TypeReference<Map<String, Double>>(){});
+            return normalizeResolutionMultipliers(parsed);
+        }
+        catch (Exception e)
+        {
+            return buildDefaultResolutionMultipliers();
+        }
+    }
+
+    private Map<String, Map<String, Integer>> buildSingleCreditCosts(List<AiImageModelPricing> modelPricings, Map<String, Double> multipliers)
+    {
+        Map<String, Map<String, Integer>> costs = new LinkedHashMap<>();
+        List<AiImageModelPricing> normalizedPricings = normalizeModelPricings(modelPricings);
+        Map<String, Double> normalizedMultipliers = normalizeResolutionMultipliers(multipliers);
+        for (AiImageModelPricing pricing : normalizedPricings)
+        {
+            if (!Boolean.TRUE.equals(pricing.getEnabled()))
+            {
+                continue;
+            }
+            Map<String, Integer> modelCosts = new LinkedHashMap<>();
+            for (Map.Entry<String, Double> entry : normalizedMultipliers.entrySet())
+            {
+                modelCosts.put(entry.getKey(), Integer.valueOf((int) Math.ceil(pricing.getBaseCredits().intValue() * entry.getValue().doubleValue())));
+            }
+            costs.put(pricing.getModel(), modelCosts);
+        }
+        return costs;
+    }
+
+    private AiImageModelPricing findPricing(List<AiImageModelPricing> modelPricings, String model)
+    {
+        String normalizedModel = StringUtils.trimToEmpty(model);
+        for (AiImageModelPricing pricing : normalizeModelPricings(modelPricings))
+        {
+            if (normalizedModel.equals(pricing.getModel()) && Boolean.TRUE.equals(pricing.getEnabled()))
+            {
+                return pricing;
+            }
+        }
+        return null;
+    }
+
     private List<AiImageProviderConfig> buildDefaultProviders()
     {
         List<AiImageProviderConfig> providers = new ArrayList<>();
@@ -502,12 +695,12 @@ public class AiImageConfigService
         String prefix = "ai.image." + legacySlot;
         AiImageProviderConfig config = new AiImageProviderConfig();
         config.setProviderCode(providerCode);
-        config.setProviderName(readString(prefix + ".name", defaultName));
-        config.setEnabled(Boolean.valueOf(readBoolean(prefix + ".enabled", false)));
+        config.setProviderName(readLegacyString(prefix + ".name", defaultName));
+        config.setEnabled(Boolean.valueOf(readLegacyBoolean(prefix + ".enabled", false)));
         config.setAdapterType(defaultAdapterType);
-        config.setBaseUrl(readString(prefix + ".baseUrl", ""));
-        config.setApiKey(readString(prefix + ".apiKey", ""));
-        config.setModel(readString(prefix + ".model", DEFAULT_MODEL));
+        config.setBaseUrl(readLegacyString(prefix + ".baseUrl", ""));
+        config.setApiKey(readLegacyString(prefix + ".apiKey", ""));
+        config.setModel(readLegacyString(prefix + ".model", DEFAULT_MODEL));
         config.setProviderModelMap(Collections.singletonMap(DEFAULT_MODEL, StringUtils.defaultIfBlank(config.getModel(), DEFAULT_MODEL)));
         config.setSupportsBatch(Boolean.TRUE);
         return config;
@@ -552,13 +745,13 @@ public class AiImageConfigService
         return ADAPTER_OPENAI_COMPATIBLE.equals(adapterType) || ADAPTER_GRSAI_ASYNC.equals(adapterType);
     }
 
-    private String readString(String key, String defaultValue)
+    private String readLegacyString(String key, String defaultValue)
     {
         String value = sysConfigService.selectConfigByKey(key);
         return StringUtils.isBlank(value) ? defaultValue : value.trim();
     }
 
-    private boolean readBoolean(String key, boolean defaultValue)
+    private boolean readLegacyBoolean(String key, boolean defaultValue)
     {
         String value = sysConfigService.selectConfigByKey(key);
         if (StringUtils.isBlank(value))
@@ -568,7 +761,7 @@ public class AiImageConfigService
         return Boolean.parseBoolean(value);
     }
 
-    private int readInt(String key, int defaultValue, int min, int max)
+    private int readLegacyInt(String key, int defaultValue, int min, int max)
     {
         String value = sysConfigService.selectConfigByKey(key);
         if (StringUtils.isBlank(value))
@@ -596,7 +789,7 @@ public class AiImageConfigService
 
     private String readOutputFormat()
     {
-        return normalizeOutputFormat(readString(KEY_OUTPUT_FORMAT, "jpeg"));
+        return normalizeOutputFormat(readLegacyString(KEY_OUTPUT_FORMAT, "jpeg"));
     }
 
     private String normalizeOutputFormat(String outputFormat)
@@ -657,6 +850,71 @@ public class AiImageConfigService
         nanoFastRoute.setRemark("nano-banana 暂时走 Grsai");
         routes.add(nanoFastRoute);
         return routes;
+    }
+
+    private List<AiImageModelPricing> buildDefaultModelPricings()
+    {
+        List<AiImageModelPricing> pricings = new ArrayList<>();
+        pricings.add(buildDefaultModelPricing(DEFAULT_MODEL, 6, 1, "全能艺术创作"));
+        pricings.add(buildDefaultModelPricing(MODEL_GPT_IMAGE_2_VIP, 15, 2, "尺寸增强"));
+        pricings.add(buildDefaultModelPricing(MODEL_NANO_BANANA_FAST, 5, 3, "轻量快速生成"));
+        pricings.add(buildDefaultModelPricing(MODEL_NANO_BANANA, 12, 4, "写实摄影风格"));
+        pricings.add(buildDefaultModelPricing(MODEL_NANO_BANANA_PRO, 20, 5, "专业细节增强"));
+        return pricings;
+    }
+
+    private AiImageModelPricing buildDefaultModelPricing(String model, int baseCredits, int sortOrder, String remark)
+    {
+        AiImageModelPricing pricing = new AiImageModelPricing();
+        pricing.setModel(model);
+        pricing.setBaseCredits(Integer.valueOf(baseCredits));
+        pricing.setEnabled(Boolean.TRUE);
+        pricing.setSortOrder(Integer.valueOf(sortOrder));
+        pricing.setRemark(remark);
+        return pricing;
+    }
+
+    private Map<String, Double> buildDefaultResolutionMultipliers()
+    {
+        Map<String, Double> multipliers = new LinkedHashMap<>();
+        multipliers.put("1K", Double.valueOf(1.0D));
+        multipliers.put("2K", Double.valueOf(1.2D));
+        multipliers.put("4K", Double.valueOf(1.5D));
+        return multipliers;
+    }
+
+    private int getDefaultModelBaseCredits(String model)
+    {
+        if (MODEL_NANO_BANANA.equals(model))
+        {
+            return 12;
+        }
+        if (MODEL_GPT_IMAGE_2_VIP.equals(model))
+        {
+            return 15;
+        }
+        if (MODEL_NANO_BANANA_FAST.equals(model))
+        {
+            return 5;
+        }
+        if (MODEL_NANO_BANANA_PRO.equals(model))
+        {
+            return 20;
+        }
+        return 6;
+    }
+
+    private String normalizeResolutionKey(String resolution)
+    {
+        if ("2k".equalsIgnoreCase(resolution) || "2K".equals(resolution))
+        {
+            return "2K";
+        }
+        if ("4k".equalsIgnoreCase(resolution) || "4K".equals(resolution))
+        {
+            return "4K";
+        }
+        return "1K";
     }
 
     private void addDefaultGrsaiModels(Collection<String> models)

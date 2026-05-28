@@ -30,6 +30,10 @@ public class AiImageAdminConfig
 
     private List<AiImageModelRouteConfig> modelRoutes;
 
+    private List<AiImageModelPricing> modelPricings;
+
+    private java.util.Map<String, Double> resolutionMultipliers;
+
     private List<AiImageProviderHealthStats> healthStats;
 
     public String getActiveProvider()
@@ -140,6 +144,26 @@ public class AiImageAdminConfig
     public void setModelRoutes(List<AiImageModelRouteConfig> modelRoutes)
     {
         this.modelRoutes = modelRoutes;
+    }
+
+    public List<AiImageModelPricing> getModelPricings()
+    {
+        return modelPricings;
+    }
+
+    public void setModelPricings(List<AiImageModelPricing> modelPricings)
+    {
+        this.modelPricings = modelPricings;
+    }
+
+    public java.util.Map<String, Double> getResolutionMultipliers()
+    {
+        return resolutionMultipliers;
+    }
+
+    public void setResolutionMultipliers(java.util.Map<String, Double> resolutionMultipliers)
+    {
+        this.resolutionMultipliers = resolutionMultipliers;
     }
 
     public List<AiImageProviderHealthStats> getHealthStats()

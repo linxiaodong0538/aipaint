@@ -28,6 +28,7 @@ import com.ruoyi.system.domain.AiGenerationTask;
 import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiGenerationTaskService;
 import com.ruoyi.web.service.AiPromptPolishService;
+import com.ruoyi.web.service.image.AiImageConfigService;
 import com.ruoyi.web.service.image.AiImageProviderConfig;
 import com.ruoyi.web.service.image.AiImageService;
 import com.ruoyi.web.service.image.AiImageTaskRunner;
@@ -63,6 +64,9 @@ public class MiniGenerateController extends BaseController
 
     @Autowired
     private AiPromptPolishService aiPromptPolishService;
+
+    @Autowired
+    private AiImageConfigService aiImageConfigService;
 
     @PostMapping("/image")
     public AjaxResult createImage(@RequestBody GenerateImageRequest request)
@@ -104,7 +108,7 @@ public class MiniGenerateController extends BaseController
         task.setImageCount(imageCount);
         task.setStatus("pending");
         task.setProgress(0);
-        int creditCost = calculateCreditCost(model, resolution, imageCount);
+        int creditCost = aiImageConfigService.calculateCreditCost(model, resolution, imageCount);
         task.setCreditCost(creditCost);
         task.setCreateBy(SecurityUtils.getUsername());
         taskService.insertGenerationTask(task);
@@ -201,6 +205,12 @@ public class MiniGenerateController extends BaseController
     {
         AiGenerationTask task = taskService.selectGenerationTaskByIdAndUserId(taskId, SecurityUtils.getUserId());
         return task == null ? error("任务不存在") : success(task);
+    }
+
+    @GetMapping("/pricing")
+    public AjaxResult getPricing()
+    {
+        return success(aiImageConfigService.getPricingConfig());
     }
 
     @GetMapping("/tasks")
@@ -544,56 +554,6 @@ public class MiniGenerateController extends BaseController
             return status;
         }
         return null;
-    }
-
-    private int calculateCreditCost(String model, String resolution, Integer imageCount)
-    {
-        int singleCost = calculateSingleCreditCost(model, resolution);
-        int count = imageCount == null ? 1 : Math.max(1, imageCount.intValue());
-        return singleCost * count;
-    }
-
-    private int calculateSingleCreditCost(String model, String resolution)
-    {
-        return (int) Math.ceil(getModelBaseCredits(model) * getResolutionCreditMultiplier(resolution));
-    }
-
-    private int getModelBaseCredits(String model)
-    {
-        if (MODEL_GPT_IMAGE_2.equals(model))
-        {
-            return 6;
-        }
-        if (MODEL_NANO_BANANA_2.equals(model))
-        {
-            return 12;
-        }
-        if (MODEL_NANO_BANANA.equals(model))
-        {
-            return 5;
-        }
-        if (MODEL_GPT_IMAGE_2_VIP.equals(model))
-        {
-            return 15;
-        }
-        if (MODEL_NANO_BANANA_PRO.equals(model))
-        {
-            return 20;
-        }
-        return 6;
-    }
-
-    private double getResolutionCreditMultiplier(String resolution)
-    {
-        if ("2K".equals(resolution))
-        {
-            return 1.2D;
-        }
-        if ("4K".equals(resolution))
-        {
-            return 1.5D;
-        }
-        return 1.0D;
     }
 
     public static class GenerateImageRequest
