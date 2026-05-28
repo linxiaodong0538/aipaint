@@ -568,7 +568,11 @@ public class MiniGenerateController extends BaseController
         {
             return 12;
         }
-        if (MODEL_GPT_IMAGE_2_VIP.equals(model) || MODEL_NANO_BANANA.equals(model))
+        if (MODEL_NANO_BANANA.equals(model))
+        {
+            return 5;
+        }
+        if (MODEL_GPT_IMAGE_2_VIP.equals(model))
         {
             return 15;
         }

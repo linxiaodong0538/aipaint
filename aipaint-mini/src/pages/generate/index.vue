@@ -161,9 +161,10 @@
         <view class="mb-[32rpx]">
           <view class="flex items-center justify-between">
             <text class="model-section-label font-mono">画面比例</text>
-            <text v-if="shouldShowImageSizeText" class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
+            <text v-if="ratioOptionsReady && shouldShowImageSizeText" class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
           </view>
           <scroll-view
+            v-if="ratioOptionsReady"
             class="ratio-scroll"
             scroll-x
             enhanced
@@ -175,10 +176,11 @@
             <view class="ratio-scroll-row">
               <view
                 v-for="item in visibleRatios"
-                :id="`ratio-${item.value}`"
-                :key="item.value"
+                :id="getRatioScrollId(item.value)"
+                :key="getRatioChipKey(item.value)"
                 class="ratio-chip"
-                :class="{ active: ratio === item.value }"
+                :class="getRatioChipClass(item.value)"
+                :style="getRatioChipStyle(item.value)"
                 @tap="selectRatio(item.value)"
               >
                 <view class="ratio-icon" :class="item.iconClass" />
@@ -273,7 +275,7 @@
               v-for="item in moreRatios"
               :key="item.value"
               class="ratio-drawer-option"
-              :class="{ active: ratio === item.value }"
+              :class="{ 'ratio-drawer-option-active': isSelectedRatio(item.value) }"
               @tap="selectRatioFromDrawer(item.value)"
             >
               <view class="ratio-drawer-option-mark">
@@ -284,7 +286,7 @@
                 <text v-if="shouldShowImageSizeText" class="ratio-drawer-option-size">{{ getRatioSizeText(item.value) }}</text>
               </view>
               <view class="ratio-drawer-option-check">
-                <view v-if="ratio === item.value" class="ratio-drawer-check-mark" />
+                <view v-if="isSelectedRatio(item.value)" class="ratio-drawer-check-mark" />
               </view>
             </view>
           </view>
@@ -488,7 +490,6 @@ const modelSizeMaps: Partial<Record<ModelValue, SizeMap>> = {
     "1:2": { "1K": "768x1536", "2K": "1536x3072", "4K": "1920x3840" },
   },
   "nano-banana": {
-    "auto": { "1K": "1024x1024" },
     "1:1": { "1K": "1024x1024" },
     "16:9": { "1K": "1536x864" },
     "9:16": { "1K": "864x1536" },
@@ -556,11 +557,12 @@ const canAddReferenceImages = computed(() => referenceImages.value.length < maxR
 const model = ref<ModelValue>("gpt-image-2");
 const quality = ref<QualityValue>("1K");
 const count = ref<(typeof counts)[number]>(1);
-const ratio = ref<RatioValue>("1:1");
+const ratio = ref<RatioValue>("auto");
 const generating = ref(false);
 const mockGenerating = ref(false);
 const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
+const ratioOptionsReady = ref(false);
 const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
 const retryParamsStorageKey = "generate:retryParams";
@@ -587,7 +589,7 @@ const compressCanvasHeight = ref(1);
 
 const activeSizeMap = computed(() => getModelSizeMap(model.value));
 const availableQualities = computed(() => qualities.filter((item) => hasAnyRatioForQuality(item)));
-const availableRatios = computed(() => ratios.filter((item) => Boolean(activeSizeMap.value[item.value]?.[quality.value])));
+const availableRatios = computed(() => ratios.filter((item) => isRatioAvailableForQuality(model.value, item.value, quality.value)));
 const visibleRatios = computed(() => {
   const primary = availableRatios.value.filter((item) => commonRatioValues.includes(item.value));
   if (!commonRatioValues.includes(ratio.value)) {
@@ -599,7 +601,7 @@ const visibleRatios = computed(() => {
   return primary;
 });
 const moreRatios = computed(() => availableRatios.value.filter((item) => !commonRatioValues.includes(item.value)));
-const ratioScrollIntoView = computed(() => `ratio-${ratio.value}`);
+const ratioScrollIntoView = computed(() => getRatioScrollId(ratio.value));
 const shouldShowImageSizeText = computed(() => model.value !== "nano-banana");
 const selectedImageSizeText = computed(() => getRatioDisplayText(ratio.value));
 const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
@@ -615,12 +617,54 @@ function rpxToPx(rpx: number) {
   return (windowWidth.value / 750) * rpx;
 }
 
+function normalizeRatioValue(value?: string): RatioValue | null {
+  if (!value) return null;
+  const normalized = value.trim().replace("：", ":").replace(/\s+/g, "").toLowerCase();
+  const matched = ratios.find((item) => item.value.toLowerCase() === normalized || item.label.toLowerCase() === normalized);
+  return matched?.value || null;
+}
+
+function isSelectedRatio(value: RatioValue) {
+  return ratio.value === value;
+}
+
+function getRatioChipClass(value: RatioValue) {
+  return isSelectedRatio(value) ? "ratio-chip-selected" : "";
+}
+
+function getRatioChipStyle(value: RatioValue) {
+  if (isSelectedRatio(value)) {
+    return "border-color:#000000;background-color:#000000;color:#ffffff;box-shadow:0 0 0 8rpx rgba(0,0,0,0.1);";
+  }
+
+  return "border-color:#cfc4c5;background-color:#ffffff;color:#1a1c1c;box-shadow:none;";
+}
+
+function getRatioChipKey(value: RatioValue) {
+  return `${value}-${isSelectedRatio(value) ? "selected" : "default"}`;
+}
+
+function getRatioScrollId(value: RatioValue) {
+  return `ratio-${value.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
 function getModelSizeMap(modelValue: ModelValue) {
   return modelSizeMaps[modelValue] || defaultModelSizeMap;
 }
 
+function isRatioAvailableForQuality(
+  modelValue: ModelValue,
+  ratioValue: RatioValue,
+  resolutionValue: QualityValue,
+) {
+  if (ratioValue === "auto") {
+    return modelValue === "nano-banana" && resolutionValue === "1K";
+  }
+  return Boolean(getModelSizeMap(modelValue)[ratioValue]?.[resolutionValue]);
+}
+
 function hasAnyRatioForQuality(resolutionValue: QualityValue) {
-  return ratios.some((item) => Boolean(activeSizeMap.value[item.value]?.[resolutionValue]));
+  return ratios.some((item) => isRatioAvailableForQuality(model.value, item.value, resolutionValue));
 }
 
 onLoad((query) => {
@@ -636,21 +680,35 @@ onLoad((query) => {
 
   if (query?.fromTemplate || query?.templateId) {
     void applyTemplateFromQuery(query);
+    return;
   }
+
+  ensureGenerationOptions();
+  ratioOptionsReady.value = true;
 });
 
 function applyRetryParams() {
   const params = getRetryParams();
-  if (!params) return;
+  if (!params) {
+    ensureGenerationOptions();
+    ratioOptionsReady.value = true;
+    return;
+  }
 
+  ratioOptionsReady.value = false;
+  showMoreRatios.value = false;
   if (typeof params.prompt === "string") {
     prompt.value = params.prompt;
   }
-  model.value = normalizeRetryModel(params.model);
-  ratio.value = normalizeRetryRatio(params.ratio);
-  quality.value = normalizeRetryResolution(params.resolution, params.quality);
+  const retryModel = normalizeRetryModel(params.model);
+  const retryQuality = normalizeRetryResolution(params.resolution, params.quality, retryModel);
+  model.value = retryModel;
+  quality.value = retryQuality;
+  ratio.value = normalizeRetryRatio(params.ratio, retryModel, retryQuality);
   count.value = normalizeRetryCount(params.count);
   ensureGenerationOptions();
+  ratioOptionsReady.value = true;
+  logRatioState("retry");
 }
 
 function getRetryParams() {
@@ -669,16 +727,24 @@ async function applyTemplateFromQuery(query: Record<string, string | undefined>)
 
   if (cachedTemplate) {
     applyTemplate(cachedTemplate);
+    ratioOptionsReady.value = true;
     return;
   }
 
-  if (!templateId) return;
+  if (!templateId) {
+    ensureGenerationOptions();
+    ratioOptionsReady.value = true;
+    return;
+  }
 
   try {
     const detail = await getTemplateDetail(templateId);
     applyTemplate(detail);
   } catch {
     uni.showToast({ title: "模板信息加载失败", icon: "none" });
+    ensureGenerationOptions();
+  } finally {
+    ratioOptionsReady.value = true;
   }
 }
 
@@ -698,6 +764,7 @@ function getCachedTemplate(templateId: string) {
 }
 
 function applyTemplate(value: Partial<TemplateItem>) {
+  showMoreRatios.value = false;
   if (value.prompt) {
     prompt.value = value.prompt;
   }
@@ -705,6 +772,9 @@ function applyTemplate(value: Partial<TemplateItem>) {
   ratio.value = normalizeTemplateRatio(value.ratio);
   quality.value = normalizeTemplateQuality(value);
   ensureGenerationOptions();
+  void nextTick(() => {
+    ensureGenerationOptions();
+  });
 }
 
 function normalizeTemplateModel(value?: string): ModelValue {
@@ -724,10 +794,7 @@ function normalizeTemplateModel(value?: string): ModelValue {
 }
 
 function normalizeTemplateRatio(value?: string): RatioValue {
-  if (!value) return "1:1";
-  const normalized = value.replace(/\s/g, "");
-  const matched = ratios.find((item) => normalized.includes(item.value));
-  return matched?.value || "1:1";
+  return normalizeRatioValue(value) || "1:1";
 }
 
 function normalizeTemplateQuality(value: Partial<TemplateItem>): QualityValue {
@@ -743,20 +810,30 @@ function normalizeRetryModel(value?: string): ModelValue {
   return matchedModel?.value || "gpt-image-2";
 }
 
-function normalizeRetryRatio(value?: string): RatioValue {
-  const matched = ratios.find((item) => item.value === value);
-  return matched?.value || "1:1";
+function normalizeRetryRatio(
+  value?: string,
+  modelValue: ModelValue = model.value,
+  resolutionValue: QualityValue = quality.value,
+): RatioValue {
+  const normalized = normalizeRatioValue(value);
+  if (normalized && isRatioAvailableForQuality(modelValue, normalized, resolutionValue)) {
+    return normalized;
+  }
+  return ratios.find((item) => isRatioAvailableForQuality(modelValue, item.value, resolutionValue))?.value || "1:1";
 }
 
 function normalizeRetryResolution(
   value?: string,
   imageQualityValue?: string,
+  modelValue: ModelValue = model.value,
 ): QualityValue {
-  const matched = qualities.find((item) => item === value);
+  const hasQuality = (resolutionValue: QualityValue) => ratios.some((ratioItem) => isRatioAvailableForQuality(modelValue, ratioItem.value, resolutionValue));
+  const matched = qualities.find((item) => item === value && hasQuality(item));
   if (matched) return matched;
-  if (imageQualityValue === "low") return "1K";
-  if (imageQualityValue === "high") return "4K";
-  return "2K";
+  if (imageQualityValue === "low" && hasQuality("1K")) return "1K";
+  if (imageQualityValue === "high" && hasQuality("4K")) return "4K";
+  if (hasQuality("2K")) return "2K";
+  return qualities.find((item) => hasQuality(item)) || "1K";
 }
 
 function normalizeRetryCount(value?: string | number): (typeof counts)[number] {
@@ -948,7 +1025,18 @@ function selectResolution(value: QualityValue) {
 }
 
 function selectRatio(value: RatioValue) {
-  ratio.value = value;
+  ratio.value = normalizeRatioValue(value) || "1:1";
+  logRatioState("select");
+}
+
+function logRatioState(source: string) {
+  if (!import.meta.env.DEV) return;
+  console.log(`[generate:ratio:${source}]`, {
+    model: model.value,
+    ratio: ratio.value,
+    quality: quality.value,
+    selected: visibleRatios.value.filter((item) => isSelectedRatio(item.value)).map((item) => item.value),
+  });
 }
 
 function openMoreRatios() {
@@ -1003,7 +1091,7 @@ function resolveRequestSize(
 
 function getRatioDisplayText(ratioValue: RatioValue) {
   if (model.value === "nano-banana") {
-    return ratioValue === "auto" ? "自动比例" : ratioValue;
+    return ratioValue === "auto" ? "Auto" : ratioValue;
   }
   return mapImageSize(ratioValue, quality.value).replace("x", " x ");
 }
@@ -1321,7 +1409,7 @@ async function handleGenerate() {
   line-height: 28rpx;
 }
 
-.ratio-chip.active {
+.ratio-chip-selected {
   border: 2rpx solid #000000;
   background: #000000;
   color: #ffffff;
@@ -1348,7 +1436,7 @@ async function handleGenerate() {
   transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.ratio-chip.active .ratio-icon {
+.ratio-chip-selected .ratio-icon {
   opacity: 1;
 }
 
@@ -1605,7 +1693,7 @@ async function handleGenerate() {
   transform: scale(0.98);
 }
 
-.ratio-drawer-option.active {
+.ratio-drawer-option-active {
   border-color: #111111;
   background: #111111;
   color: #ffffff;
@@ -1648,7 +1736,7 @@ async function handleGenerate() {
   color: rgba(0, 0, 0, 0.45);
 }
 
-.ratio-drawer-option.active .ratio-drawer-option-size {
+.ratio-drawer-option-active .ratio-drawer-option-size {
   color: rgba(255, 255, 255, 0.68);
 }
 

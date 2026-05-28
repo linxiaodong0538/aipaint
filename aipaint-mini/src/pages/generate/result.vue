@@ -252,7 +252,7 @@ const longWaitHintVisible = ref(false);
 const resultLayerMounted = ref(false);
 const resultDetailStorageKey = "generateResultDetailTask";
 const retryParamsStorageKey = "generate:retryParams";
-const transitionFallbackImage = "/static/logo.png";
+const transitionFallbackImage = "/static/me/header-bg.png";
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let polling = false;
@@ -273,7 +273,7 @@ const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}p
 const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const showProgressLayer = computed(() => !pageInitializing.value);
 const showResultLayer = computed(() => !pageInitializing.value && resultLayerMounted.value);
-const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
+const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || (taskModel.value === "nano-banana" ? "不适用" : "未知"));
 const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value));
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);
@@ -326,9 +326,34 @@ function rpxToPx(rpx: number) {
   return (windowWidth.value / 750) * rpx;
 }
 
+function getRouteQueryValue(query: Record<string, unknown> | undefined, key: string) {
+  const value = query?.[key];
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!isLocalPreviewHost() || typeof window === "undefined") {
+    return "";
+  }
+
+  const hashQuery = window.location.hash.split("?")[1] || "";
+  return new URLSearchParams(hashQuery).get(key) || "";
+}
+
+function shouldUseMockRoute(query: Record<string, unknown> | undefined, key: string) {
+  return (import.meta.env.DEV || isLocalPreviewHost()) && getRouteQueryValue(query, key) === "1";
+}
+
+function isLocalPreviewHost() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return ["127.0.0.1", "localhost"].includes(window.location.hostname);
+}
+
 onLoad((query) => {
   const id = Number(query?.taskId);
-  if (import.meta.env.DEV && query?.mockCompleteTransition === "1") {
+  if (shouldUseMockRoute(query, "mockCompleteTransition")) {
     taskId.value = Number.isFinite(id) && id > 0 ? id : 1;
     startMockCompleteTransition();
     return;
@@ -341,7 +366,7 @@ onLoad((query) => {
 
   taskId.value = id;
 
-  if (import.meta.env.DEV && query?.mockLongWait === "1") {
+  if (shouldUseMockRoute(query, "mockLongWait")) {
     pageInitializing.value = false;
     showLongWaitHint();
     return;
@@ -646,7 +671,7 @@ function formatModel(value: string) {
 function formatRatio(ratio: string, size: string) {
   const normalizedRatio = ratio.trim().replace("：", ":").replace(/\s+/g, "");
   if (normalizedRatio.toLowerCase() === "auto") {
-    return "自动比例";
+    return "Auto";
   }
   if (/^\d+:\d+$/.test(normalizedRatio)) {
     return normalizedRatio;
