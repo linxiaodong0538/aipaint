@@ -1,8 +1,8 @@
 <template>
   <view class="fixed inset-0 h-screen overflow-hidden bg-[#f8f8f8] text-[#1a1c1c]">
     <section
-      v-if="showProgressState"
-      class="absolute inset-0 flex flex-col items-center justify-center px-[32rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
+      v-show="showProgressLayer"
+      class="result-stage-layer absolute inset-0 flex flex-col items-center justify-center px-[32rpx] pb-[160rpx] transition-all duration-700 ease-in-out"
       :class="progressStateClass"
     >
       <view v-if="previewImage && taskState !== 'failed'" class="mb-[72rpx] w-full max-w-[560rpx]">
@@ -71,8 +71,8 @@
     </section>
 
     <section
-      v-if="showCompletedState"
-      class="absolute inset-0 transition-all duration-1000 ease-in-out"
+      v-show="showResultLayer"
+      class="result-stage-layer absolute inset-0 transition-all duration-1000 ease-in-out"
       :class="completedStateClass"
     >
       <scroll-view
@@ -93,9 +93,10 @@
               :key="`${image}-${index}`"
             >
               <image
-                class="h-full w-full"
+                class="result-image h-full w-full"
                 mode="aspectFill"
                 :src="image"
+                :class="{ 'result-image-visible': taskState === 'success' }"
                 @tap="previewGeneratedImage"
               />
             </swiper-item>
@@ -248,12 +249,16 @@ const isHistoryDetail = ref(false);
 const historyInitializing = ref(false);
 const bottomBarVisible = ref(false);
 const longWaitHintVisible = ref(false);
+const resultLayerMounted = ref(false);
 const resultDetailStorageKey = "generateResultDetailTask";
 const retryParamsStorageKey = "generate:retryParams";
+const transitionFallbackImage = "/static/logo.png";
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let polling = false;
 let pollAttempts = 0;
+let pendingCompleteTimer: ReturnType<typeof setTimeout> | null = null;
+let bottomBarTimer: ReturnType<typeof setTimeout> | null = null;
 
 try {
   const info = uni.getSystemInfoSync();
@@ -266,8 +271,8 @@ try {
 
 const footerSafePadding = computed(() => `${rpxToPx(40) + safeAreaBottom.value}px`);
 const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
-const showProgressState = computed(() => !pageInitializing.value && taskState.value !== "success");
-const showCompletedState = computed(() => !pageInitializing.value && taskState.value === "success");
+const showProgressLayer = computed(() => !pageInitializing.value);
+const showResultLayer = computed(() => !pageInitializing.value && resultLayerMounted.value);
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || "未知");
 const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value));
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
@@ -323,6 +328,12 @@ function rpxToPx(rpx: number) {
 
 onLoad((query) => {
   const id = Number(query?.taskId);
+  if (import.meta.env.DEV && query?.mockCompleteTransition === "1") {
+    taskId.value = Number.isFinite(id) && id > 0 ? id : 1;
+    startMockCompleteTransition();
+    return;
+  }
+
   if (!Number.isFinite(id) || id <= 0) {
     failTask("生成任务不存在");
     return;
@@ -451,20 +462,119 @@ function completeTask(imageUrls: string[], options: { instant?: boolean; toast?:
   activeGeneratedImageIndex.value = 0;
   stopTimers();
   if (options.instant) {
+    resultLayerMounted.value = true;
     taskState.value = "success";
     pageInitializing.value = false;
     showBottomBarAfterEnter();
     return;
   }
 
-  setTimeout(() => {
-    taskState.value = "success";
-    pageInitializing.value = false;
-    bottomBarVisible.value = true;
-    if (options.toast !== false) {
-      uni.showToast({ title: "生成完成", icon: "success" });
+  resultLayerMounted.value = true;
+  bottomBarVisible.value = false;
+  pendingCompleteTimer = setTimeout(() => {
+    void preloadImage(imageUrls[0]).then(() => {
+      pendingCompleteTimer = null;
+      if (taskState.value !== "processing") {
+        return;
+      }
+
+      taskState.value = "success";
+      pageInitializing.value = false;
+      showBottomBarAfterEnter();
+      if (options.toast !== false) {
+        setTimeout(() => {
+          if (taskState.value === "success") {
+            uni.showToast({ title: "生成完成", icon: "success" });
+          }
+        }, 260);
+      }
+    });
+  }, 260);
+}
+
+function preloadImage(url: string) {
+  return new Promise<void>((resolve) => {
+    if (!url) {
+      resolve();
+      return;
     }
-  }, 500);
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    setTimeout(finish, 900);
+    uni.getImageInfo({
+      src: url,
+      success: finish,
+      fail: finish,
+    });
+  });
+}
+
+function startMockCompleteTransition() {
+  applyTaskDetails({
+    taskId: taskId.value || 1,
+    status: "processing",
+    prompt: "一张柔和光线下的产品海报，干净背景，高级质感",
+    model: "nano-banana",
+    quality: "",
+    ratio: "1:1",
+    resolution: "1K",
+    size: "",
+    imageUrls: "",
+    imageCount: 1,
+    creditCost: 8,
+    createTime: "2026-05-28 10:06:00",
+    previewImageUrl: transitionFallbackImage,
+    resultImageUrl: "",
+    resultImageUrls: [],
+    errorMessage: "",
+    runStartTime: "2026-05-28 10:06:01",
+    finishTime: "2026-05-28 10:06:08",
+    updateTime: "2026-05-28 10:06:08",
+  } as GenerationTask);
+  previewImage.value = transitionFallbackImage;
+  pageInitializing.value = false;
+  pendingCompleteTimer = setTimeout(() => {
+    pendingCompleteTimer = null;
+    completeTask([transitionFallbackImage], { toast: false });
+  }, 1400);
+}
+
+function enterFailedState(message: string) {
+  errorMessage.value = message;
+  stopTimers();
+  bottomBarVisible.value = false;
+  resultLayerMounted.value = false;
+  taskState.value = "failed";
+  pageInitializing.value = false;
+}
+
+function resetPendingTimers() {
+  if (pendingCompleteTimer) {
+    clearTimeout(pendingCompleteTimer);
+    pendingCompleteTimer = null;
+  }
+  if (bottomBarTimer) {
+    clearTimeout(bottomBarTimer);
+    bottomBarTimer = null;
+  }
+}
+
+function scheduleBottomBar(delay = 360) {
+  if (bottomBarTimer) {
+    clearTimeout(bottomBarTimer);
+  }
+  bottomBarTimer = setTimeout(() => {
+    bottomBarTimer = null;
+    if (taskState.value === "success") {
+      bottomBarVisible.value = true;
+    }
+  }, delay);
 }
 
 function applyTaskDetails(task: GenerationTask) {
@@ -567,11 +677,7 @@ function gcd(a: number, b: number): number {
 }
 
 function failTask(message: string) {
-  errorMessage.value = message;
-  stopTimers();
-  bottomBarVisible.value = false;
-  taskState.value = "failed";
-  pageInitializing.value = false;
+  enterFailedState(message);
   uni.showToast({ title: message, icon: "none" });
 }
 
@@ -588,16 +694,12 @@ function shouldShowLaterCheckHint(task: GenerationTask) {
 }
 
 function showBottomBarAfterEnter() {
-  if (!isHistoryDetail.value) {
+  if (isHistoryDetail.value) {
     bottomBarVisible.value = true;
     return;
   }
 
-  setTimeout(() => {
-    if (taskState.value === "success") {
-      bottomBarVisible.value = true;
-    }
-  }, 350);
+  scheduleBottomBar(360);
 }
 
 function stopTimers() {
@@ -605,6 +707,7 @@ function stopTimers() {
     clearInterval(pollTimer);
     pollTimer = null;
   }
+  resetPendingTimers();
 }
 
 function getTaskResultImages(task: GenerationTask) {
@@ -676,6 +779,24 @@ page {
   background-color: #f8f8f8;
   height: 100%;
   overflow: hidden;
+}
+
+.result-stage-layer {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: opacity, transform;
+}
+
+.result-image {
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 520ms ease, transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.result-image-visible {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .orbit-container {
