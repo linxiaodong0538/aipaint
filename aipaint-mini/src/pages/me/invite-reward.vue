@@ -48,23 +48,13 @@
           </view>
         </section>
 
-        <section class="mt-[20rpx] grid grid-cols-2 gap-[16rpx]">
+        <section class="mt-[20rpx]">
           <button
-            class="primary-action flex h-[96rpx] w-full items-center justify-center gap-[14rpx] rounded-[28rpx] bg-black text-[26rpx] font-semibold leading-none text-white active:opacity-90"
+            class="primary-action flex h-[104rpx] w-full items-center justify-center gap-[16rpx] rounded-[30rpx] bg-black text-[28rpx] font-semibold leading-none text-white active:opacity-90"
             open-type="share"
           >
-            <text class="iconfont icon-a-huaban1fuben37 text-[32rpx] leading-none text-white" style="font-size: 38rpx;"/>
+            <text class="iconfont icon-a-huaban1fuben37 text-[34rpx] leading-none text-white" style="font-size: 40rpx;"/>
             <text class="whitespace-nowrap">微信邀请</text>
-          </button>
-          <button
-            class="secondary-action flex h-[96rpx] w-full items-center justify-center gap-[14rpx] rounded-[28rpx] bg-white text-[26rpx] font-semibold leading-none text-black active:bg-[#f3f3f4]"
-            @tap="copyInviteLink"
-          >
-            <view class="copy-icon">
-              <view class="copy-icon-back" />
-              <view class="copy-icon-front" />
-            </view>
-            <text class="whitespace-nowrap">复制链接</text>
           </button>
         </section>
 
@@ -205,14 +195,6 @@ function formatStat(value?: number) {
   return String(value || 0);
 }
 
-function copyInviteLink() {
-  uni.setClipboardData({
-    data: inviteLink.value,
-    success: () => {
-      uni.showToast({ title: "邀请链接已复制", icon: "none" });
-    },
-  });
-}
 </script>
 
 <style scoped>
@@ -269,13 +251,6 @@ function copyInviteLink() {
     0 16rpx 34rpx rgba(0, 0, 0, 0.14);
 }
 
-.secondary-action {
-  border: 1px solid rgba(25, 30, 36, 0.1);
-  box-shadow:
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.92),
-    0 14rpx 32rpx rgba(52, 64, 82, 0.06);
-}
-
 .rules-panel {
   border: 1px solid rgba(255, 255, 255, 0.86);
   background: #ffffff;
@@ -293,29 +268,4 @@ function copyInviteLink() {
   box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.7);
 }
 
-.copy-icon {
-  position: relative;
-  width: 34rpx;
-  height: 34rpx;
-}
-
-.copy-icon-back,
-.copy-icon-front {
-  position: absolute;
-  width: 24rpx;
-  height: 24rpx;
-  border: 4rpx solid #000;
-  border-radius: 4rpx;
-  background: #fff;
-}
-
-.copy-icon-back {
-  left: 0;
-  top: 8rpx;
-}
-
-.copy-icon-front {
-  right: 0;
-  top: 0;
-}
 </style>
