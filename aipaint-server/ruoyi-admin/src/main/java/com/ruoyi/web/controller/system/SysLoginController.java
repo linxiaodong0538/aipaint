@@ -91,7 +91,7 @@ public class SysLoginController
     @PostMapping("/auth/wechat-login")
     public AjaxResult wechatLogin(@RequestBody WechatLoginBody loginBody)
     {
-        WechatLoginService.LoginResult result = wechatLoginService.login(loginBody.getCode());
+        WechatLoginService.LoginResult result = wechatLoginService.login(loginBody.getCode(), loginBody.getInviteCode(), loginBody.getDevOpenid());
         AjaxResult ajax = AjaxResult.success();
         ajax.put(Constants.TOKEN, result.getToken());
         ajax.put("user", toMiniUserProfile(result.getUser()));

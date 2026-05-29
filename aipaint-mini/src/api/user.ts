@@ -3,6 +3,8 @@ import type { UserProfile } from "@/store/modules/user";
 
 export interface LoginParams {
   code: string;
+  inviteCode?: string;
+  devOpenid?: string;
 }
 
 export interface LoginResult {

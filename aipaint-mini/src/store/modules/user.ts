@@ -56,9 +56,18 @@ export const useUserStore = defineStore("user", {
           throw new Error("微信登录凭证获取失败");
         }
 
-        const result = await login({ code });
+        const inviteCode = String(uni.getStorageSync("inviteCode") || "");
+        const devOpenid = String(uni.getStorageSync("devOpenid") || "");
+        const result = await login({
+          code,
+          ...(inviteCode ? { inviteCode } : {}),
+          ...(devOpenid ? { devOpenid } : {}),
+        });
         this.setToken(result.token);
         this.setProfile(result.user);
+        if (inviteCode) {
+          uni.removeStorageSync("inviteCode");
+        }
         uni.showToast({ title: "登录成功", icon: "success" });
       } catch (error) {
         const message =

@@ -41,7 +41,7 @@
                 分享 VisionAI 创意
               </text>
               <text class="mt-[10rpx] block text-[26rpx] leading-[38rpx] text-[rgba(255,255,255,0.72)]">
-                每成功邀请一位好友，双方均可获得
+                每成功邀请一位新用户，你可获得
                 <text class="font-bold text-white">50 积分</text>。
               </text>
             </view>
@@ -103,6 +103,7 @@
 import { computed, ref } from "vue";
 import { onShareAppMessage, onShow } from "@dcloudio/uni-app";
 import { useUserStore } from "@/store/modules/user";
+import { getInviteStats, type InviteStats } from "@/api/invite";
 
 interface StatItem {
   label: string;
@@ -118,11 +119,17 @@ interface RuleItem {
 const userStore = useUserStore();
 const windowHeight = ref(0);
 const safeAreaBottom = ref(0);
+const inviteStats = ref<InviteStats>({
+  totalInvites: 0,
+  totalRewardCredits: 0,
+  todayInvites: 0,
+});
 
 updateWindowMetrics();
 
 onShow(() => {
   updateWindowMetrics();
+  loadInviteStats();
 });
 
 function updateWindowMetrics() {
@@ -144,22 +151,22 @@ const inviteLink = computed(() => {
 const scrollViewHeight = computed(() => (windowHeight.value ? `${windowHeight.value}px` : "100vh"));
 const bottomSafePadding = computed(() => `${safeAreaBottom.value + 28}px`);
 
-const stats: StatItem[] = [
-  { label: "累计邀请", value: "0" },
-  { label: "获得积分", value: "0" },
-  { label: "今日邀请", value: "0" },
-];
+const stats = computed<StatItem[]>(() => [
+  { label: "累计邀请", value: formatStat(inviteStats.value.totalInvites) },
+  { label: "获得积分", value: formatStat(inviteStats.value.totalRewardCredits) },
+  { label: "今日邀请", value: formatStat(inviteStats.value.todayInvites) },
+]);
 
 const rules: RuleItem[] = [
   {
     index: 1,
     title: "奖励发放",
-    desc: "受邀好友完成手机号注册后，系统将自动向双方发放奖励，积分即刻到账，可用于 VisionAI 的所有创作功能。",
+    desc: "受邀好友首次微信快捷登录后，系统将自动向邀请人发放 50 积分，好友仍可领取新人礼包 100 积分。",
   },
   {
     index: 2,
     title: "新用户定义",
-    desc: "指从未在 VisionAI 注册过手机号的设备及账号。同一手机号、同一设备均视为同一用户。",
+    desc: "指从未在 VisionAI 登录过的微信小程序账号。同一微信账号仅可作为新用户被邀请一次。",
   },
   {
     index: 3,
@@ -172,6 +179,31 @@ onShareAppMessage(() => ({
   title: "分享 VisionAI 创意，领取 50 积分",
   path: inviteLink.value,
 }));
+
+async function loadInviteStats() {
+  if (!userStore.isLogin) {
+    inviteStats.value = {
+      totalInvites: 0,
+      totalRewardCredits: 0,
+      todayInvites: 0,
+    };
+    return;
+  }
+
+  try {
+    inviteStats.value = await getInviteStats();
+  } catch {
+    inviteStats.value = {
+      totalInvites: 0,
+      totalRewardCredits: 0,
+      todayInvites: 0,
+    };
+  }
+}
+
+function formatStat(value?: number) {
+  return String(value || 0);
+}
 
 function copyInviteLink() {
   uni.setClipboardData({

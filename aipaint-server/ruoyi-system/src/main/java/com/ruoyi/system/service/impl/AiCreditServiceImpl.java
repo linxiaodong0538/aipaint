@@ -25,6 +25,8 @@ public class AiCreditServiceImpl implements IAiCreditService
 
     private static final String SOURCE_GENERATION_REFUND = "GENERATION_REFUND";
 
+    private static final String SOURCE_INVITE_REWARD = "INVITE_REWARD";
+
     private static final String RELATED_GENERATION = "GENERATION";
 
     private static final String CHANGE_GENERATION_CONSUME = "GENERATION_CONSUME";
@@ -186,6 +188,31 @@ public class AiCreditServiceImpl implements IAiCreditService
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public boolean grantInviteRewardIfNeeded(Long userId, Long invitedUserId)
+    {
+        if (userId == null || invitedUserId == null)
+        {
+            return false;
+        }
+        String sourceId = String.valueOf(invitedUserId);
+        if (creditMapper.countBatchBySource(userId, SOURCE_INVITE_REWARD, sourceId) > 0)
+        {
+            return false;
+        }
+        try
+        {
+            grantCredits(userId, SOURCE_INVITE_REWARD, sourceId, INVITE_REWARD_AMOUNT, null, "邀请好友奖励，永久有效");
+            return true;
+        }
+        catch (DuplicateKeyException e)
+        {
+            // 同一被邀请人只为邀请人发放一次奖励。
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public List<AiCreditRecord> listUserRecords(Long userId, Integer limit)
     {
         processExpiredCredits(userId);
@@ -231,6 +258,10 @@ public class AiCreditServiceImpl implements IAiCreditService
         if (SOURCE_GENERATION_REFUND.equals(sourceType))
         {
             return "退款积分过期";
+        }
+        if (SOURCE_INVITE_REWARD.equals(sourceType))
+        {
+            return "邀请奖励积分过期";
         }
         return "积分过期";
     }

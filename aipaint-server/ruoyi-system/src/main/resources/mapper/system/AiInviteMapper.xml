@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiInviteMapper">
+
+    <resultMap type="AiInviteRecord" id="AiInviteRecordResult">
+        <id     property="recordId"      column="record_id"       />
+        <result property="inviterUserId" column="inviter_user_id" />
+        <result property="invitedUserId" column="invited_user_id" />
+        <result property="rewardAmount"  column="reward_amount"   />
+        <result property="rewardStatus"  column="reward_status"   />
+        <result property="inviterNickName" column="inviter_nick_name" />
+        <result property="inviterUserName" column="inviter_user_name" />
+        <result property="invitedNickName" column="invited_nick_name" />
+        <result property="invitedUserName" column="invited_user_name" />
+        <result property="createTime"    column="create_time"     />
+        <result property="inviteTime"    column="create_time"     />
+        <result property="updateTime"    column="update_time"     />
+    </resultMap>
+
+    <resultMap type="AiInviteStats" id="AiInviteStatsResult">
+        <result property="totalInvites"       column="total_invites"        />
+        <result property="totalRewardCredits" column="total_reward_credits" />
+        <result property="todayInvites"       column="today_invites"        />
+    </resultMap>
+
+    <sql id="selectInviteRecordVo">
+        select r.record_id, r.inviter_user_id, r.invited_user_id, r.reward_amount, r.reward_status,
+               r.create_time, r.update_time,
+               inviter.nick_name as inviter_nick_name,
+               inviter.user_name as inviter_user_name,
+               invited.nick_name as invited_nick_name,
+               invited.user_name as invited_user_name
+        from ai_invite_record r
+        left join sys_user inviter on inviter.user_id = r.inviter_user_id
+        left join sys_user invited on invited.user_id = r.invited_user_id
+    </sql>
+
+    <select id="selectInviteRecordList" parameterType="AiInviteRecord" resultMap="AiInviteRecordResult">
+        <include refid="selectInviteRecordVo"/>
+        <where>
+            <if test="inviterUserId != null">
+                and r.inviter_user_id = #{inviterUserId}
+            </if>
+            <if test="invitedUserId != null">
+                and r.invited_user_id = #{invitedUserId}
+            </if>
+            <if test="rewardStatus != null and rewardStatus != ''">
+                and r.reward_status = #{rewardStatus}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(r.create_time, '%Y%m%d') &gt;= date_format(#{params.beginTime}, '%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(r.create_time, '%Y%m%d') &lt;= date_format(#{params.endTime}, '%Y%m%d')
+            </if>
+        </where>
+        order by r.create_time desc, r.record_id desc
+    </select>
+
+    <insert id="insertInviteRecord" parameterType="AiInviteRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into ai_invite_record(
+            inviter_user_id, invited_user_id, reward_amount, reward_status, create_time
+        ) values (
+            #{inviterUserId}, #{invitedUserId}, #{rewardAmount}, #{rewardStatus}, sysdate()
+        )
+    </insert>
+
+    <select id="countByInvitedUserId" resultType="Integer">
+        select count(1)
+        from ai_invite_record
+        where invited_user_id = #{invitedUserId}
+    </select>
+
+    <select id="selectInviteStats" resultMap="AiInviteStatsResult">
+        select
+            coalesce(count(1), 0) as total_invites,
+            coalesce(sum(case when reward_status = 'GRANTED' then reward_amount else 0 end), 0) as total_reward_credits,
+            coalesce(sum(case when date(create_time) = curdate() then 1 else 0 end), 0) as today_invites
+        from ai_invite_record
+        where inviter_user_id = #{inviterUserId}
+    </select>
+</mapper>

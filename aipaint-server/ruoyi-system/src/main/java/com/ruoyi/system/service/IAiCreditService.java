@@ -15,6 +15,8 @@ public interface IAiCreditService
 
     public static final int DAILY_SIGNIN_AMOUNT = 10;
 
+    public static final int INVITE_REWARD_AMOUNT = 50;
+
     public int getAvailableBalance(Long userId);
 
     public boolean grantNewUserGiftIfNeeded(Long userId);
@@ -28,6 +30,8 @@ public interface IAiCreditService
     public void refundForGenerationFailure(Long userId, Long taskId, int amount);
 
     public void grantPaymentCredits(Long userId, String sourceType, String sourceId, int amount, java.util.Date expireTime, String remark);
+
+    public boolean grantInviteRewardIfNeeded(Long userId, Long invitedUserId);
 
     public List<AiCreditRecord> listUserRecords(Long userId, Integer limit);
 }

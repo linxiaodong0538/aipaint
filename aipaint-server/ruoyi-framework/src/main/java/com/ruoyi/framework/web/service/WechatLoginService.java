@@ -14,6 +14,7 @@ import com.ruoyi.common.utils.http.HttpUtils;
 import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.IAiCreditService;
+import com.ruoyi.system.service.IAiInviteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -42,18 +43,21 @@ public class WechatLoginService
     private IAiCreditService creditService;
 
     @Autowired
+    private IAiInviteService inviteService;
+
+    @Autowired
     private TokenService tokenService;
 
     /**
      * 微信 code 换取系统 token
      */
-    public LoginResult login(String code)
+    public LoginResult login(String code, String inviteCode, String devOpenid)
     {
         if (StringUtils.isBlank(code))
         {
             throw new ServiceException("微信登录凭证不能为空");
         }
-        String openid = hasWechatConfig() ? getOpenid(code) : getDevOpenid();
+        String openid = hasWechatConfig() ? getOpenid(code) : getDevOpenid(devOpenid);
         SysUser user = userService.selectUserByOpenid(openid);
         boolean created = false;
         if (StringUtils.isNull(user))
@@ -70,6 +74,7 @@ public class WechatLoginService
         if (created)
         {
             creditService.grantNewUserGiftIfNeeded(user.getUserId());
+            inviteService.handleNewUserInvite(user.getUserId(), inviteCode);
         }
         LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user, Collections.emptySet());
         String token = tokenService.createToken(loginUser);
@@ -81,8 +86,12 @@ public class WechatLoginService
         return StringUtils.isNotBlank(appid) && StringUtils.isNotBlank(secret);
     }
 
-    private String getDevOpenid()
+    private String getDevOpenid(String devOpenid)
     {
+        if (StringUtils.isNotBlank(devOpenid))
+        {
+            return devOpenid.trim();
+        }
         return "dev_openid";
     }
 
