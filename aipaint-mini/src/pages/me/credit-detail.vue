@@ -89,7 +89,7 @@
                       <text class="block min-w-0 truncate text-[28rpx] font-bold leading-[40rpx]" :class="record.titleClass">
                         {{ record.title }}
                       </text>
-                      <view class="inline-flex shrink-0 items-center rounded-full px-[16rpx] py-[2rpx]" :class="record.statusPillClass">
+                      <view class="inline-flex shrink-0 items-center rounded-full px-[16rpx] pt-[4rpx] pb-[2rpx]" :class="record.statusPillClass">
                         <text class="text-[20rpx] font-bold leading-[28rpx]">{{ record.statusLabel }}</text>
                       </view>
                     </view>

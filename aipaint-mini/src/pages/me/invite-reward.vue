@@ -17,10 +17,10 @@
             <view
               v-for="(stat, index) in stats"
               :key="stat.label"
-              class="flex flex-col gap-[4rpx]"
+              class="flex flex-col gap-[6rpx]"
               :class="index > 0 ? 'stat-divider' : ''"
             >
-              <text class="text-[20rpx] font-semibold uppercase leading-[28rpx] tracking-[3rpx] text-[#72787f]">
+              <text class="text-[22rpx] font-semibold uppercase leading-[28rpx] tracking-[3rpx] text-[#72787f]">
                 {{ stat.label }}
               </text>
               <text class="text-[42rpx] font-bold leading-[50rpx] text-black">
@@ -34,15 +34,15 @@
           <view class="hero-grid pointer-events-none absolute inset-0" />
           <view class="relative z-10 flex items-center gap-[28rpx]">
             <view class="reward-icon flex h-[132rpx] w-[132rpx] shrink-0 items-center justify-center rounded-[28rpx] bg-white text-black">
-              <text class="iconfont icon-shanshan text-[68rpx] leading-none text-black" />
+              <text class="iconfont icon-shanshan text-[68rpx] leading-none text-black" style="font-size: 68rpx"/>
             </view>
             <view class="min-w-0 flex-1">
-              <text class="block text-[42rpx] font-bold leading-[52rpx] text-white">
+              <text class="block text-[42rpx] font-bold leading-[52rpx] text-white" >
                 分享 VisionAI 创意
               </text>
               <text class="mt-[10rpx] block text-[26rpx] leading-[38rpx] text-[rgba(255,255,255,0.72)]">
                 每成功邀请一位好友，双方均可获得
-                <text class="font-bold text-white">50 香蕉点</text>。
+                <text class="font-bold text-white">50 积分</text>。
               </text>
             </view>
           </view>
@@ -53,7 +53,7 @@
             class="primary-action flex h-[96rpx] w-full items-center justify-center gap-[14rpx] rounded-[28rpx] bg-black text-[26rpx] font-semibold leading-none text-white active:opacity-90"
             open-type="share"
           >
-            <text class="iconfont icon-a-huaban1fuben37 text-[32rpx] leading-none text-white" />
+            <text class="iconfont icon-a-huaban1fuben37 text-[32rpx] leading-none text-white" style="font-size: 38rpx;"/>
             <text class="whitespace-nowrap">微信邀请</text>
           </button>
           <button
@@ -78,10 +78,10 @@
                 <text class="text-[24rpx] font-bold leading-none text-black">{{ rule.index }}</text>
               </view>
               <view class="min-w-0 flex-1">
-                <text class="block text-[29rpx] font-bold leading-[38rpx] text-black">
+                <text class="block text-[28rpx] font-bold leading-[38rpx] text-black">
                   {{ rule.title }}
                 </text>
-                <text class="mt-[8rpx] block text-[28rpx] leading-[42rpx] text-[#465260]">
+                <text class="mt-[8rpx] block text-[26rpx] leading-[42rpx] text-[#465260]">
                   {{ rule.desc }}
                 </text>
               </view>
@@ -146,7 +146,7 @@ const bottomSafePadding = computed(() => `${safeAreaBottom.value + 28}px`);
 
 const stats: StatItem[] = [
   { label: "累计邀请", value: "0" },
-  { label: "获得香蕉点", value: "0" },
+  { label: "获得积分", value: "0" },
   { label: "今日邀请", value: "0" },
 ];
 
@@ -154,7 +154,7 @@ const rules: RuleItem[] = [
   {
     index: 1,
     title: "奖励发放",
-    desc: "受邀好友完成手机号注册后，系统将自动向双方发放奖励，香蕉点即刻到账，可用于 VisionAI 的所有创作功能。",
+    desc: "受邀好友完成手机号注册后，系统将自动向双方发放奖励，积分即刻到账，可用于 VisionAI 的所有创作功能。",
   },
   {
     index: 2,
@@ -169,7 +169,7 @@ const rules: RuleItem[] = [
 ];
 
 onShareAppMessage(() => ({
-  title: "分享 VisionAI 创意，领取 50 香蕉点",
+  title: "分享 VisionAI 创意，领取 50 积分",
   path: inviteLink.value,
 }));
 

@@ -3,19 +3,7 @@
     v-if="visible"
     class="fixed inset-0 z-50 flex flex-col bg-[#f8f8f8]"
   >
-    <view
-      class="bg-black"
-      :style="{ height: `${navLayout.totalHeight}px` }"
-    >
-      <view :style="{ height: `${navLayout.statusBarHeight}px` }" />
-      <view
-        class="relative flex items-center px-[24rpx]"
-        :style="{
-          height: `${navLayout.navContentHeight}px`,
-          paddingRight: `${navLayout.menuButtonRight + navLayout.menuButtonGap}px`,
-        }"
-      />
-    </view>
+    <AppNavBar title="搜索模板" />
 
     <view class="bg-white px-[32rpx] pb-[30rpx] pt-[24rpx] shadow-[0_10rpx_28rpx_rgba(0,0,0,0.04)]">
       <view class="flex items-center gap-[18rpx]">
@@ -112,14 +100,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-
-interface NavLayout {
-  statusBarHeight: number;
-  navContentHeight: number;
-  menuButtonRight: number;
-  menuButtonGap: number;
-  totalHeight: number;
-}
+import AppNavBar from "@/components/AppNavBar.vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -127,7 +108,6 @@ const props = defineProps<{
   recentSearches: string[];
   suggestions: string[];
   resultCount: number;
-  navLayout: NavLayout;
 }>();
 
 const emit = defineEmits<{

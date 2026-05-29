@@ -100,7 +100,6 @@
       :recent-searches="recentSearches"
       :suggestions="searchSuggestions"
       :result-count="filteredTemplates.length"
-      :nav-layout="navLayout"
       @close="closeSearch"
       @search="commitSearch"
       @clear-recent="clearRecentSearches"
