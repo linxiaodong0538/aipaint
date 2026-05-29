@@ -13,7 +13,7 @@
       :refresher-enabled="false"
       loading-more-default-text="上滑加载更多"
       loading-more-loading-text="加载中..."
-      loading-more-no-more-text="END"
+      loading-more-no-more-text="我是有底线的"
       :loading-more-title-custom-style="{fontSize:'24rpx',heigth:'160rpx'}"
       empty-view-text="暂无模板"
       :show-loading-more-no-more-line="true"
