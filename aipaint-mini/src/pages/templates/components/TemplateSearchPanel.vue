@@ -8,10 +8,7 @@
     <view class="bg-white px-[32rpx] pb-[30rpx] pt-[24rpx] shadow-[0_10rpx_28rpx_rgba(0,0,0,0.04)]">
       <view class="flex items-center gap-[18rpx]">
         <view class="flex h-[80rpx] min-w-0 flex-1 items-center gap-[16rpx] rounded-full border border-[rgba(0,0,0,0.04)] bg-[#f2f2f2] px-[24rpx]">
-          <view class="search-mark search-mark--input">
-            <view class="search-mark__ring" />
-            <view class="search-mark__handle" />
-          </view>
+          <text class="iconfont icon-sousuokuangsousuo" style="font-weight: 600; color: #777;padding-top: 6rpx;"></text>
           <input
             v-model="searchDraft"
             class="h-full min-w-0 flex-1 text-[28rpx] font-medium leading-[40rpx] text-black"
@@ -48,7 +45,7 @@
           <text class="block text-[24rpx] leading-[32rpx] text-[#7a7a7a]">
             正在当前分类中筛选
           </text>
-          <text class="mt-[6rpx] block text-[30rpx] font-semibold leading-[40rpx] text-black">
+          <text class="mt-[8rpx] block text-[30rpx] font-semibold leading-[40rpx] text-black">
             "{{ keyword }}" · {{ resultCount }} 个结果
           </text>
         </view>

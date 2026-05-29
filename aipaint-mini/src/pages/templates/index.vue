@@ -11,7 +11,7 @@
             <text class="iconfont icon-sousuokuangsousuo"></text>
           <text
             v-if="searchKeyword"
-            class="max-w-[150rpx] truncate text-[23rpx] font-semibold leading-[32px] text-white"
+            class="max-w-[150rpx] truncate text-[23rpx] font-semibold leading-[32px] text-white pr-[8rpx]"
           >
             {{ searchKeyword }}
           </text>
@@ -71,10 +71,7 @@
 
         <view v-else class="flex min-h-[420rpx] flex-col items-center justify-center px-[48rpx] text-center">
           <view class="flex h-[112rpx] w-[112rpx] items-center justify-center rounded-full bg-white shadow-[0_12rpx_36rpx_rgba(0,0,0,0.06)]">
-            <view class="search-mark search-mark--empty">
-              <view class="search-mark__ring" />
-              <view class="search-mark__handle" />
-            </view>
+            <text class="iconfont icon-sousuokuangsousuo" style="font-size: 40rpx;"></text>
           </view>
           <text class="mt-[28rpx] text-[30rpx] font-semibold leading-[40rpx] text-black">
             没找到相关模板
