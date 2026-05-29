@@ -169,7 +169,7 @@
               </view>
             </view>
 
-            <text class="mt-[48rpx] block text-[28rpx] leading-[50rpx] text-gray-400">
+            <text class="mt-[48rpx] block text-[26rpx] leading-[50rpx] text-[#8e8e8e]">
       
               {{ emptyTitle }}
             </text>

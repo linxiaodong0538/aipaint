@@ -1,5 +1,5 @@
 <template>
-  <view class="flex h-screen flex-col overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="flex h-screen flex-col overflow-hidden bg-(--app-background) font-sans text-[#1a1c1c]">
     <AppNavBar title="首页" />
 
     <z-paging

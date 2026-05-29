@@ -43,7 +43,7 @@
       <view class="px-[32rpx] pb-[56rpx] pt-[28rpx]">
         <view v-if="keyword" class="mb-[28rpx] rounded-[18rpx] bg-white px-[26rpx] py-[22rpx]">
           <text class="block text-[24rpx] leading-[32rpx] text-[#7a7a7a]">
-            正在当前分类中筛选
+            正在全部分类中搜索
           </text>
           <text class="mt-[8rpx] block text-[30rpx] font-semibold leading-[40rpx] text-black">
             "{{ keyword }}" · {{ resultCount }} 个结果

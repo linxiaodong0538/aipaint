@@ -1,5 +1,5 @@
 <template>
-  <view class="flex h-screen flex-col overflow-hidden bg-[#f8f8f8] font-sans text-[#1a1c1c]">
+  <view class="flex h-screen flex-col overflow-hidden bg-(--app-background) font-sans text-[#1a1c1c]">
     <AppNavBar title="灵感">
       <template #left>
         <button
@@ -77,7 +77,7 @@
             没找到相关模板
           </text>
           <text class="mt-[10rpx] text-[24rpx] leading-[34rpx] text-[#7a7a7a]">
-            换个关键词，或切回全部分类看看
+            换个关键词，或看看热门灵感标签
           </text>
           <button
             v-if="searchKeyword"
@@ -113,7 +113,7 @@ import TemplateSearchPanel from "./components/TemplateSearchPanel.vue";
 
 const chips = ref<TemplateCategory[]>([{ categoryName: "全部", categoryId: 0, categoryCode: "all" }]);
 const activeChip = ref("全部");
-const templates = ref<TemplateItem[]>([]);
+const allTemplates = ref<TemplateItem[]>([]);
 const showSearchPanel = ref(false);
 const searchKeyword = ref("");
 const recentSearches = ref<string[]>([]);
@@ -127,9 +127,13 @@ const defaultSearchSuggestions = ["极简主义", "水墨艺术", "电商主图"
 
 const filteredTemplates = computed(() => {
   const keyword = normalizeSearchText(searchKeyword.value);
-  const source = activeChip.value === "全部"
-    ? templates.value
-    : templates.value.filter((item) => item.categoryName === activeChip.value);
+  const scopedTemplates = activeChip.value === "全部"
+    ? allTemplates.value
+    : allTemplates.value.filter((item) => item.categoryName === activeChip.value);
+
+  const source = keyword
+    ? allTemplates.value
+    : scopedTemplates;
 
   if (!keyword) {
     return source;
@@ -148,12 +152,8 @@ async function loadTags() {
 }
 
 async function loadTemplates() {
-  const selected = chips.value.find((item) => item.categoryName === activeChip.value);
-  const params = !selected || selected.categoryCode === "all"
-    ? { pageNum: 1, pageSize: 1000 }
-    : { categoryId: String(selected.categoryId), pageNum: 1, pageSize: 1000 };
-  const result = await listTemplates(params);
-  templates.value = result.rows || [];
+  const result = await listTemplates({ pageNum: 1, pageSize: 1000 });
+  allTemplates.value = result.rows || [];
 }
 
 function getTemplateModelName(_template: TemplateItem) {
@@ -187,10 +187,9 @@ function goDetail(template: TemplateItem) {
   });
 }
 
-async function handleChipChange(chip: TemplateCategory) {
+function handleChipChange(chip: TemplateCategory) {
   activeChip.value = chip.categoryName;
   searchKeyword.value = "";
-  await loadTemplates();
 }
 
 function openSearch() {
@@ -205,6 +204,7 @@ function commitSearch(value: string) {
   const keyword = normalizeSearchText(value);
   searchKeyword.value = keyword;
   if (keyword) {
+    activeChip.value = "全部";
     recentSearches.value = [keyword, ...recentSearches.value.filter((item) => item !== keyword)].slice(0, 6);
   }
   showSearchPanel.value = false;
@@ -216,6 +216,7 @@ function clearSearch() {
 
 function searchByTag(tag: string) {
   searchKeyword.value = normalizeSearchText(tag);
+  activeChip.value = "全部";
   recentSearches.value = [tag, ...recentSearches.value.filter((item) => item !== tag)].slice(0, 6);
 }
 
