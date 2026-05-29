@@ -1,9 +1,13 @@
 <template>
-  <view class="min-h-screen overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="flex h-screen flex-col overflow-hidden bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+    <AppNavBar title="首页" />
+
     <z-paging
       ref="paging"
       v-model="templates"
-      :fixed="true"
+      height="100%"
+      class="min-h-0 flex-1"
+      :fixed="false"
       :auto="false"
       :default-page-size="pageSize"
       :refresher-enabled="false"
@@ -120,6 +124,7 @@ import { computed, getCurrentInstance, nextTick, onMounted, ref } from "vue";
 import ZPaging from "z-paging/components/z-paging/z-paging.vue";
 import { routes, navigateTo, switchTab } from "@/utils/router";
 import { getTemplateCategories, listTemplates, type TemplateCategory, type TemplateItem } from "@/api/template";
+import AppNavBar from "@/components/AppNavBar.vue";
 
 const heroImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAHaLmgTeKMCIq__T1vgUYUp8cJe_0aDfBw6MQL9TtpXg5KWzLrpg99RqTMkr4PJmxCogcnynHzLntk0c-kvnFAZnJT5z_OHH_WTp6vOho3DUtRA7xJipLhatstWi_DEQ6E0Bo4q4MqmMgLeCC0ghaon_d-WOsD4FQbKowY1q246jJBfKyw2QPos_ZhzBb6swUN7EvoxdWHwyN4TAtTpOxOYvYlYA_bROGnn-JDINvon-Z1elz-R2EFuOqEe4Rk2hQM31r69QbOP9BC";

@@ -1,8 +1,10 @@
 <template>
   <view
-    class="flex h-screen flex-col overflow-hidden bg-(--app-background) px-[16rpx] text-(--app-on-surface)"
+    class="flex h-screen flex-col overflow-hidden bg-(--app-background) text-(--app-on-surface)"
   >
-    <view class="flex shrink-0 flex-wrap gap-[32rpx] px-[8rpx] pt-[24rpx] pb-[24rpx]">
+    <AppNavBar title="作品" />
+
+    <view class="flex shrink-0 flex-wrap gap-[32rpx] px-[24rpx] pt-[24rpx] pb-[24rpx]">
       <view
         v-for="tab in tabs"
         :key="tab.value"
@@ -43,7 +45,7 @@
         @scrollTopChange="handleScrollTopChange"
         @query="queryWorks"
       >
-        <view class="pb-[32rpx]">
+        <view class="px-[16rpx] pb-[32rpx]">
           <view
             v-if="!userStore.isLogin"
             class="mt-[148rpx] flex flex-col items-center px-[12rpx] text-center"
@@ -199,6 +201,7 @@ import { onHide, onShow } from "@dcloudio/uni-app";
 import { deleteGenerationTask, listGenerationTasks, type GenerationTask, type GenerationStatus } from "@/api/generate";
 import { useUserStore } from "@/store/modules/user";
 import { navigateTo, routes } from "@/utils/router";
+import AppNavBar from "@/components/AppNavBar.vue";
 
 type TabValue = "all" | "generating" | "completed";
 

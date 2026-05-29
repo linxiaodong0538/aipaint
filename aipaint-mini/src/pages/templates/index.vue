@@ -1,17 +1,7 @@
 <template>
   <view class="flex h-screen flex-col overflow-hidden bg-[#f8f8f8] font-sans text-[#1a1c1c]">
-    <view
-      class="relative shrink-0 overflow-hidden bg-black text-white"
-      :style="{ height: `${navLayout.totalHeight}px` }"
-    >
-      <view :style="{ height: `${navLayout.statusBarHeight}px` }" />
-      <view
-        class="relative flex items-center px-[24rpx]"
-        :style="{
-          height: `${navLayout.navContentHeight}px`,
-          paddingRight: `${navLayout.menuButtonRight + navLayout.menuButtonGap}px`,
-        }"
-      >
+    <AppNavBar title="灵感">
+      <template #left>
         <button
           class="m-0 flex h-[28px] min-w-[28px] max-w-[260rpx] shrink-0 items-center justify-center gap-[10rpx] rounded-full bg-white/16 px-[16rpx] py-0 text-white shadow-[inset_0_0_0_1rpx_rgba(255,255,255,0.08)] active:scale-95 active:bg-white/24"
           hover-class="none"
@@ -26,16 +16,10 @@
             {{ searchKeyword }}
           </text>
         </button>
+      </template>
+    </AppNavBar>
 
-        <text
-          class="nav-art-title pointer-events-none absolute left-1/2 top-1/2 max-w-[300rpx] -translate-x-1/2 -translate-y-1/2 truncate"
-        >
-          Image Atelier
-        </text>
-      </view>
-    </view>
-
-    <view class="shrink-0 px-[36rpx] pt-[36rpx]">
+    <view class="shrink-0 px-[24rpx] pt-[24rpx]">
       <scroll-view class="w-full whitespace-nowrap" scroll-x enhanced :show-scrollbar="false">
         <view class="flex gap-[16rpx] pb-[24rpx]">
           <button
@@ -128,13 +112,12 @@
 import { computed, onMounted, ref } from "vue";
 import { navigateTo, routes } from "@/utils/router";
 import { getTemplateCategories, getTemplateTags as fetchTemplateTags, listTemplates, type TemplateCategory, type TemplateItem, type TemplateTag } from "@/api/template";
-import { getNavBarLayout } from "@/utils/nav-bar";
+import AppNavBar from "@/components/AppNavBar.vue";
 import TemplateSearchPanel from "./components/TemplateSearchPanel.vue";
 
 const chips = ref<TemplateCategory[]>([{ categoryName: "全部", categoryId: 0, categoryCode: "all" }]);
 const activeChip = ref("全部");
 const templates = ref<TemplateItem[]>([]);
-const navLayout = getNavBarLayout();
 const showSearchPanel = ref(false);
 const searchKeyword = ref("");
 const recentSearches = ref<string[]>([]);
@@ -297,13 +280,4 @@ onMounted(async () => {
   transform: scale(1.18);
 }
 
-.nav-art-title {
-  color: rgba(255, 255, 255, 0.76);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 14px;
-  font-style: italic;
-  font-weight: 500;
-  line-height: 30px;
-  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.18);
-}
 </style>
