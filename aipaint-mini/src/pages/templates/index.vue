@@ -28,9 +28,9 @@
         </button>
 
         <text
-          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[280rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-semibold leading-[30px]"
+          class="nav-art-title pointer-events-none absolute left-1/2 top-1/2 max-w-[300rpx] -translate-x-1/2 -translate-y-1/2 truncate"
         >
-          生图模板
+          Image Atelier
         </text>
       </view>
     </view>
@@ -295,5 +295,15 @@ onMounted(async () => {
 .search-mark--empty {
   color: #111;
   transform: scale(1.18);
+}
+
+.nav-art-title {
+  color: rgba(255, 255, 255, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 30px;
+  text-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.28);
 }
 </style>
