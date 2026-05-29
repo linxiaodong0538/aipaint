@@ -146,7 +146,7 @@
                 </text>
               </view>
             </view>
-            <text class="text-[32rpx] leading-none text-[#c4c4c4]">›</text>
+                 <text class="text-[32rpx] leading-none text-[#c4c4c4] iconfont icon-jinrujiantou "></text>
           </view>
         </view>
 
@@ -166,16 +166,16 @@
           >
             <view class="flex min-w-0 items-center gap-[22rpx]">
               <text
-                class="iconfont w-[40rpx] text-center text-[34rpx] leading-none text-[var(--app-primary)]"
+                class="iconfont w-[40rpx] text-center text-[34rpx] leading-none text-(--app-primary)"
                 :class="item.iconClass"
               />
               <text
-                class="text-[28rpx] font-semibold leading-[38rpx] text-[var(--app-on-surface)]"
+                class="text-[28rpx] font-semibold leading-[38rpx] text-(--app-on-surface)"
               >
                 {{ item.title }}
               </text>
             </view>
-            <text class="text-[32rpx] leading-none text-[#c4c4c4]">›</text>
+            <text class="text-[32rpx] leading-none text-[#c4c4c4] iconfont icon-jinrujiantou "></text>
           </view>
         </view>
 
