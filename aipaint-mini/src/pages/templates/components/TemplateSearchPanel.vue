@@ -14,13 +14,7 @@
           height: `${navLayout.navContentHeight}px`,
           paddingRight: `${navLayout.menuButtonRight + navLayout.menuButtonGap}px`,
         }"
-      >
-        <text
-          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium leading-[22px] text-white"
-        >
-          搜索模板
-        </text>
-      </view>
+      />
     </view>
 
     <view class="bg-white px-[32rpx] pb-[30rpx] pt-[24rpx] shadow-[0_10rpx_28rpx_rgba(0,0,0,0.04)]">
@@ -210,4 +204,5 @@ function handleClose() {
 .search-mark--input {
   color: #777;
 }
+
 </style>

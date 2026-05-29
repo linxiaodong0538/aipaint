@@ -13,6 +13,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-jinrujiantou:before {
+  content: "\e88e";
+}
+
+.icon-sousuokuangsousuo:before {
+  content: "\e622";
+}
+
 .icon-gou2x:before {
   content: "\e632";
 }

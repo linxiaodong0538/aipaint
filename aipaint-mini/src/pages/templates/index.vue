@@ -13,15 +13,12 @@
         }"
       >
         <button
-          class="m-0 flex h-[32px] min-w-[32px] max-w-[260rpx] shrink-0 items-center justify-center gap-[10rpx] rounded-full bg-white/16 px-[18rpx] py-0 text-white shadow-[inset_0_0_0_1rpx_rgba(255,255,255,0.08)] active:scale-95 active:bg-white/24"
+          class="m-0 flex h-[28px] min-w-[28px] max-w-[260rpx] shrink-0 items-center justify-center gap-[10rpx] rounded-full bg-white/16 px-[16rpx] py-0 text-white shadow-[inset_0_0_0_1rpx_rgba(255,255,255,0.08)] active:scale-95 active:bg-white/24"
           hover-class="none"
           aria-label="搜索模板"
           @tap="openSearch"
         >
-          <view class="search-mark search-mark--nav">
-            <view class="search-mark__ring" />
-            <view class="search-mark__handle" />
-          </view>
+            <text class="iconfont icon-sousuokuangsousuo"></text>
           <text
             v-if="searchKeyword"
             class="max-w-[150rpx] truncate text-[23rpx] font-semibold leading-[32px] text-white"
@@ -31,7 +28,7 @@
         </button>
 
         <text
-          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[220rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-medium leading-[22px]"
+          class="pointer-events-none absolute left-1/2 top-1/2 max-w-[280rpx] -translate-x-1/2 -translate-y-1/2 truncate text-[16px] font-semibold leading-[30px]"
         >
           生图模板
         </text>
