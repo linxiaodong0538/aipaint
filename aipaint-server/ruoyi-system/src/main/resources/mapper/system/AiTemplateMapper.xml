@@ -36,6 +36,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="remark" column="remark" />
     </resultMap>
 
+    <resultMap type="AiTemplateTag" id="AiTemplateTagResult">
+        <id property="tagId" column="tag_id" />
+        <result property="tagName" column="tag_name" />
+        <result property="groupCode" column="group_code" />
+        <result property="sort" column="sort" />
+        <result property="status" column="status" />
+        <result property="templateId" column="template_id" />
+    </resultMap>
+
     <sql id="selectTemplateVo">
         select t.template_id, t.title, t.category_id, c.category_name, t.description, t.cover_url, t.prompt, t.ai_engine, t.ratio, t.sort, t.status,
                t.create_by, t.create_time, t.update_by, t.update_time, t.remark
@@ -54,6 +63,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">
                 AND t.status = #{status}
             </if>
+            <if test="tagId != null">
+                AND exists (
+                    select 1 from ai_template_tag_relation tr
+                    where tr.template_id = t.template_id and tr.tag_id = #{tagId}
+                )
+            </if>
         </where>
     </sql>
 
@@ -69,6 +84,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             t.status = '0'
             <if test="categoryId != null">
                 AND t.category_id = #{categoryId}
+            </if>
+            <if test="tagId != null">
+                AND exists (
+                    select 1 from ai_template_tag_relation tr
+                    where tr.template_id = t.template_id and tr.tag_id = #{tagId}
+                )
             </if>
         </where>
         order by t.sort asc, t.create_time desc, t.template_id desc
@@ -146,4 +167,40 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{templateId}
         </foreach>
     </delete>
+
+    <delete id="deleteTemplateTagByTemplateIds" parameterType="Long">
+        delete from ai_template_tag_relation where template_id in
+        <foreach collection="array" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTemplateTagByTagIds" parameterType="Long">
+        delete from ai_template_tag_relation where tag_id in
+        <foreach collection="array" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteTemplateTagByTemplateId" parameterType="Long">
+        delete from ai_template_tag_relation where template_id = #{templateId}
+    </delete>
+
+    <insert id="batchTemplateTag">
+        insert into ai_template_tag_relation(template_id, tag_id) values
+        <foreach collection="tagIds" item="tagId" separator=",">
+            (#{templateId}, #{tagId})
+        </foreach>
+    </insert>
+
+    <select id="selectTagsByTemplateIds" parameterType="Long" resultMap="AiTemplateTagResult">
+        select tr.template_id, tag.tag_id, tag.tag_name, tag.group_code, tag.sort, tag.status
+        from ai_template_tag_relation tr
+        inner join ai_template_tag tag on tag.tag_id = tr.tag_id
+        where tr.template_id in
+        <foreach collection="array" item="templateId" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+        order by tr.template_id asc, tag.sort asc, tag.tag_id asc
+    </select>
 </mapper>

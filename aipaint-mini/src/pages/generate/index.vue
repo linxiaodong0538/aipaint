@@ -241,31 +241,48 @@
     </view>
 
     <!-- 更多比例 -->
-    <view v-if="showMoreRatios" class="ratio-drawer-overlay" @tap="closeMoreRatios">
-      <view class="ratio-drawer" :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }" @tap.stop>
-        <view class="ratio-drawer-handle" />
-        <view class="ratio-drawer-header">
-          <view class="ratio-drawer-heading">
-            <text class="ratio-drawer-title">更多比例</text>
-            <text class="ratio-drawer-subtitle">{{ selectedModelOption.label }}</text>
-          </view>
-          <button class="ratio-drawer-close" @tap="closeMoreRatios">
-            <text class="ratio-drawer-close-text">×</text>
-          </button>
-        </view>
-
-        <view class="ratio-drawer-stage">
-          <view class="ratio-drawer-stage-preview">
-            <view class="ratio-drawer-stage-frame">
-              <view class="ratio-icon ratio-drawer-stage-icon" :class="selectedRatioOption.iconClass" />
+    <view
+      v-if="showMoreRatios"
+      class="ratio-drawer-overlay"
+      :class="{ 'ratio-drawer-overlay-closing': ratioDrawerClosing }"
+      @tap="closeMoreRatios"
+    >
+      <view
+        class="ratio-drawer"
+        :class="{ 'ratio-drawer-closing': ratioDrawerClosing }"
+        :style="{ paddingBottom: `calc(40rpx + ${safeAreaBottom}px)` }"
+        @tap.stop
+      >
+        <view
+          class="ratio-drawer-swipe-zone"
+          @touchstart="handleRatioDrawerTouchStart"
+          @touchend="handleRatioDrawerTouchEnd"
+          @touchcancel="resetRatioDrawerTouch"
+        >
+          <view class="ratio-drawer-handle" />
+          <view class="ratio-drawer-header">
+            <view class="ratio-drawer-heading">
+              <text class="ratio-drawer-title">更多比例</text>
+              <text class="ratio-drawer-subtitle">{{ selectedModelOption.label }}</text>
             </view>
+            <button class="ratio-drawer-close" @tap="closeMoreRatios">
+              <text class="ratio-drawer-close-text">×</text>
+            </button>
           </view>
-          <view class="ratio-drawer-stage-copy">
-            <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
-            <text v-if="shouldShowImageSizeText" class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
-          </view>
-          <view v-if="shouldShowResolutionOptions" class="ratio-drawer-stage-badge">
-            <text>{{ quality }}</text>
+
+          <view class="ratio-drawer-stage">
+            <view class="ratio-drawer-stage-preview">
+              <view class="ratio-drawer-stage-frame">
+                <view class="ratio-icon ratio-drawer-stage-icon" :class="selectedRatioOption.iconClass" />
+              </view>
+            </view>
+            <view class="ratio-drawer-stage-copy">
+              <text class="ratio-drawer-stage-label">{{ selectedRatioOption.label }}</text>
+              <text v-if="shouldShowImageSizeText" class="ratio-drawer-stage-size">{{ selectedImageSizeText }}</text>
+            </view>
+            <view v-if="shouldShowResolutionOptions" class="ratio-drawer-stage-badge">
+              <text>{{ quality }}</text>
+            </view>
           </view>
         </view>
 
@@ -320,6 +337,7 @@ const REFERENCE_COMPRESSED_MAX_BYTES = 8 * 1024 * 1024;
 const REFERENCE_MAX_EDGE = 2048;
 const REFERENCE_COMPRESS_QUALITY = 0.82;
 const REFERENCE_COMPRESS_CANVAS_ID = "reference-compress-canvas";
+const RATIO_DRAWER_CLOSE_DURATION_MS = 220;
 
 type ModelValue = "gpt-image-2" | "gpt-image-2-vip" | "nano-banana-2" | "nano-banana-pro" | "nano-banana";
 
@@ -341,7 +359,7 @@ const models: Array<{
   },
   {
     value: "gpt-image-2-vip",
-    label: "GPT-image-2 VIP",
+    label: "GPT-image-2-pro",
     description: "尺寸增强",
     iconClass: "icon-huizhang",
     baseCredits: 15,
@@ -349,7 +367,7 @@ const models: Array<{
   },
   {
     value: "nano-banana",
-    label: "nano-banana",
+    label: "Nano-banana",
     description: "轻量快速生成",
     iconClass: "icon-images",
     baseCredits: 5,
@@ -357,7 +375,7 @@ const models: Array<{
   },
   {
     value: "nano-banana-2",
-    label: "nano-banana-2",
+    label: "Nano-banana-2",
     description: "低价与高阶之间",
     iconClass: "icon-tupian",
     baseCredits: 12,
@@ -365,7 +383,7 @@ const models: Array<{
   },
   {
     value: "nano-banana-pro",
-    label: "nano-banana-pro",
+    label: "Nano-banana-pro",
     description: "专业细节增强",
     iconClass: "icon-line-medalxunzhang-02",
     baseCredits: 20,
@@ -577,6 +595,9 @@ const generating = ref(false);
 const mockGenerating = ref(false);
 const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
+const ratioDrawerClosing = ref(false);
+const ratioDrawerTouchStartY = ref(0);
+const ratioDrawerTouchStartX = ref(0);
 const ratioOptionsReady = ref(false);
 const generationPricing = ref<GenerationPricing | null>(null);
 const userStore = useUserStore();
@@ -1073,11 +1094,47 @@ function logRatioState(source: string) {
 }
 
 function openMoreRatios() {
+  ratioDrawerClosing.value = false;
   showMoreRatios.value = true;
 }
 
 function closeMoreRatios() {
-  showMoreRatios.value = false;
+  if (!showMoreRatios.value || ratioDrawerClosing.value) return;
+  ratioDrawerClosing.value = true;
+  resetRatioDrawerTouch();
+    showMoreRatios.value = false;
+    ratioDrawerClosing.value = false;
+}
+
+function getTouchPoint(event: TouchEvent) {
+  return event.changedTouches?.[0] || event.touches?.[0];
+}
+
+function handleRatioDrawerTouchStart(event: TouchEvent) {
+  const touch = getTouchPoint(event);
+  ratioDrawerTouchStartY.value = touch?.clientY || 0;
+  ratioDrawerTouchStartX.value = touch?.clientX || 0;
+}
+
+function handleRatioDrawerTouchEnd(event: TouchEvent) {
+  const touch = getTouchPoint(event);
+  if (!touch || !ratioDrawerTouchStartY.value) {
+    resetRatioDrawerTouch();
+    return;
+  }
+
+  const deltaY = touch.clientY - ratioDrawerTouchStartY.value;
+  const deltaX = Math.abs(touch.clientX - ratioDrawerTouchStartX.value);
+  resetRatioDrawerTouch();
+
+  if (deltaY >= rpxToPx(96) && deltaY > deltaX * 1.4) {
+    closeMoreRatios();
+  }
+}
+
+function resetRatioDrawerTouch() {
+  ratioDrawerTouchStartY.value = 0;
+  ratioDrawerTouchStartX.value = 0;
 }
 
 function selectRatioFromDrawer(value: RatioValue) {

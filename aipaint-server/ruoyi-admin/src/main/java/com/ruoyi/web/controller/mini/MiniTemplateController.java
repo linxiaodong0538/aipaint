@@ -10,6 +10,7 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.system.domain.AiTemplate;
 import com.ruoyi.system.service.IAiTemplateService;
+import com.ruoyi.system.service.IAiTemplateTagService;
 
 /**
  * 小程序模板公开接口
@@ -21,10 +22,19 @@ public class MiniTemplateController extends BaseController
     @Autowired
     private IAiTemplateService templateService;
 
+    @Autowired
+    private IAiTemplateTagService tagService;
+
     @GetMapping("/categories")
     public AjaxResult categories()
     {
         return success(templateService.selectEnabledCategories());
+    }
+
+    @GetMapping("/tags")
+    public AjaxResult tags()
+    {
+        return success(tagService.selectEnabledTagList());
     }
 
     @GetMapping("/list")
