@@ -298,12 +298,12 @@ onMounted(async () => {
 }
 
 .nav-art-title {
-  color: rgba(255, 255, 255, 0.94);
+  color: rgba(255, 255, 255, 0.76);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 16px;
+  font-size: 14px;
   font-style: italic;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 30px;
-  text-shadow: 0 6rpx 18rpx rgba(0, 0, 0, 0.28);
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.18);
 }
 </style>
