@@ -1,31 +1,27 @@
 <template>
-  <view class="min-h-screen bg-[#f9f9f9] font-sans text-[#1a1c1c]">
+  <view class="generate-page min-h-screen font-sans text-[#1a1c1c]">
     <scroll-view :style="{ height: `${scrollViewHeight}px` }" scroll-y enhanced :show-scrollbar="false">
-      <view
-        class="mx-auto max-w-[750rpx] px-[24rpx] pb-[32rpx] pt-[48rpx]"
-      >
+      <view class="generate-shell mx-auto max-w-[750rpx]">
         <!-- 参考图片 -->
-        <view class="mb-[32rpx]">
-          <view class="flex items-end justify-between">
-            <text class="model-section-label font-mono">参考图（可选）</text>
-            <text class="model-section-label font-mono">{{ referenceImages.length }}/{{ maxReferenceImages }}</text>
+        <view class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">参考图（可选）</text>
+            <text class="section-meta">{{ referenceImages.length }}/{{ maxReferenceImages }}</text>
           </view>
           <view
             v-if="referenceImages.length === 0"
-            class="relative flex h-[192rpx] flex-col items-center justify-center gap-[8rpx] rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white active:scale-[0.99]"
+            class="reference-dropzone"
             @tap="chooseImage"
           >
-            <view class="flex flex-col items-center">
-              <view class="relative flex h-[40rpx] w-[40rpx] items-center justify-center">
-                <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-black/50"  style="font-size: 42rpx;"/>
-              </view>
-              <text class="mt-[8rpx] text-[22rpx] font-medium leading-[32rpx] tracking-[2rpx] text-black/50">点击上传图片</text>
+            <view class="reference-dropzone-icon">
+              <text class="iconfont icon-icon_paizhaoshangchuan" />
             </view>
+            <text class="reference-dropzone-title">上传参考图</text>
           </view>
 
           <view
             v-else
-            class="reference-upload-box h-[200rpx] overflow-hidden rounded-[48rpx] border-[4rpx] border-dashed border-[#cfc4c5] bg-white px-[24rpx] py-[20rpx]"
+            class="reference-upload-box"
           >
             <scroll-view
               class="h-full whitespace-nowrap"
@@ -36,45 +32,43 @@
               <view
                 v-for="(image, index) in referenceImages"
                 :key="`${image}-${index}`"
-                class="relative mr-[24rpx] inline-block h-[156rpx] w-[128rpx] rounded-[18rpx] border border-[rgba(0,0,0,0.08)] bg-white p-[10rpx] align-top"
+                class="reference-thumb"
               >
-                <image class="h-full w-full rounded-[8rpx]" mode="aspectFill" :src="image" />
+                <image class="reference-thumb-image" mode="aspectFill" :src="image" />
                 <button
-                  class="absolute right-[-16rpx] top-[-16rpx] flex h-[48rpx] w-[48rpx] items-center justify-center rounded-full bg-white p-0 shadow-[0_8rpx_20rpx_rgba(0,0,0,0.12)] active:scale-95"
+                  class="reference-thumb-remove"
                   @tap.stop="removeImage(index)"
                 >
-                  <text class="text-[34rpx] font-light leading-[48rpx] text-black">×</text>
+                  <text>×</text>
                 </button>
               </view>
 
               <button
                 v-if="canAddReferenceImages"
-                class="inline-flex h-[156rpx] w-[152rpx] shrink-0 flex-col items-center justify-center rounded-[18rpx] border border-dashed border-[#d5d0d1] bg-white p-0 align-top active:bg-[#f3f3f4]"
+                class="reference-add-thumb"
                 @tap="chooseImage"
               >
-                <view class="relative flex h-[44rpx] w-[44rpx] items-center justify-center">
-                  <text class="iconfont icon-icon_paizhaoshangchuan leading-none text-[#7e7576]" style="font-size: 40rpx;"/>
-                </view>
-                <text class="mt-[10rpx] text-[24rpx] font-medium leading-[32rpx] text-[#4c4546]">继续添加</text>
+                <text class="iconfont icon-icon_paizhaoshangchuan" />
+                <text>继续添加</text>
               </button>
             </scroll-view>
           </view>
         </view>
 
         <!-- 画面描述 -->
-        <view class="mb-[32rpx]">
-          <text class="model-section-label font-mono">
-            画面描述
-          </text>
-          <view class="glass-card overflow-hidden rounded-[48rpx] p-[24rpx]">
+        <view class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">画面描述</text>
+          </view>
+          <view class="prompt-card">
             <textarea
               v-model="prompt"
-              class="box-border h-[200rpx] w-full bg-transparent px-[8rpx] text-[24rpx] font-normal leading-[44rpx] text-black"
+              class="prompt-textarea"
               maxlength="2000"
               placeholder="描述你想要的画面..."
               placeholder-class="generate-prompt-placeholder"
             />
-            <view class="mt-[16rpx] flex items-center justify-between border-t border-[rgba(207,196,197,0.3)] pt-[16rpx]">
+            <view class="prompt-toolbar">
               <view
                 class="prompt-polish-btn"
                 :class="{ 'prompt-polish-btn-loading': polishingPrompt }"
@@ -88,17 +82,16 @@
                   <view class="prompt-polish-dot" />
                 </view>
               </view>
-              <view class="flex items-center gap-[16rpx]">
-                <view class="h-[24rpx] w-[2rpx] bg-[rgba(207,196,197,0.3)]" />
-                <text class="text-[22rpx] leading-[28rpx] tracking-[2rpx] text-[#7e7576]">支持中英文</text>
-              </view>
+              <text class="prompt-limit">{{ prompt.length }}/2000</text>
             </view>
           </view>
         </view>
 
         <!-- 模型选择 -->
-        <view class="mb-[32rpx]">
-          <text class="model-section-label font-mono">模型选择</text>
+        <view class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">模型选择</text>
+          </view>
           <scroll-view
             class="model-scroll"
             scroll-x
@@ -111,30 +104,21 @@
                 v-for="item in models"
                 :key="item.value"
                 class="model-card"
-                :class="model === item.value ? 'model-card-active' : 'model-card-default'"
+                :class="[getModelCardClass(item), model === item.value ? 'model-card-active' : 'model-card-default']"
                 @tap="selectModel(item)"
               >
-                <!-- <view
-                  class="model-card-icon"
-                  :class="model === item.value ? 'model-card-icon-active' : 'model-card-icon-default'"
-                >
-                  <text
-                    class="iconfont leading-none"
-                    :class="item.iconClass"
-                    :style="{ fontSize: '32rpx', color: model === item.value ? '#ffffff' : '#5f5e5e' }"
-                  />
-                </view> -->
-                <view class="model-card-text" :class="{ 'model-card-text-active': model === item.value }">
-                  <view class="model-card-title-row">
-                    <text class="model-card-title">{{ item.label }}</text>
+                <view class="model-card-sheen" />
+                <view class="model-card-topline">
+                  <text class="model-card-tier">{{ item.tier }}</text>
+                  <view v-if="model === item.value" class="model-card-selected-mark">
+                    <view class="model-card-check-mark" />
                   </view>
-                  <text class="model-card-desc pt-[4rpx]">{{ item.description }}</text>
                 </view>
-                <view
-                  v-if="model === item.value"
-                  class="model-card-check"
-                >
-                  <view class="model-card-check-mark" />
+                <view class="model-card-text">
+                  <view class="model-card-title-row">
+                    <text class="model-card-title">{{ item.shortLabel }}</text>
+                  </view>
+                  <text class="model-card-desc">{{ item.description }}</text>
                 </view>
               </view>
             </view>
@@ -142,8 +126,10 @@
         </view>
 
         <!-- 分辨率 -->
-        <view v-if="shouldShowResolutionOptions" class="mb-[32rpx]">
-          <text class="model-section-label font-mono">分辨率</text>
+        <view v-if="shouldShowResolutionOptions" class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">分辨率</text>
+          </view>
           <view class="segmented-control">
             <button
               v-for="item in availableQualities"
@@ -158,10 +144,10 @@
         </view>
 
         <!-- 画面比例 -->
-        <view class="mb-[32rpx]">
-          <view class="flex items-center justify-between">
-            <text class="model-section-label font-mono">画面比例</text>
-            <text v-if="ratioOptionsReady && shouldShowImageSizeText" class="text-right text-[22rpx] text-black/40">{{ selectedImageSizeText }}</text>
+        <view class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">画面比例</text>
+            <text v-if="ratioOptionsReady && shouldShowImageSizeText" class="section-meta">{{ selectedImageSizeText }}</text>
           </view>
           <scroll-view
             v-if="ratioOptionsReady"
@@ -199,8 +185,10 @@
         </view>
 
         <!-- 图片生成张数 -->
-        <view>
-          <text class="model-section-label font-mono">生成数量</text>
+        <view class="generate-section">
+          <view class="section-heading">
+            <text class="model-section-label">生成数量</text>
+          </view>
           <view class="segmented-control">
             <button
               v-for="item in counts"
@@ -219,10 +207,14 @@
 
     <!-- 底部操作栏 -->
     <view
-      class="fixed inset-x-0 bottom-0 z-50 border-t border-[rgba(207,196,197,0.15)] bg-[rgba(249,249,249,0.92)] px-[48rpx] pt-[20rpx] shadow-[0_-20rpx_80rpx_rgba(0,0,0,0.05)] backdrop-blur-[40rpx]"
+      class="generate-action-bar"
       :style="{ paddingBottom: `calc(18rpx + ${safeAreaBottom}px)` }"
     >
-      <view class="mx-auto max-w-[750rpx]">
+      <view class="generate-action-inner">
+        <view class="generate-summary">
+          <text class="generate-summary-title">{{ selectedModelOption.shortLabel }}</text>
+          <text class="generate-summary-detail">{{ generationSummary }}</text>
+        </view>
         <view
           class="generate-btn"
           :class="{ 'generate-btn-working': generating }"
@@ -343,7 +335,9 @@ type ModelValue = "gpt-image-2" | "gpt-image-2-vip" | "nano-banana-2" | "nano-ba
 const models: Array<{
   value: ModelValue;
   label: string;
+  shortLabel: string;
   description: string;
+  tier: string;
   iconClass: string;
   baseCredits: number;
   enabled: boolean;
@@ -351,7 +345,9 @@ const models: Array<{
   {
     value: "gpt-image-2",
     label: "GPT-image-2",
-    description: "全能艺术创作",
+    shortLabel: "GPT Image 2",
+    description: "均衡创作引擎",
+    tier: "标准",
     iconClass: "icon-magic",
     baseCredits: 6,
     enabled: true,
@@ -359,7 +355,9 @@ const models: Array<{
   {
     value: "gpt-image-2-vip",
     label: "GPT-image-2-pro",
-    description: "尺寸增强",
+    shortLabel: "GPT Image2 Pro",
+    description: "大尺寸专业输出",
+    tier: "专业",
     iconClass: "icon-huizhang",
     baseCredits: 15,
     enabled: true,
@@ -367,7 +365,9 @@ const models: Array<{
   {
     value: "nano-banana",
     label: "Nano-banana",
-    description: "轻量快速生成",
+    shortLabel: "Nano Banana",
+    description: "轻量快速试稿",
+    tier: "极速",
     iconClass: "icon-images",
     baseCredits: 5,
     enabled: true,
@@ -375,7 +375,9 @@ const models: Array<{
   {
     value: "nano-banana-2",
     label: "Nano-banana-2",
-    description: "低价与高阶之间",
+    shortLabel: "Nano Banana 2",
+    description: "进阶画质控制",
+    tier: "进阶",
     iconClass: "icon-tupian",
     baseCredits: 12,
     enabled: true,
@@ -383,7 +385,9 @@ const models: Array<{
   {
     value: "nano-banana-pro",
     label: "Nano-banana-pro",
-    description: "专业细节增强",
+    shortLabel: "Nano Banana Pro",
+    description: "旗舰级细节表现",
+    tier: "旗舰",
     iconClass: "icon-line-medalxunzhang-02",
     baseCredits: 20,
     enabled: true,
@@ -643,6 +647,11 @@ const shouldShowImageSizeText = computed(() => !isNanoBananaModel(model.value));
 const selectedImageSizeText = computed(() => getRatioDisplayText(ratio.value));
 const selectedRatioOption = computed(() => ratios.find((item) => item.value === ratio.value) || ratios[0]);
 const selectedModelOption = computed(() => models.find((item) => item.value === model.value) || models[0]);
+const generationSummary = computed(() => {
+  const parts = shouldShowResolutionOptions.value ? [quality.value, selectedRatioOption.value.label] : [selectedRatioOption.value.label];
+  parts.push(`${count.value}张`);
+  return parts.join(" · ");
+});
 
 const bottomBarHeight = computed(() => rpxToPx(162) + safeAreaBottom.value);
 const scrollViewHeight = computed(() => {
@@ -671,10 +680,10 @@ function getRatioChipClass(value: RatioValue) {
 
 function getRatioChipStyle(value: RatioValue) {
   if (isSelectedRatio(value)) {
-    return "border-color:#000000;background-color:#000000;color:#ffffff;box-shadow:0 0 0 8rpx rgba(0,0,0,0.1);";
+    return "border-color:#111313;background-color:#111313;color:#ffffff;box-shadow:0 10rpx 22rpx rgba(0,0,0,0.13);";
   }
 
-  return "border-color:#cfc4c5;background-color:#ffffff;color:#1a1c1c;box-shadow:none;";
+  return "border-color:rgba(26,28,28,0.12);background-color:rgba(255,255,255,0.86);color:#1a1c1c;box-shadow:0 8rpx 20rpx rgba(20,22,22,0.035);";
 }
 
 function getRatioChipKey(value: RatioValue) {
@@ -687,6 +696,10 @@ function getRatioScrollId(value: RatioValue) {
 
 function getModelSizeMap(modelValue: ModelValue) {
   return modelSizeMaps[modelValue] || defaultModelSizeMap;
+}
+
+function getModelCardClass(item: (typeof models)[number]) {
+  return `model-card-${item.value}`;
 }
 
 function isRatioAvailableForQuality(
@@ -1330,18 +1343,222 @@ async function handleGenerate() {
 </script>
 
 <style>
-.glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(20px);
+.generate-page {
+  background:
+    linear-gradient(180deg, #f7f8f7 0%, #f1f2f2 58%, #eceff0 100%);
+}
+
+.generate-shell {
+  padding: 42rpx 24rpx 36rpx;
+}
+
+.generate-section {
+  margin-bottom: 30rpx;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  min-height: 48rpx;
+  margin-bottom: 10rpx;
+}
+
+.section-meta {
+  flex: none;
+  color: rgba(26, 28, 28, 0.42);
+  font-size: 21rpx;
+  font-weight: 600;
+  line-height: 28rpx;
+}
+
+.reference-dropzone {
+  display: flex;
+  height: 172rpx;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid rgba(26, 28, 28, 0.08);
+  border-radius: 32rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 249, 0.96)),
+    #ffffff;
+  box-shadow:
+    0 18rpx 42rpx rgba(20, 22, 22, 0.045),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.72);
+}
+
+.reference-dropzone:active {
+  transform: scale(0.992);
+}
+
+.reference-dropzone-icon {
+  display: flex;
+  width: 46rpx;
+  height: 46rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  background: #171818;
+  color: #ffffff;
+}
+
+.reference-dropzone-icon .iconfont {
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.reference-dropzone-title {
+  margin-top: 12rpx;
+  color: #1a1c1c;
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 32rpx;
+}
+
+.reference-dropzone-subtitle {
+  margin-top: 3rpx;
+  color: rgba(26, 28, 28, 0.42);
+  font-size: 21rpx;
+  font-weight: 600;
+  line-height: 28rpx;
+}
+
+.reference-upload-box {
+  height: 182rpx;
+  min-height: 182rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 18rpx 18rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.08);
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16rpx 38rpx rgba(20, 22, 22, 0.045);
+}
+
+.reference-thumb {
+  position: relative;
+  display: inline-block;
+  width: 118rpx;
+  height: 144rpx;
+  margin-right: 18rpx;
+  box-sizing: border-box;
+  padding: 8rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.08);
+  border-radius: 22rpx;
+  background: #ffffff;
+  vertical-align: top;
+  box-shadow: 0 10rpx 24rpx rgba(20, 22, 22, 0.055);
+}
+
+.reference-thumb-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 14rpx;
+}
+
+.reference-thumb-remove {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  display: flex;
+  width: 42rpx;
+  height: 42rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999rpx;
+  background: #111111;
+  color: #ffffff;
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.16);
+}
+
+.reference-thumb-remove text {
+  margin-top: -2rpx;
+  font-size: 30rpx;
+  font-weight: 300;
+  line-height: 38rpx;
+}
+
+.reference-add-thumb {
+  display: inline-flex;
+  width: 136rpx;
+  height: 144rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 0;
+  border: 1rpx dashed rgba(26, 28, 28, 0.18);
+  border-radius: 22rpx;
+  background: rgba(247, 248, 248, 0.9);
+  color: rgba(26, 28, 28, 0.56);
+  vertical-align: top;
+}
+
+.reference-add-thumb .iconfont {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.reference-add-thumb text:last-child {
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 28rpx;
+}
+
+.prompt-card {
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 24rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.07);
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 20rpx 46rpx rgba(20, 22, 22, 0.05),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+}
+
+.prompt-textarea {
+  display: block;
+  width: 100%;
+  height: 232rpx;
+  box-sizing: border-box;
+  padding: 4rpx 2rpx;
+  border: 0;
+  background: transparent;
+  color: #161818;
+  font-size: 26rpx;
+  font-weight: 500;
+  line-height: 44rpx;
+}
+
+.prompt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(26, 28, 28, 0.08);
+}
+
+.prompt-limit {
+  flex: none;
+  color: rgba(26, 28, 28, 0.34);
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 28rpx;
 }
 
 .generate-prompt-placeholder {
-  color: #9ca3af !important;
-  font-size: 28rpx !important;
-  line-height: 48rpx !important;
-  letter-spacing: 8rpx !important;
+  color: rgba(26, 28, 28, 0.32) !important;
+  font-size: 26rpx !important;
+  line-height: 44rpx !important;
+  letter-spacing: 0 !important;
 }
 
 .prompt-polish-btn {
@@ -1349,13 +1566,13 @@ async function handleGenerate() {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  height: 56rpx;
-  padding: 0 24rpx;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  height: 54rpx;
+  padding: 0 22rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.08);
   border-radius: 9999rpx;
-  background: #ffffff;
+  background: #f7f7f5;
   color: #232424;
-  box-shadow: 0 8rpx 22rpx rgba(0, 0, 0, 0.02);
+  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   transition:
     background-color 0.18s ease,
     border-color 0.18s ease,
@@ -1388,7 +1605,6 @@ async function handleGenerate() {
   align-items: center;
   height: 32rpx;
   font-size: 22rpx;
-  font-family: serif;
   font-weight: 600;
   line-height: 32rpx;
   color: currentColor;
@@ -1455,10 +1671,6 @@ async function handleGenerate() {
   }
 }
 
-.reference-upload-box {
-  min-height: 204rpx;
-}
-
 .reference-compress-canvas {
   position: fixed;
   top: -9999px;
@@ -1470,26 +1682,30 @@ async function handleGenerate() {
 
 .segmented-control {
   display: flex;
+  box-sizing: border-box;
   border-radius: 9999rpx;
-  background: #f5f5f5;
-  padding: 8rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.06);
+  background: rgba(232, 235, 235, 0.78);
+  padding: 6rpx;
+  box-shadow: inset 0 1rpx 3rpx rgba(0, 0, 0, 0.04);
 }
 
 .segmented-item {
   flex: 1;
-  height: 72rpx;
+  height: 68rpx;
   border-radius: 9999rpx;
-  color: #1a1c1c;
+  color: rgba(26, 28, 28, 0.68);
   font-size: 26rpx;
-  font-weight: 600;
-  line-height: 72rpx;
+  font-weight: 800;
+  line-height: 68rpx;
   text-align: center;
   transition: all 0.3s ease;
 }
 
 .segmented-item.active {
-  background: #ffffff;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  background: #111313;
+  color: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.12);
 }
 
 .ratio-scroll {
@@ -1500,21 +1716,21 @@ async function handleGenerate() {
   display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 16rpx;
-  padding: 8rpx 8rpx 4rpx;
+  gap: 14rpx;
+  padding: 6rpx 6rpx 6rpx;
 }
 
 .ratio-chip {
   display: inline-flex;
   flex-shrink: 0;
-  width: 120rpx;
-  height: 96rpx;
+  width: 108rpx;
+  height: 88rpx;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
-  border: 2rpx solid #cfc4c5;
-  border-radius: 24rpx;
+  gap: 7rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.12);
+  border-radius: 22rpx;
   color: #1a1c1c;
   box-sizing: border-box;
   transition:
@@ -1527,15 +1743,15 @@ async function handleGenerate() {
 
 .ratio-chip-label {
   font-size: 22rpx;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 28rpx;
 }
 
 .ratio-chip-selected {
-  border: 2rpx solid #000000;
-  background: #000000;
+  border: 1rpx solid #111313;
+  background: #111313;
   color: #ffffff;
-  box-shadow: 0 0 0 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10rpx 22rpx rgba(0, 0, 0, 0.13);
 }
 
 .ratio-chip-more {
@@ -1551,7 +1767,7 @@ async function handleGenerate() {
 
 .ratio-icon {
   box-sizing: border-box;
-  border: 3rpx solid currentColor;
+  border: 2rpx solid currentColor;
   border-radius: 4rpx;
   background: transparent;
   opacity: 0.85;
@@ -1888,17 +2104,17 @@ async function handleGenerate() {
 .generate-btn {
   position: relative;
   display: flex;
-  width: 100%;
-  height: 112rpx;
+  width: 284rpx;
+  height: 92rpx;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   box-sizing: border-box;
-  padding: 0 40rpx;
+  padding: 0 28rpx;
   border: 0;
   border-radius: 9999rpx;
   background: #0b0b0b;
-  box-shadow: 0 24rpx 46rpx rgba(0, 0, 0, 0.18);
+  box-shadow: 0 18rpx 36rpx rgba(0, 0, 0, 0.18);
   color: #ffffff;
   cursor: pointer;
   user-select: none;
@@ -1944,19 +2160,22 @@ async function handleGenerate() {
 }
 
 .generate-ready-content {
-  gap: 14rpx;
+  gap: 10rpx;
 }
 
 .generate-ready-icon {
-  font-size: 36rpx;
+  font-size: 30rpx;
   line-height: 1;
   color: #ffffff;
 }
 
 .generate-ready-text {
-  font-size: 28rpx;
-  font-weight: 600;
-  line-height: 34rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 32rpx;
   color: #ffffff;
 }
 
@@ -1965,9 +2184,9 @@ async function handleGenerate() {
 }
 
 .generate-working-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  line-height: 34rpx;
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 32rpx;
   color: #ffffff;
 }
 
@@ -1981,6 +2200,61 @@ async function handleGenerate() {
   animation: generate-spinner-spin 0.8s linear infinite;
 }
 
+.generate-action-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  border-top: 1rpx solid rgba(26, 28, 28, 0.08);
+  background: rgba(247, 248, 248, 0.88);
+  padding: 16rpx 24rpx 0;
+  box-shadow: 0 -18rpx 50rpx rgba(20, 22, 22, 0.06);
+  backdrop-filter: blur(28rpx);
+}
+
+.generate-action-inner {
+  display: flex;
+  max-width: 750rpx;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+}
+
+.generate-summary {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6rpx;
+  margin-top: 16rpx;
+}
+
+.generate-summary-title {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #171818;
+  font-size: 26rpx;
+  font-weight: 900;
+  line-height: 32rpx;
+}
+
+.generate-summary-detail {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(26, 28, 28, 0.46);
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 28rpx;
+}
+
 @keyframes generate-spinner-spin {
   to {
     transform: rotate(360deg);
@@ -1989,77 +2263,135 @@ async function handleGenerate() {
 
 .model-section-label {
   display: block;
-  padding: 16rpx;
-  font-size: 24rpx;
-  font-weight: 500;
+  padding: 0;
+  font-size: 23rpx;
+  font-weight: 800;
   line-height: 32rpx;
-  letter-spacing: 1rpx;
-  color: #777;
+  letter-spacing: 0;
+  color: rgba(26, 28, 28, 0.72);
 }
 
 .model-scroll {
   width: 100%;
+  padding-bottom: 2rpx;
 }
 
 .model-grid {
   display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 16rpx;
-  padding: 0 8rpx 8rpx;
+  align-items: stretch;
+  gap: 14rpx;
+  padding: 2rpx 6rpx 8rpx;
 }
 
 .model-card {
+  position: relative;
   display: flex;
   box-sizing: border-box;
   flex: none;
-  width: 260rpx;
-  align-items: center;
-  gap: 16rpx;
-  padding: 12rpx 24rpx;
+  width: 282rpx;
+  min-height: 144rpx;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 16rpx 18rpx;
   border-radius: 24rpx;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
 .model-card-default {
-  border: 2rpx solid #cfc4c5;
-  background: #ffffff;
+  border: 2rpx solid rgba(26, 28, 28, 0.08);
+  background: linear-gradient(145deg, #ffffff 0%, #f3f1ef 100%);
   color: #1a1c1c;
+  box-shadow: 0 8rpx 22rpx rgba(26, 28, 28, 0.045);
 }
 
 .model-card-active {
-  border: 4rpx solid #000000;
-  background: #1b1b1b;
+  border: 2rpx solid rgba(244, 206, 128, 0.42);
+  background: linear-gradient(145deg, #0f1010 0%, #23201d 54%, #3a2d1e 100%);
   color: #ffffff;
+  /* box-shadow:
+    0 8rpx 22rpx rgba(0, 0, 0, 0.14),
+    inset 0 0 0 1rpx rgba(255, 255, 255, 0.08); */
+  transform: none;
 }
 
-.model-card-icon {
+.model-card-sheen {
+  position: absolute;
+  top: -70rpx;
+  right: -70rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.52);
+  filter: blur(4rpx);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.model-card-active .model-card-sheen {
+  background: rgba(244, 206, 128, 0.38);
+  opacity: 0.72;
+}
+
+.model-card-gpt-image-2-vip.model-card-default {
+  background: linear-gradient(145deg, #fffdf8 0%, #f1e8d7 100%);
+}
+
+.model-card-nano-banana-pro.model-card-default {
+  background: linear-gradient(145deg, #fbfbfb 0%, #e9edf0 100%);
+}
+
+.model-card-topline {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-shrink: 0;
   align-items: center;
-  justify-content: center;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 16rpx;
+  justify-content: space-between;
+  gap: 12rpx;
+  min-height: 34rpx;
 }
 
-.model-card-icon-default {
-  background: #eeeeee;
+.model-card-tier,
+.model-card-selected-mark {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
-.model-card-icon-active {
-  background: rgba(255, 255, 255, 0.1);
+.model-card-tier {
+  max-width: 112rpx;
+  overflow: hidden;
+  padding: 4rpx 14rpx;
+  border: 1rpx solid rgba(26, 28, 28, 0.12);
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.56);
+  text-overflow: ellipsis;
+  font-size: 20rpx;
+  font-weight: 800;
+  line-height: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+.model-card-active .model-card-tier {
+  border-color: rgba(244, 206, 128, 0.42);
+  background: rgba(244, 206, 128, 0.15);
+  color: #f7d899;
 }
 
 .model-card-text {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  justify-content: center;
+  gap: 4rpx;
   min-width: 0;
   color: #1a1c1c;
 }
 
-.model-card-text-active {
+.model-card-active .model-card-text {
   color: #ffffff;
 }
 
@@ -2071,52 +2403,54 @@ async function handleGenerate() {
 }
 
 .model-card-title {
-  flex: 1;
+  display: block;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 900;
   line-height: 36rpx;
 }
 
-.model-card-check {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 30rpx;
-  height: 30rpx;
-  box-sizing: border-box;
-  border: 4rpx solid currentColor;
-  border-radius: 50%;
-  color: #ffffff;
-}
-
-.model-card-check-mark {
-  width: 8rpx;
-  height: 14rpx;
-  margin-top: -4rpx;
-  border-right: 4rpx solid currentColor;
-  border-bottom: 4rpx solid currentColor;
-  transform: rotate(45deg);
-  transform-origin: center;
-}
-
 .model-card-desc {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 20rpx;
+  color: rgba(26, 28, 28, 0.58);
+  font-size: 21rpx;
+  font-weight: 500;
   line-height: 28rpx;
-  opacity: 0.7;
-  padding-left: 2rpx;
 }
 
-.model-card-text-active .model-card-desc {
-  color: #ffffff;
-  opacity: 0.7;
+.model-card-active .model-card-desc {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.model-card-selected-mark {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  justify-content: center;
+  width: 34rpx;
+  height: 34rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111111;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.18);
+}
+
+.model-card-check-mark {
+  flex: none;
+  width: 8rpx;
+  height: 14rpx;
+  margin-top: -4rpx;
+  border-right: 3rpx solid currentColor;
+  border-bottom: 3rpx solid currentColor;
+  transform: rotate(45deg);
+  transform-origin: center;
 }
 
 </style>
