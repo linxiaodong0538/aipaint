@@ -28,9 +28,7 @@ import com.ruoyi.web.service.image.AiImageProviderConfig;
 @Service
 public class AiPromptPolishService
 {
-    private static final String PROVIDER_GRSAI = "grsai";
-
-    private static final String POLISH_MODEL = "gemini-3.1-flash-lite";
+    private static final String PROVIDER_DEEPSEEK = "deepseek";
 
     private static final int MAX_PROMPT_LENGTH = 2000;
 
@@ -55,10 +53,10 @@ public class AiPromptPolishService
             normalizedPrompt = normalizedPrompt.substring(0, MAX_PROMPT_LENGTH);
         }
 
-        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(PROVIDER_GRSAI);
+        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(PROVIDER_DEEPSEEK);
         try
         {
-            JSONObject payload = buildPayload(normalizedPrompt);
+            JSONObject payload = buildPayload(normalizedPrompt, resolvePolishModel(providerConfig));
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(resolveEndpoint(providerConfig.getBaseUrl(), "/v1/chat/completions")))
                     .version(HttpClient.Version.HTTP_1_1)
@@ -94,10 +92,10 @@ public class AiPromptPolishService
     public void polishStream(String prompt, Consumer<String> chunkConsumer)
     {
         String normalizedPrompt = normalizePrompt(prompt);
-        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(PROVIDER_GRSAI);
+        AiImageProviderConfig providerConfig = aiImageConfigService.resolveProviderByCode(PROVIDER_DEEPSEEK);
         try
         {
-            JSONObject payload = buildPayload(normalizedPrompt, true);
+            JSONObject payload = buildPayload(normalizedPrompt, resolvePolishModel(providerConfig), true);
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(resolveEndpoint(providerConfig.getBaseUrl(), "/v1/chat/completions")))
                     .version(HttpClient.Version.HTTP_1_1)
@@ -145,15 +143,29 @@ public class AiPromptPolishService
         return normalizedPrompt;
     }
 
-    private JSONObject buildPayload(String prompt)
+    private String resolvePolishModel(AiImageProviderConfig providerConfig)
     {
-        return buildPayload(prompt, false);
+        String model = providerConfig.getModel();
+        if (StringUtils.isBlank(model) && providerConfig.getSupportedModels() != null && !providerConfig.getSupportedModels().isEmpty())
+        {
+            model = providerConfig.getSupportedModels().get(0);
+        }
+        if (StringUtils.isBlank(model))
+        {
+            throw new ServiceException("Prompt 润色通道未配置模型");
+        }
+        return aiImageConfigService.resolveProviderModel(providerConfig, model);
     }
 
-    private JSONObject buildPayload(String prompt, boolean stream)
+    private JSONObject buildPayload(String prompt, String model)
+    {
+        return buildPayload(prompt, model, false);
+    }
+
+    private JSONObject buildPayload(String prompt, String model, boolean stream)
     {
         JSONObject payload = new JSONObject();
-        payload.put("model", POLISH_MODEL);
+        payload.put("model", model);
         payload.put("stream", Boolean.valueOf(stream));
 
         JSONArray messages = new JSONArray();
@@ -170,6 +182,7 @@ public class AiPromptPolishService
         return "请将下面的画面描述润色为适合 AI 图像生成的高质量提示词。"
                 + "要求：保留原意，不添加冲突主体；补充画面细节、构图、光线、风格、质感；"
                 + resolveLanguageInstruction(prompt)
+                + "输出长度控制在 1000 字符以内，内容精炼但保留关键画面细节；"
                 + "只输出润色后的提示词，不要解释、标题或编号。\n"
                 + "原始描述：\n" + prompt;
     }

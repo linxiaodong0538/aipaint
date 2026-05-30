@@ -59,9 +59,13 @@ public class AiImageConfigService
 
     private static final String MODEL_NANO_BANANA_FAST = "nano-banana";
 
+    private static final String MODEL_DEEPSEEK_V4_FLASH = "deepseek-v4-flash";
+
     private static final String PROVIDER_SUPERAPI = "superapi";
 
     private static final String PROVIDER_GRSAI = "grsai";
+
+    private static final String PROVIDER_DEEPSEEK = "deepseek";
 
     private static final String KEY_CIRCUIT_BREAKER_FAILURE_THRESHOLD = "ai.image.circuitBreaker.failureThreshold";
 
@@ -687,6 +691,22 @@ public class AiImageConfigService
         grsai.setSortOrder(Integer.valueOf(2));
         grsai.setRemark("支持 GPT 与 nano-banana 的中转站");
         providers.add(grsai);
+
+        AiImageProviderConfig deepseek = new AiImageProviderConfig();
+        deepseek.setProviderCode(PROVIDER_DEEPSEEK);
+        deepseek.setProviderName("DeepSeek 提示词润色");
+        deepseek.setAdapterType(ADAPTER_OPENAI_COMPATIBLE);
+        deepseek.setResponseMode(RESPONSE_MODE_JSON);
+        deepseek.setSupportsBatch(Boolean.FALSE);
+        deepseek.setBaseUrl("https://api.deepseek.com");
+        deepseek.setApiKey("");
+        deepseek.setEnabled(Boolean.FALSE);
+        deepseek.setSupportedModels(Collections.singletonList(MODEL_DEEPSEEK_V4_FLASH));
+        deepseek.setProviderModelMap(buildDefaultProviderModelMap(deepseek.getSupportedModels()));
+        deepseek.setModel(MODEL_DEEPSEEK_V4_FLASH);
+        deepseek.setSortOrder(Integer.valueOf(3));
+        deepseek.setRemark("仅用于提示词润色，不参与生图路由");
+        providers.add(deepseek);
         return providers;
     }
 

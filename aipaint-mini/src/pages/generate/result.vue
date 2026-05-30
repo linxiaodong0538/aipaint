@@ -571,12 +571,33 @@ function startMockCompleteTransition() {
 }
 
 function enterFailedState(message: string) {
-  errorMessage.value = message;
+  errorMessage.value = normalizeGenerationErrorMessage(message);
   stopTimers();
   bottomBarVisible.value = false;
   resultLayerMounted.value = false;
   taskState.value = "failed";
   pageInitializing.value = false;
+}
+
+function normalizeGenerationErrorMessage(message: string) {
+  const rawMessage = String(message || "").trim();
+  if (!rawMessage) {
+    return "图片生成失败，请返回后重试";
+  }
+
+  const lowerMessage = rawMessage.toLowerCase();
+  if (
+    lowerMessage.includes("content policies")
+    || lowerMessage.includes("content policy")
+    || lowerMessage.includes("may violate")
+    || lowerMessage.includes("violate our")
+    || lowerMessage.includes("safety")
+    || lowerMessage.includes("violation")
+  ) {
+    return "画面描述可能不符合生成规范，请调整提示词或模型后重试";
+  }
+
+  return rawMessage.replace(/^图片生成失败[:：]\s*/, "") || "图片生成失败，请返回后重试";
 }
 
 function resetPendingTimers() {
@@ -707,7 +728,6 @@ function gcd(a: number, b: number): number {
 
 function failTask(message: string) {
   enterFailedState(message);
-  uni.showToast({ title: message, icon: "none" });
 }
 
 function showLongWaitHint() {
