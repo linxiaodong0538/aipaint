@@ -326,7 +326,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import { navigateTo, routes } from "@/utils/router";
 import { createImageGeneration, getGenerationPricing, polishPromptStream, uploadImage, type GenerationPricing } from "@/api/generate";
 import type { ApiError } from "@/utils/request";
 import { getTemplateDetail, type TemplateItem } from "@/api/template";
@@ -1314,7 +1313,9 @@ async function handleGenerate() {
       image_urls: imageUrls,
     });
 
-    await navigateTo(routes.generateResult, { taskId: result.taskId });
+    await uni.navigateTo({
+      url: `/pages/generate/result?taskId=${encodeURIComponent(String(result.taskId))}`,
+    });
   } catch (error) {
     const apiError = error as ApiError | undefined;
     if (apiError?.shown) {

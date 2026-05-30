@@ -129,11 +129,11 @@
           </view>
         </section>
 
-        <view class="mt-[20rpx] rounded-[28rpx] bg-[rgba(0,0,0,0.04)] px-[28rpx] py-[22rpx]">
+        <!-- <view class="mt-[20rpx] rounded-[28rpx] bg-[rgba(0,0,0,0.04)] px-[28rpx] py-[22rpx]">
           <text class="block text-[22rpx] leading-[34rpx] text-[#69717a]">
             邀请数据可能存在短暂延迟，以系统最终入账记录为准。
           </text>
-        </view>
+        </view> -->
       </view>
     </scroll-view>
   </view>
