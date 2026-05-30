@@ -26,6 +26,12 @@ select 'deepseek',
        sysdate()
 where not exists (select 1 from ai_image_provider where provider_code = 'deepseek');
 
+update ai_image_provider
+set remark = '仅用于提示词润色，不参与生图路由',
+    update_time = sysdate()
+where provider_code = 'deepseek'
+  and (remark is null or remark = '');
+
 insert into ai_image_provider_model(provider_code, model, provider_model, enabled, create_time, update_time)
 select 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-flash', true, sysdate(), sysdate()
 where exists (select 1 from ai_image_provider where provider_code = 'deepseek')

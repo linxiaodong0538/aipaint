@@ -21,6 +21,8 @@ export interface TemplateItem {
   sort?: number;
   status?: string;
   createTime?: string;
+  updateTime?: string;
+  remark?: string;
   tags?: TemplateTag[];
 }
 
