@@ -271,10 +271,6 @@ async function toggleFavorite() {
       ? await unfavoriteTemplate(templateId.value)
       : await favoriteTemplate(templateId.value);
     isFavorited.value = Boolean(result.favorited);
-    uni.showToast({
-      title: isFavorited.value ? "已收藏" : "已取消收藏",
-      icon: "none",
-    });
   } catch {
     isFavorited.value = previous;
   } finally {
