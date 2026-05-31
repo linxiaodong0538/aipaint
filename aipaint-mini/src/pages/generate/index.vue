@@ -23,12 +23,7 @@
             v-else
             class="reference-upload-box"
           >
-            <scroll-view
-              class="h-full whitespace-nowrap"
-              scroll-x
-              enhanced
-              :show-scrollbar="false"
-            >
+            <view class="reference-grid">
               <view
                 v-for="(image, index) in referenceImages"
                 :key="`${image}-${index}`"
@@ -51,7 +46,7 @@
                 <text class="iconfont icon-icon_paizhaoshangchuan" />
                 <text>继续添加</text>
               </button>
-            </scroll-view>
+            </view>
           </view>
         </view>
 
@@ -64,7 +59,7 @@
             <textarea
               v-model="prompt"
               class="prompt-textarea"
-              maxlength="2000"
+              maxlength="1000"
               placeholder="描述你想要的画面..."
               placeholder-class="generate-prompt-placeholder"
             />
@@ -82,7 +77,7 @@
                   <view class="prompt-polish-dot" />
                 </view>
               </view>
-              <text class="prompt-limit">{{ prompt.length }}/2000</text>
+              <text class="prompt-limit">{{ prompt.length }}/1000</text>
             </view>
           </view>
         </view>
@@ -1427,76 +1422,88 @@ async function handleGenerate() {
 }
 
 .reference-upload-box {
-  height: 182rpx;
-  min-height: 182rpx;
+  height: 178rpx;
+  min-height: 178rpx;
   overflow: hidden;
   box-sizing: border-box;
-  padding: 18rpx 18rpx;
+  padding: 12rpx;
   border: 1rpx solid rgba(26, 28, 28, 0.08);
   border-radius: 32rpx;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 16rpx 38rpx rgba(20, 22, 22, 0.045);
 }
 
+.reference-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10rpx;
+}
+
 .reference-thumb {
   position: relative;
-  display: inline-block;
-  width: 118rpx;
-  height: 144rpx;
-  margin-right: 18rpx;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  padding: 8rpx;
-  border: 1rpx solid rgba(26, 28, 28, 0.08);
-  border-radius: 22rpx;
-  background: #ffffff;
-  vertical-align: top;
-  box-shadow: 0 10rpx 24rpx rgba(20, 22, 22, 0.055);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .reference-thumb-image {
   display: block;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(26, 28, 28, 0.08);
   border-radius: 14rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(20, 22, 22, 0.045);
 }
 
 .reference-thumb-remove {
   position: absolute;
-  top: -12rpx;
-  right: -12rpx;
+  top: 6rpx;
+  right: 6rpx;
   display: flex;
-  width: 42rpx;
-  height: 42rpx;
+  width: 36rpx;
+  height: 36rpx;
   align-items: center;
   justify-content: center;
   padding: 0;
   border-radius: 999rpx;
   background: #111111;
   color: #ffffff;
-  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.16);
+  box-shadow: 0 6rpx 14rpx rgba(0, 0, 0, 0.16);
 }
 
 .reference-thumb-remove text {
-  margin-top: -2rpx;
-  font-size: 30rpx;
+  margin-top: -3rpx;
+  font-size: 26rpx;
   font-weight: 300;
-  line-height: 38rpx;
+  line-height: 34rpx;
 }
 
 .reference-add-thumb {
-  display: inline-flex;
-  width: 136rpx;
-  height: 144rpx;
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
   padding: 0;
   border: 1rpx dashed rgba(26, 28, 28, 0.18);
-  border-radius: 22rpx;
+  border-radius: 14rpx;
   background: rgba(247, 248, 248, 0.9);
   color: rgba(26, 28, 28, 0.56);
-  vertical-align: top;
 }
 
 .reference-add-thumb .iconfont {

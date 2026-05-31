@@ -20,7 +20,7 @@
         :class="{ 'nav-art-title--italic': italic }"
       >
         {{ title }}
-      </text>
+      </text> 
     </view>
   </view>
 </template>
@@ -43,11 +43,11 @@ const navLayout = getNavBarLayout();
 
 <style scoped>
 .nav-art-title {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
   /* font-family: Georgia, "Times New Roman", serif; */
-  font-size: 14px;
-  /* font-weight: 600; */
-  line-height: 30px;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 44rpx;
   text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.18);
 }
 
