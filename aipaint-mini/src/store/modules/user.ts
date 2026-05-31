@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
 import { getUserProfile, login } from "@/api/user";
 
+const LOGIN_AGREEMENT_ACCEPTED_KEY = "legal:loginAgreementAccepted";
+
 export interface UserProfile {
   id: string;
   nickname: string;
@@ -44,6 +46,20 @@ export const useUserStore = defineStore("user", {
     async loginWithWechat() {
       if (this.loggingIn) {
         return;
+      }
+
+      const accepted = uni.getStorageSync(LOGIN_AGREEMENT_ACCEPTED_KEY);
+      if (!accepted) {
+        const confirmResult = await uni.showModal({
+          title: "登录前请阅读",
+          content: "登录即表示你已阅读并同意《用户协议》和《隐私政策》。",
+          cancelText: "暂不同意",
+          confirmText: "同意登录",
+        });
+        if (!confirmResult.confirm) {
+          throw new Error("请先同意用户协议和隐私政策");
+        }
+        uni.setStorageSync(LOGIN_AGREEMENT_ACCEPTED_KEY, "1");
       }
 
       this.loggingIn = true;

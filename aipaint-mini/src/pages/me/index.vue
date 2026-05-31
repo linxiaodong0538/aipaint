@@ -64,6 +64,12 @@
           >
             一键快捷登录
           </button>
+          <view v-if="!userStore.isLogin" class="mt-[18rpx] flex flex-wrap items-center justify-center px-[32rpx]">
+            <text class="text-[22rpx] leading-[34rpx] text-[var(--app-on-surface-variant)]">登录即表示同意</text>
+            <text class="px-[4rpx] text-[22rpx] font-semibold leading-[34rpx] text-black" @tap.stop="openAgreement">《用户协议》</text>
+            <text class="text-[22rpx] leading-[34rpx] text-[var(--app-on-surface-variant)]">和</text>
+            <text class="px-[4rpx] text-[22rpx] font-semibold leading-[34rpx] text-black" @tap.stop="openPrivacy">《隐私政策》</text>
+          </view>
 
           <view
             v-if="userStore.isLogin"
@@ -286,6 +292,14 @@ function rpxToPx(rpx: number) {
 
 function handleLogin() {
   userStore.loginWithWechat().catch(() => undefined);
+}
+
+function openAgreement() {
+  navigateTo(routes.userAgreement);
+}
+
+function openPrivacy() {
+  navigateTo(routes.privacyPolicy);
 }
 
 async function handleTaskTap(task: TaskItem) {
