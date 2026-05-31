@@ -27,6 +27,14 @@
       }
     },
     {
+      "path": "pages/templates/favorites",
+      "style": {
+        "navigationBarTitleText": "我的收藏",
+        "navigationBarBackgroundColor": "#f7f7f7",
+        "navigationBarTextStyle": "black"
+      }
+    },
+    {
       "path": "pages/generate/index",
       "style": {
         "navigationBarTitleText": "AI生成",

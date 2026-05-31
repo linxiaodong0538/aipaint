@@ -236,7 +236,7 @@ interface TaskItem {
 interface MenuItem {
   title: string;
   iconClass: string;
-  action: "credit-detail" | "recharge" | "works" | "invite-reward" | "customer-service";
+  action: "credit-detail" | "recharge" | "works" | "template-favorites" | "invite-reward" | "customer-service";
 }
 
 const navLayout = getNavBarLayout();
@@ -285,6 +285,7 @@ const tasks: TaskItem[] = [
 const menuItems: MenuItem[] = [
   { title: "积分明细", iconClass: "icon-jinbi", action: "credit-detail" },
   { title: "邀请奖励", iconClass: "icon-ewailichengjiangli", action: "invite-reward" },
+  { title: "我的收藏", iconClass: "icon-line-medalxunzhang-02", action: "template-favorites" },
   { title: "我的作品", iconClass: "icon-images", action: "works" },
   { title: "联系客服", iconClass: "icon-kefu", action: "customer-service" },
 ];
@@ -378,6 +379,11 @@ function handleMenuClick(item: MenuItem) {
 
   if (item.action === "invite-reward") {
     navigateTo(routes.inviteReward);
+    return;
+  }
+
+  if (item.action === "template-favorites") {
+    navigateTo(routes.templateFavorites);
     return;
   }
 

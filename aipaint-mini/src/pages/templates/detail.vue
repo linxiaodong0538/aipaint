@@ -100,7 +100,20 @@
       :style="{ paddingBottom: `${safeAreaBottom}px`, height: `${bottomBarHeight}px` }"
     >
       <button
-        class="m-0 flex h-[112rpx] w-full max-w-[750rpx] items-center justify-center rounded-full bg-black text-white shadow-[0_28rpx_64rpx_rgba(0,0,0,0.12)] active:scale-95 disabled:bg-[#bdbdbd]"
+        class="m-0 mr-[16rpx] flex h-[112rpx] w-[188rpx] shrink-0 flex-col items-center justify-center rounded-full border border-[rgba(0,0,0,0.08)] bg-white text-black shadow-[0_18rpx_42rpx_rgba(0,0,0,0.08)] active:scale-95 disabled:text-[#9d9d9d]"
+        hover-class="none"
+        :disabled="loading || loadFailed || favoriteLoading"
+        @tap="toggleFavorite"
+      >
+        <text class="text-[34rpx] font-bold leading-[38rpx] text-black iconfont" :class="isFavorited ? 'icon-a-yishoucangmianicon' : 'icon-shoucang'" >
+        </text>
+        <text class="mt-[4rpx] text-[22rpx] font-semibold leading-[28rpx]">
+          {{ isFavorited ? "已收藏" : "收藏" }}
+        </text>
+      </button>
+
+      <button
+        class="m-0 flex h-[112rpx] min-w-0 flex-1 items-center justify-center rounded-full bg-black text-white shadow-[0_28rpx_64rpx_rgba(0,0,0,0.12)] active:scale-95 disabled:bg-[#bdbdbd]"
         hover-class="none"
         :disabled="loading || loadFailed"
         @tap="useTemplate"
@@ -114,8 +127,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
-import { getTemplateDetail, type TemplateItem } from "@/api/template";
+import { favoriteTemplate, getTemplateDetail, getTemplateFavoriteStatus, unfavoriteTemplate, type TemplateItem } from "@/api/template";
 import { navigateTo, routes } from "@/utils/router";
+import { useUserStore } from "@/store/modules/user";
 
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
@@ -124,6 +138,9 @@ const template = ref<TemplateItem | null>(null);
 const templateId = ref<string | number>("");
 const loading = ref(false);
 const loadFailed = ref(false);
+const isFavorited = ref(false);
+const favoriteLoading = ref(false);
+const userStore = useUserStore();
 const selectedTemplateStorageKey = "generate:selectedTemplate";
 
 try {
@@ -162,12 +179,27 @@ async function loadTemplate(id: string | number) {
   loadFailed.value = false;
   try {
     template.value = await getTemplateDetail(id);
+    await loadFavoriteStatus(id);
   } catch {
     loadFailed.value = true;
     template.value = null;
     uni.showToast({ title: "模板加载失败", icon: "none" });
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadFavoriteStatus(id: string | number) {
+  if (!userStore.isLogin) {
+    isFavorited.value = false;
+    return;
+  }
+
+  try {
+    const result = await getTemplateFavoriteStatus(id);
+    isFavorited.value = Boolean(result.favorited);
+  } catch {
+    isFavorited.value = false;
   }
 }
 
@@ -206,6 +238,48 @@ function previewCoverImage() {
     urls: [displayCover.value],
     current: displayCover.value,
   });
+}
+
+async function ensureLogin() {
+  if (userStore.isLogin) {
+    return true;
+  }
+
+  try {
+    await userStore.loginWithWechat();
+    return userStore.isLogin;
+  } catch {
+    return false;
+  }
+}
+
+async function toggleFavorite() {
+  if (!templateId.value || favoriteLoading.value || loading.value || loadFailed.value) {
+    return;
+  }
+
+  const loggedIn = await ensureLogin();
+  if (!loggedIn) {
+    return;
+  }
+
+  favoriteLoading.value = true;
+  const previous = isFavorited.value;
+  isFavorited.value = !previous;
+  try {
+    const result = previous
+      ? await unfavoriteTemplate(templateId.value)
+      : await favoriteTemplate(templateId.value);
+    isFavorited.value = Boolean(result.favorited);
+    uni.showToast({
+      title: isFavorited.value ? "已收藏" : "已取消收藏",
+      icon: "none",
+    });
+  } catch {
+    isFavorited.value = previous;
+  } finally {
+    favoriteLoading.value = false;
+  }
 }
 
 function useTemplate() {
@@ -248,3 +322,9 @@ onLoad((query) => {
   loadTemplate(id);
 });
 </script>
+
+<style>
+.icon-a-yishoucangmianicon{
+  font-size: 36rpx;
+}
+</style>

@@ -21,6 +21,7 @@ export const routes = {
   generateResult: "/pages/generate/result",
   templates: "/pages/templates/index",
   templateDetail: "/pages/templates/detail",
+  templateFavorites: "/pages/templates/favorites",
   works: "/pages/works/index",
   me: "/pages/me/index",
   creditDetail: "/pages/me/credit-detail",
