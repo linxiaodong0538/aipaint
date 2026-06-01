@@ -1,5 +1,6 @@
 package com.ruoyi.system.mapper;
 
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import com.ruoyi.system.domain.AiPaymentOrder;
 import com.ruoyi.system.domain.AiUserMembership;
@@ -9,6 +10,8 @@ import com.ruoyi.system.domain.AiUserMembership;
  */
 public interface AiPaymentMapper
 {
+    public List<AiPaymentOrder> selectPaymentOrderList(AiPaymentOrder order);
+
     public int insertPaymentOrder(AiPaymentOrder order);
 
     public AiPaymentOrder selectPaymentOrderByOutTradeNo(@Param("outTradeNo") String outTradeNo);

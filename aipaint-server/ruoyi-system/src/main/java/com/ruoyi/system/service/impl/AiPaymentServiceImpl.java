@@ -23,6 +23,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.crypto.Cipher;
@@ -41,6 +42,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.IdUtils;
 import com.ruoyi.system.domain.AiPaymentOrder;
 import com.ruoyi.system.domain.AiUserMembership;
+import com.ruoyi.system.mapper.AiCreditMapper;
 import com.ruoyi.system.mapper.AiPaymentMapper;
 import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiPaymentService;
@@ -109,11 +111,20 @@ public class AiPaymentServiceImpl implements IAiPaymentService
     @Autowired
     private IAiCreditService creditService;
 
+    @Autowired
+    private AiCreditMapper creditMapper;
+
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private volatile PrivateKey cachedPrivateKey;
 
     private volatile PublicKey cachedWechatPayPublicKey;
+
+    @Override
+    public List<AiPaymentOrder> selectPaymentOrderList(AiPaymentOrder order)
+    {
+        return paymentMapper.selectPaymentOrderList(order);
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -219,6 +230,22 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         applySuccessfulTransaction(outTradeNo, transaction, plainText);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AiPaymentOrder syncWechatPayment(String outTradeNo)
+    {
+        AiPaymentOrder order = paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
+        if (order == null)
+        {
+            throw new ServiceException("订单不存在");
+        }
+        if (!STATUS_PAID.equals(order.getStatus()))
+        {
+            syncPaidOrderFromWechat(order);
+        }
+        return paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
+    }
+
     private void applySuccessfulTransaction(String outTradeNo, JSONObject transaction, String rawNotify)
     {
         AiPaymentOrder order = paymentMapper.selectPaymentOrderByOutTradeNoForUpdate(outTradeNo);
@@ -297,6 +324,7 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         {
             paymentMapper.updateMembership(membership);
         }
+        creditMapper.extendActiveBatchesBySourceType(order.getUserId(), SOURCE_PAYMENT_MEMBERSHIP, expireTime);
         return expireTime;
     }
 

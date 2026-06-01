@@ -81,7 +81,7 @@
                     </text>
                   </view>
                   <text class="mt-[10rpx] block text-[24rpx] leading-[34rpx] text-[#777]">
-                    {{ plan.desc }}
+                    {{ getMembershipPlanDesc(plan) }}
                   </text>
                 </view>
                 <view class="shrink-0 text-right">
@@ -185,7 +185,7 @@
           <view class="rounded-[32rpx] bg-[#eeeeee] px-[32rpx] py-[28rpx]">
             <text class="block text-[26rpx] font-semibold leading-[36rpx] text-black">规则说明</text>
             <text class="mt-[12rpx] block text-[24rpx] leading-[38rpx] text-[#5f5e5e]">
-              图片生成按模型基础价和清晰度计费，生成多张图按张数相乘。会员套餐按月赠送积分；积分加量包只面向已开通会员的用户，用于临时补充额度。购买积分长期有效，会员每月赠送积分按会员规则有效。扣费时优先消耗即将过期的积分批次，再消耗长期有效的购买积分。
+              图片生成按模型基础价和清晰度计费，生成多张图按张数相乘。会员套餐按月赠送积分，续费后会员有效期顺延，当前未过期且未用完的会员赠送积分也会同步顺延。积分加量包只面向已开通会员的用户，购买后长期有效。扣费时优先消耗即将过期的积分批次，再消耗长期有效的购买积分。
             </text>
           </view>
         </section>
@@ -314,6 +314,16 @@ function formatCredits(value: number) {
 
 function formatImageCount(credits: number) {
   return formatCredits(Math.floor(Math.max(0, credits) / NANO_BANANA_REFERENCE_COST));
+}
+
+function getMembershipPlanDesc(plan: MembershipPlan) {
+  if (currentTier.value === plan.id) {
+    return "当前套餐续费后顺延30天，未用完的会员赠送积分同步顺延。";
+  }
+  if (isMember.value) {
+    return "购买后会员有效期顺延，未用完的会员赠送积分同步顺延。";
+  }
+  return plan.desc;
 }
 
 function formatDateText(value: string) {
