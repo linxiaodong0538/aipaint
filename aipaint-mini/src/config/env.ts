@@ -7,7 +7,7 @@ const baseApi: { [key: string]: EnvironmentConfig } = {
     host: "http://192.168.31.10:8080",
   },
   trial: {
-    host: "https://yourdomian.com",
+    host: "https://xinlingkeji.cn",
   },
   release: {
     host: "https://yourdomian.com",

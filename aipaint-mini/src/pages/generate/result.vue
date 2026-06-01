@@ -175,6 +175,41 @@
             </view>
           </view>
 
+          <view
+            v-if="referenceImages.length"
+            class="mt-[40rpx] border border-[rgba(0,0,0,0.1)] bg-white p-[24rpx]"
+          >
+            <view class="mb-[20rpx] flex items-center justify-between">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[28rpx] tracking-[4rpx] text-[#7e7576]">
+                参考图
+              </text>
+              <text class="font-mono text-[20rpx] font-semibold leading-[28rpx] text-black/50">
+                {{ referenceImages.length }} 张
+              </text>
+            </view>
+            <scroll-view
+              scroll-x
+              enhanced
+              :show-scrollbar="false"
+              class="w-full"
+            >
+              <view class="inline-flex gap-[16rpx]">
+                <view
+                  v-for="(image, index) in referenceImages"
+                  :key="`${image}-${index}`"
+                  class="h-[152rpx] w-[152rpx] shrink-0 overflow-hidden rounded-[12rpx] border border-[rgba(0,0,0,0.08)] bg-[#eeeeee]"
+                  @tap="previewReferenceImage(index)"
+                >
+                  <image
+                    class="h-full w-full"
+                    mode="aspectFill"
+                    :src="image"
+                  />
+                </view>
+              </view>
+            </scroll-view>
+          </view>
+
           <view class="mt-[64rpx] flex items-center gap-[32rpx] opacity-30">
             <view class="blueprint-line flex-1" />
             <text class="font-mono text-[20rpx] font-medium leading-[28rpx] text-black">技术数据结束</text>
@@ -242,6 +277,7 @@ const taskCreateTime = ref("");
 const taskRunStartTime = ref("");
 const taskFinishTime = ref("");
 const taskUpdateTime = ref("");
+const referenceImages = ref<string[]>([]);
 const safeAreaBottom = ref(0);
 const windowWidth = ref(375);
 const pageInitializing = ref(true);
@@ -636,6 +672,7 @@ function applyTaskDetails(task: GenerationTask) {
   taskRunStartTime.value = task.runStartTime || "";
   taskFinishTime.value = task.finishTime || "";
   taskUpdateTime.value = task.updateTime || "";
+  referenceImages.value = parseReferenceImageUrls(task.imageUrls);
 }
 
 function hydrateCompletedTaskFromStorage(expectedTaskId: number) {
@@ -763,6 +800,14 @@ function getTaskResultImages(task: GenerationTask) {
   return task.resultImageUrls?.length ? task.resultImageUrls : task.resultImageUrl ? [task.resultImageUrl] : [];
 }
 
+function parseReferenceImageUrls(value?: string) {
+  return (value || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
 function handleGeneratedImageChange(event: { detail?: { current?: number } }) {
   const current = event.detail?.current;
   if (typeof current !== "number") {
@@ -776,6 +821,14 @@ function previewGeneratedImage() {
   uni.previewImage({
     urls: generatedImages.value,
     current: activeGeneratedImage.value,
+  });
+}
+
+function previewReferenceImage(index: number) {
+  if (!referenceImages.value.length) return;
+  uni.previewImage({
+    urls: referenceImages.value,
+    current: referenceImages.value[index] || referenceImages.value[0],
   });
 }
 
@@ -814,6 +867,7 @@ function goBack() {
     resolution: taskResolution.value,
     quality: taskQuality.value,
     count: taskImageCount.value,
+    imageUrls: referenceImages.value,
   });
   navigateTo(routes.generate, { fromRetry: 1 });
 }

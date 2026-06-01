@@ -16,11 +16,11 @@ ruoyi:
 # 腾讯云COS配置
 tencent:
   cos:
-    secret-id: 
-    secret-key: 
+    secret-id: ${TENCENT_COS_SECRET_ID:}
+    secret-key: ${TENCENT_COS_SECRET_KEY:}
     region: ap-guangzhou
     bucket-name: zh-ai-images-1434508384
-    base-url: https://zh-ai-images-1434508384.cos.ap-guangzhou.myqcloud.com
+    base-url:  https://img.xinlingkeji.cn
 
 # 开发环境配置
 server:
