@@ -13,6 +13,15 @@ ruoyi:
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
 
+# 腾讯云COS配置
+tencent:
+  cos:
+    secret-id: 
+    secret-key: 
+    region: ap-guangzhou
+    bucket-name: zh-ai-images-1434508384
+    base-url: https://zh-ai-images-1434508384.cos.ap-guangzhou.myqcloud.com
+
 # 开发环境配置
 server:
   # 服务器的HTTP端口，默认为8080

@@ -36,6 +36,13 @@
     <!-- 依赖声明 -->
     <dependencyManagement>
         <dependencies>
+        
+            <!-- 腾讯云COS -->
+            <dependency>
+                <groupId>com.qcloud</groupId>
+                <artifactId>cos_api</artifactId>
+                <version>5.6.126</version>
+            </dependency>
 
             <!-- SpringBoot的依赖配置-->
             <dependency>
