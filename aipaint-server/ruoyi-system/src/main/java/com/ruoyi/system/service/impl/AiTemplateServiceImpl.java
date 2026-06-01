@@ -41,6 +41,14 @@ public class AiTemplateServiceImpl implements IAiTemplateService
     }
 
     @Override
+    public List<AiTemplate> selectFavoriteTemplateList(Long userId)
+    {
+        List<AiTemplate> list = templateMapper.selectFavoriteTemplateList(userId);
+        fillTemplateTags(list);
+        return list;
+    }
+
+    @Override
     public List<AiTemplateCategory> selectEnabledCategories()
     {
         return templateMapper.selectEnabledCategories();

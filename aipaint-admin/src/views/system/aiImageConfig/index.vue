@@ -107,7 +107,7 @@
           </el-col>
         </el-row>
 
-        <el-table :data="form.modelPricings" border row-key="model">
+        <el-table :data="form.modelPricings" border row-key="_rowKey">
           <el-table-column label="启用" width="72" align="center">
             <template #default="{ row }">
               <el-switch v-model="row.enabled" />
@@ -167,7 +167,7 @@
           </div>
         </template>
 
-        <el-table :data="form.providers" border row-key="providerCode">
+        <el-table :data="form.providers" border row-key="_rowKey">
           <el-table-column label="启用" width="72" align="center">
             <template #default="{ row }">
               <el-switch v-model="row.enabled" />
@@ -213,7 +213,7 @@
                 default-first-option
                 placeholder="选择或输入模型"
               >
-                <el-option v-for="item in modelOptions" :key="item" :label="item" :value="item" />
+                <el-option v-for="item in providerModelOptions" :key="item" :label="item" :value="item" />
               </el-select>
             </template>
           </el-table-column>
@@ -267,7 +267,7 @@
           </div>
         </template>
 
-        <el-table :data="form.modelRoutes" border row-key="model">
+        <el-table :data="form.modelRoutes" border row-key="_rowKey">
           <el-table-column label="启用" width="72" align="center">
             <template #default="{ row }">
               <el-switch v-model="row.enabled" />
@@ -372,12 +372,19 @@ const responseModes = [
 ]
 
 const modelOptions = ["gpt-image-2", "gpt-image-2-vip", "nano-banana", "nano-banana-2", "nano-banana-pro"]
+const providerModelOptions = [...modelOptions, "deepseek-v4-flash"]
 
 const loading = ref(true)
 const submitting = ref(false)
+let rowKeySeed = 1
+
+function createRowKey(prefix) {
+  return `${prefix}-${rowKeySeed++}`
+}
 
 function createProvider(overrides = {}) {
   return {
+    _rowKey: createRowKey("provider"),
     providerCode: "",
     providerName: "",
     enabled: false,
@@ -397,6 +404,7 @@ function createProvider(overrides = {}) {
 
 function createRoute(overrides = {}) {
   return {
+    _rowKey: createRowKey("route"),
     model: "gpt-image-2",
     enabled: true,
     primaryProviderCode: "",
@@ -410,6 +418,7 @@ function createRoute(overrides = {}) {
 
 function createModelPricing(overrides = {}) {
   return {
+    _rowKey: createRowKey("pricing"),
     model: "gpt-image-2",
     baseCredits: 6,
     enabled: true,
@@ -461,6 +470,19 @@ function createForm() {
           "nano-banana-pro": "nano-banana-pro"
         },
         sortOrder: 2
+      }),
+      createProvider({
+        providerCode: "deepseek",
+        providerName: "DeepSeek 提示词润色",
+        adapterType: "openai-compatible",
+        responseMode: "json",
+        supportsBatch: false,
+        baseUrl: "https://api.deepseek.com",
+        model: "deepseek-v4-flash",
+        supportedModels: ["deepseek-v4-flash"],
+        providerModelMap: { "deepseek-v4-flash": "deepseek-v4-flash" },
+        sortOrder: 3,
+        remark: "仅用于提示词润色，不参与生图路由"
       })
     ],
     modelRoutes: [
@@ -854,7 +876,6 @@ function toPayload() {
     outputCompression: form.outputCompression,
     resolutionMultipliers: normalizeResolutionMultipliers(form.resolutionMultipliers, createForm().resolutionMultipliers),
     modelPricings: form.modelPricings.map((pricing) => ({
-      ...pricing,
       model: String(pricing.model || "").trim(),
       baseCredits: Number(pricing.baseCredits),
       enabled: pricing.enabled !== false,
@@ -862,18 +883,28 @@ function toPayload() {
       remark: String(pricing.remark || "").trim()
     })),
     providers: form.providers.map((provider) => ({
-      ...provider,
+      providerCode: String(provider.providerCode || "").trim(),
+      providerName: String(provider.providerName || "").trim(),
+      enabled: provider.enabled !== false,
       adapterType: normalizeAdapterType(provider.adapterType),
       responseMode: provider.adapterType === "openai-compatible" ? normalizeResponseMode(provider.responseMode, provider) : "json",
       supportsBatch: provider.supportsBatch !== false,
+      baseUrl: String(provider.baseUrl || "").trim(),
+      apiKey: String(provider.apiKey || ""),
       model: normalizeModels(provider.supportedModels)[0],
       supportedModels: normalizeModels(provider.supportedModels),
-      providerModelMap: normalizeProviderModelMap(provider)
+      providerModelMap: normalizeProviderModelMap(provider),
+      sortOrder: Number(provider.sortOrder || 0),
+      remark: String(provider.remark || "").trim()
     })),
     modelRoutes: form.modelRoutes.map((route) => ({
-      ...route,
+      model: String(route.model || "").trim(),
+      enabled: route.enabled !== false,
+      primaryProviderCode: String(route.primaryProviderCode || "").trim(),
       backupProviderCode: route.backupProviderCode || null,
-      fallbackEnabled: Boolean(route.fallbackEnabled && route.backupProviderCode)
+      fallbackEnabled: Boolean(route.fallbackEnabled && route.backupProviderCode),
+      sortOrder: Number(route.sortOrder || 0),
+      remark: String(route.remark || "").trim()
     }))
   }
 }

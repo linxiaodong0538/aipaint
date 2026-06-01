@@ -15,6 +15,8 @@ public interface AiTemplateMapper
 
     public List<AiTemplate> selectEnabledTemplateList(AiTemplate template);
 
+    public List<AiTemplate> selectFavoriteTemplateList(@Param("userId") Long userId);
+
     public List<AiTemplateCategory> selectEnabledCategories();
 
     public AiTemplate selectTemplateById(Long templateId);

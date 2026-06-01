@@ -21,11 +21,14 @@ export const routes = {
   generateResult: "/pages/generate/result",
   templates: "/pages/templates/index",
   templateDetail: "/pages/templates/detail",
+  templateFavorites: "/pages/templates/favorites",
   works: "/pages/works/index",
   me: "/pages/me/index",
   creditDetail: "/pages/me/credit-detail",
   recharge: "/pages/me/recharge",
   inviteReward: "/pages/me/invite-reward",
+  userAgreement: "/pages/legal/agreement",
+  privacyPolicy: "/pages/legal/privacy",
 } as const;
 
 export function navigateTo(path: string, params?: RouteParams) {

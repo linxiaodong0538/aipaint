@@ -21,6 +21,8 @@ export interface TemplateItem {
   sort?: number;
   status?: string;
   createTime?: string;
+  updateTime?: string;
+  remark?: string;
   tags?: TemplateTag[];
 }
 
@@ -33,6 +35,10 @@ export interface TemplateListParams {
 export interface TemplateListResult {
   rows: TemplateItem[];
   total: number;
+}
+
+export interface TemplateFavoriteStatus {
+  favorited: boolean;
 }
 
 export function getTemplateCategories() {
@@ -65,6 +71,38 @@ export function getTemplateDetail(templateId: number | string) {
     url: `/mini/templates/${templateId}`,
     method: "GET",
   }).then((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) }));
+}
+
+export function getTemplateFavoriteStatus(templateId: number | string) {
+  return request<TemplateFavoriteStatus>({
+    url: `/mini/template-favorites/status/${templateId}`,
+    method: "GET",
+  });
+}
+
+export function favoriteTemplate(templateId: number | string) {
+  return request<TemplateFavoriteStatus>({
+    url: `/mini/template-favorites/${templateId}`,
+    method: "POST",
+  });
+}
+
+export function unfavoriteTemplate(templateId: number | string) {
+  return request<TemplateFavoriteStatus>({
+    url: `/mini/template-favorites/${templateId}`,
+    method: "DELETE",
+  });
+}
+
+export function listFavoriteTemplates(params?: Pick<TemplateListParams, "pageNum" | "pageSize">) {
+  return request<TemplateListResult>({
+    url: "/mini/template-favorites/list",
+    method: "GET",
+    params,
+  }).then((result) => ({
+    ...result,
+    rows: (result.rows || []).map((item) => ({ ...item, coverUrl: resolveFileUrl(item.coverUrl) })),
+  }));
 }
 
 export interface TemplateCategory {

@@ -95,6 +95,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by t.sort asc, t.create_time desc, t.template_id desc
     </select>
 
+    <select id="selectFavoriteTemplateList" parameterType="Long" resultMap="AiTemplateResult">
+        <include refid="selectTemplateVo"/>
+        inner join ai_template_favorite f on f.template_id = t.template_id
+        where f.user_id = #{userId}
+          and t.status = '0'
+        order by f.create_time desc, f.favorite_id desc
+    </select>
+
     <select id="selectEnabledCategories" resultMap="AiTemplateCategoryResult">
         select c.category_id, c.category_name, c.category_code, c.sort, c.status, c.create_by, c.create_time, c.update_by, c.update_time, c.remark
         from ai_template_category c

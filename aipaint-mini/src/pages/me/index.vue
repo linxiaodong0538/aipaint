@@ -64,6 +64,12 @@
           >
             一键快捷登录
           </button>
+          <view v-if="!userStore.isLogin" class="mt-[18rpx] flex flex-wrap items-center justify-center px-[32rpx]">
+            <text class="text-[22rpx] leading-[34rpx] text-[var(--app-on-surface-variant)]">登录即表示同意</text>
+            <text class="px-[4rpx] text-[22rpx] font-semibold leading-[34rpx] text-black" @tap.stop="openAgreement">《用户协议》</text>
+            <text class="text-[22rpx] leading-[34rpx] text-[var(--app-on-surface-variant)]">和</text>
+            <text class="px-[4rpx] text-[22rpx] font-semibold leading-[34rpx] text-black" @tap.stop="openPrivacy">《隐私政策》</text>
+          </view>
 
           <view
             v-if="userStore.isLogin"
@@ -194,6 +200,20 @@
         </view>
       </view>
     </scroll-view>
+
+    <view v-if="showCustomerService" class="customer-service-mask" @tap="closeCustomerService">
+      <view class="customer-service-panel" @tap.stop>
+        <button class="customer-service-close" hover-class="none" @tap="closeCustomerService">
+          <text>×</text>
+        </button>
+        <text class="customer-service-title">联系客服</text>
+        <text class="customer-service-desc">扫码添加客服，咨询充值、生成失败或账号问题</text>
+        <view class="customer-service-qr-wrap" @tap="previewCustomerServiceQr">
+          <image class="customer-service-qr" mode="aspectFit" :src="customerServiceQr" />
+        </view>
+        <text class="customer-service-tip">点击二维码可放大查看</text>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -216,7 +236,7 @@ interface TaskItem {
 interface MenuItem {
   title: string;
   iconClass: string;
-  action: "credit-detail" | "recharge" | "works" | "invite-reward";
+  action: "credit-detail" | "recharge" | "works" | "template-favorites" | "invite-reward" | "customer-service";
 }
 
 const navLayout = getNavBarLayout();
@@ -225,6 +245,8 @@ const safeAreaBottom = ref(0);
 const windowHeight = ref(0);
 const windowWidth = ref(375);
 const signingIn = ref(false);
+const showCustomerService = ref(false);
+const customerServiceQr = "/static/me/customer-service-qr.png";
 
 try {
   const info = uni.getSystemInfoSync();
@@ -263,7 +285,9 @@ const tasks: TaskItem[] = [
 const menuItems: MenuItem[] = [
   { title: "积分明细", iconClass: "icon-jinbi", action: "credit-detail" },
   { title: "邀请奖励", iconClass: "icon-ewailichengjiangli", action: "invite-reward" },
+  { title: "我的收藏", iconClass: "icon-line-medalxunzhang-02", action: "template-favorites" },
   { title: "我的作品", iconClass: "icon-images", action: "works" },
+  { title: "联系客服", iconClass: "icon-kefu", action: "customer-service" },
 ];
 
 onShow(() => {
@@ -286,6 +310,14 @@ function rpxToPx(rpx: number) {
 
 function handleLogin() {
   userStore.loginWithWechat().catch(() => undefined);
+}
+
+function openAgreement() {
+  navigateTo(routes.userAgreement);
+}
+
+function openPrivacy() {
+  navigateTo(routes.privacyPolicy);
 }
 
 async function handleTaskTap(task: TaskItem) {
@@ -325,6 +357,11 @@ async function handleSignin() {
 }
 
 function handleMenuClick(item: MenuItem) {
+  if (item.action === "customer-service") {
+    showCustomerService.value = true;
+    return;
+  }
+
   if (!userStore.isLogin) {
     handleLogin();
     return;
@@ -345,7 +382,23 @@ function handleMenuClick(item: MenuItem) {
     return;
   }
 
+  if (item.action === "template-favorites") {
+    navigateTo(routes.templateFavorites);
+    return;
+  }
+
   switchTab(routes.works);
+}
+
+function closeCustomerService() {
+  showCustomerService.value = false;
+}
+
+function previewCustomerServiceQr() {
+  uni.previewImage({
+    urls: [customerServiceQr],
+    current: customerServiceQr,
+  });
 }
 
 function handleRecharge() {
@@ -361,3 +414,96 @@ function handleLogout() {
   uni.showToast({ title: "已退出登录", icon: "none" });
 }
 </script>
+
+<style scoped>
+.customer-service-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.customer-service-panel {
+  position: relative;
+  width: 100%;
+  max-width: 620rpx;
+  box-sizing: border-box;
+  border-radius: 36rpx;
+  background: #ffffff;
+  padding: 48rpx 40rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 32rpx 96rpx rgba(0, 0, 0, 0.18);
+}
+
+.customer-service-close {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  display: flex;
+  width: 56rpx;
+  height: 56rpx;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999rpx;
+  background: #f2f2f2;
+  color: #111111;
+}
+
+.customer-service-close text {
+  margin-top: -4rpx;
+  font-size: 38rpx;
+  font-weight: 300;
+  line-height: 52rpx;
+}
+
+.customer-service-title {
+  display: block;
+  color: #111111;
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 46rpx;
+}
+
+.customer-service-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: #6d6d6d;
+  font-size: 24rpx;
+  line-height: 36rpx;
+}
+
+.customer-service-qr-wrap {
+  display: flex;
+  width: 360rpx;
+  height: 360rpx;
+  align-items: center;
+  justify-content: center;
+  margin: 36rpx auto 0;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  border-radius: 28rpx;
+  background: #f8f8f8;
+  padding: 18rpx;
+}
+
+.customer-service-qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 18rpx;
+}
+
+.customer-service-tip {
+  display: block;
+  margin-top: 18rpx;
+  color: #9a9a9a;
+  font-size: 22rpx;
+  line-height: 30rpx;
+}
+</style>

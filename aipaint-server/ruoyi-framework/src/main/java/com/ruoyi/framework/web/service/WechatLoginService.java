@@ -36,6 +36,9 @@ public class WechatLoginService
     @Value("${wechat.miniapp.secret:}")
     private String secret;
 
+    @Value("${wechat.miniapp.tokenExpireTime:43200}")
+    private int miniTokenExpireTime;
+
     @Autowired
     private ISysUserService userService;
 
@@ -77,6 +80,7 @@ public class WechatLoginService
             inviteService.handleNewUserInvite(user.getUserId(), inviteCode);
         }
         LoginUser loginUser = new LoginUser(user.getUserId(), user.getDeptId(), user, Collections.emptySet());
+        loginUser.setTokenExpireMinutes(miniTokenExpireTime);
         String token = tokenService.createToken(loginUser);
         return new LoginResult(token, user);
     }

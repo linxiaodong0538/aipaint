@@ -257,6 +257,8 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             throw new ServiceException("图片生成失败：返回结果格式异常");
         }
 
+        ensureNoTerminalFailure(body);
+
         JSONArray data = body.getJSONArray("data");
         if (data != null && !data.isEmpty())
         {
@@ -354,8 +356,9 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
         JSONObject error = body.getJSONObject("error");
         if (error != null)
         {
-            throw new ServiceException("图片生成失败：" + error.toJSONString());
+            throw new ServiceException("图片生成失败：" + resolveErrorMessage(error, error.toJSONString()));
         }
+        ensureNoTerminalFailure(body);
 
         String type = body.getString("type");
         boolean completed = StringUtils.defaultString(event).endsWith(".completed")
@@ -407,13 +410,51 @@ public class AiImageOpenAiCompatibleProvider implements AiImageProvider
             {
                 return saveCompletedTaskResult(body, providerConfig);
             }
-            if ("failed".equals(status))
+            if (isTerminalFailureStatus(status))
             {
-                JSONObject error = body.getJSONObject("error");
-                throw new ServiceException("图片生成失败：" + (error == null ? "生成失败" : error.toJSONString()));
+                throw new ServiceException("图片生成失败：" + resolveErrorMessage(body, "生成失败"));
             }
         }
         throw new ServiceException("图片生成失败：生成超时，请稍后到作品中查看或重试");
+    }
+
+    private void ensureNoTerminalFailure(JSONObject body)
+    {
+        String status = body == null ? "" : body.getString("status");
+        String type = body == null ? "" : body.getString("type");
+        if (isTerminalFailureStatus(status) || StringUtils.defaultString(type).endsWith(".failed"))
+        {
+            throw new ServiceException("图片生成失败：" + resolveErrorMessage(body, StringUtils.defaultIfBlank(status, "生成失败")));
+        }
+    }
+
+    private boolean isTerminalFailureStatus(String status)
+    {
+        return "failed".equalsIgnoreCase(StringUtils.trimToEmpty(status))
+                || "violation".equalsIgnoreCase(StringUtils.trimToEmpty(status))
+                || "cancelled".equalsIgnoreCase(StringUtils.trimToEmpty(status))
+                || "canceled".equalsIgnoreCase(StringUtils.trimToEmpty(status));
+    }
+
+    private String resolveErrorMessage(JSONObject body, String fallback)
+    {
+        if (body == null)
+        {
+            return StringUtils.defaultIfBlank(fallback, "生成失败");
+        }
+        Object error = body.get("error");
+        if (error instanceof JSONObject)
+        {
+            JSONObject errorObject = (JSONObject) error;
+            String message = StringUtils.defaultIfBlank(errorObject.getString("message"), errorObject.getString("error"));
+            return StringUtils.defaultIfBlank(message, errorObject.toJSONString());
+        }
+        if (error != null && StringUtils.isNotBlank(String.valueOf(error)))
+        {
+            return String.valueOf(error);
+        }
+        String message = body.getString("message");
+        return StringUtils.defaultIfBlank(message, StringUtils.defaultIfBlank(fallback, "生成失败"));
     }
 
     private boolean isTransientQueryError(Exception e)

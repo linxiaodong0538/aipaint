@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.AiTemplateFavoriteMapper">
+
+    <select id="countFavorite" resultType="int">
+        select count(1)
+        from ai_template_favorite
+        where user_id = #{userId}
+          and template_id = #{templateId}
+    </select>
+
+    <insert id="insertFavorite">
+        insert ignore into ai_template_favorite(user_id, template_id, create_time)
+        values(#{userId}, #{templateId}, sysdate())
+    </insert>
+
+    <delete id="deleteFavorite">
+        delete from ai_template_favorite
+        where user_id = #{userId}
+          and template_id = #{templateId}
+    </delete>
+</mapper>

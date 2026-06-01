@@ -13,6 +13,8 @@ public interface IAiTemplateService
 
     public List<AiTemplate> selectEnabledTemplateList(AiTemplate template);
 
+    public List<AiTemplate> selectFavoriteTemplateList(Long userId);
+
     public List<AiTemplateCategory> selectEnabledCategories();
 
     public AiTemplate selectTemplateById(Long templateId);
