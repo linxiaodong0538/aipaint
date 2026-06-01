@@ -61,6 +61,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by create_time desc, task_id desc
     </select>
 
+    <select id="selectStaleProcessingTasks" resultMap="AiGenerationTaskResult">
+        <include refid="selectGenerationTaskVo"/>
+        where status in ('pending', 'processing')
+          and coalesce(run_start_time, create_time) &lt; #{beforeTime}
+    </select>
+
         <insert id="insertGenerationTask" parameterType="AiGenerationTask" useGeneratedKeys="true" keyProperty="taskId">
         insert into ai_generation_task(
             user_id, provider_code, prompt, model, quality, ratio, size, resolution, image_urls, image_count, status, progress, credit_cost, create_by, create_time

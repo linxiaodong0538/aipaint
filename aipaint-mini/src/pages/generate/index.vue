@@ -350,7 +350,7 @@ const models: Array<{
   {
     value: "gpt-image-2-vip",
     label: "GPT-image-2-pro",
-    shortLabel: "GPT Image2 Pro",
+    shortLabel: "GPT Image2 VIP",
     description: "大尺寸专业输出",
     tier: "专业",
     iconClass: "icon-huizhang",

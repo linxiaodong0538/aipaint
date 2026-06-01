@@ -399,7 +399,7 @@ function resolveTaskStatusParam(): GenerationStatus | "visible" | "generating" {
 }
 
 function toGalleryWork(task: GenerationTask, index = 0): GalleryWork | null {
-  if (isActiveProcessingTask(task)) {
+  if (isProcessingTask(task)) {
     return {
       taskId: task.taskId,
       title: resolveTitle(task.prompt),
@@ -464,10 +464,14 @@ function estimateProgress(task: GenerationTask) {
 }
 
 function isActiveProcessingTask(task: GenerationTask) {
-  if (task.status !== "pending" && task.status !== "processing") {
+  if (!isProcessingTask(task)) {
     return false;
   }
   return !isStaleProcessingTask(task);
+}
+
+function isProcessingTask(task: GenerationTask) {
+  return task.status === "pending" || task.status === "processing";
 }
 
 function isStaleProcessingTask(task: GenerationTask) {

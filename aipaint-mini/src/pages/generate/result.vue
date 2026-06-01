@@ -147,19 +147,16 @@
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskSizeText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
+              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">分辨率</text>
+              <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskResolutionText }}</text>
+            </view>
+            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">生成张数</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskImageCountText }}</text>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">积分</text>
               <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">{{ taskCreditText }}</text>
-            </view>
-            <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
-              <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">状态</text>
-              <view class="flex items-center gap-[12rpx]">
-                <view class="h-[12rpx] w-[12rpx] rounded-full bg-black" />
-                <text class="font-mono text-[28rpx] font-medium leading-[40rpx] text-black">已完成</text>
-              </view>
             </view>
             <view class="flex flex-col gap-[8rpx] border-b border-r border-[rgba(0,0,0,0.1)] p-[32rpx]">
               <text class="font-mono text-[20rpx] font-medium uppercase leading-[24rpx] tracking-[4rpx] text-[#7e7576]">耗时</text>
@@ -310,6 +307,7 @@ const bottomBarHeight = computed(() => rpxToPx(176) + safeAreaBottom.value);
 const showProgressLayer = computed(() => !pageInitializing.value);
 const showResultLayer = computed(() => !pageInitializing.value && resultLayerMounted.value);
 const taskSizeText = computed(() => taskSize.value.replace("x", " x ") || (isNanoBananaModel(taskModel.value) ? "不适用" : "未知"));
+const taskResolutionText = computed(() => taskResolution.value || "未知");
 const taskRatioText = computed(() => formatRatio(taskRatio.value, taskSize.value));
 const taskImageCountText = computed(() => `${taskImageCount.value ?? (generatedImages.value.length || 1)} 张`);
 const taskCreditText = computed(() => `${taskCreditCost.value ?? "--"} PTS`);

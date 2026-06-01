@@ -3,8 +3,11 @@ package com.ruoyi.web.controller.mini;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +32,8 @@ import com.ruoyi.system.service.IAiPaymentService;
 @RequestMapping("/mini/payment")
 public class MiniPaymentController extends BaseController
 {
+    private static final Logger log = LoggerFactory.getLogger(MiniPaymentController.class);
+
     @Autowired
     private IAiPaymentService paymentService;
 
@@ -80,10 +85,16 @@ public class MiniPaymentController extends BaseController
             headers.put(name.toLowerCase(), request.getHeader(name));
         }
 
-        // 核心业务：处理回调通知并做验签与幂等到账等逻辑，异常内部吞掉并保证状态码 200
-        paymentService.handleWechatNotify(headers, body);
-
-        // 按微信官方要求返回固定格式，表示通知已成功处理（即使已处理过也需如此返回）
-        return ResponseEntity.ok("{\"code\":\"SUCCESS\",\"message\":\"成功\"}");
+        try
+        {
+            paymentService.handleWechatNotify(headers, body);
+            return ResponseEntity.ok("{\"code\":\"SUCCESS\",\"message\":\"成功\"}");
+        }
+        catch (Exception e)
+        {
+            log.error("微信支付回调处理失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"code\":\"FAIL\",\"message\":\"支付通知处理失败\"}");
+        }
     }
 }
