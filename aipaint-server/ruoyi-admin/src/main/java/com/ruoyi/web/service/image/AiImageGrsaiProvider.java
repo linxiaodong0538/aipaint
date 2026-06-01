@@ -105,11 +105,11 @@ public class AiImageGrsaiProvider implements AiImageProvider
     private String waitForResult(JSONObject createdTask, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
         String status = createdTask.getString("status");
-        if ("succeeded".equals(status))
+        if (isSuccessStatus(status))
         {
             return saveCompletedResult(createdTask, providerConfig);
         }
-        if ("failed".equals(status) || "violation".equals(status))
+        if (isFailureStatus(status))
         {
             throw new ServiceException("图片生成失败：" + resolveError(createdTask, status));
         }
@@ -137,11 +137,11 @@ public class AiImageGrsaiProvider implements AiImageProvider
             }
 
             String currentStatus = body.getString("status");
-            if ("succeeded".equals(currentStatus))
+            if (isSuccessStatus(currentStatus))
             {
                 return saveCompletedResult(body, providerConfig);
             }
-            if ("failed".equals(currentStatus) || "violation".equals(currentStatus))
+            if (isFailureStatus(currentStatus))
             {
                 throw new ServiceException("图片生成失败：" + resolveError(body, currentStatus));
             }
@@ -172,7 +172,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
 
     private String saveCompletedResult(JSONObject body, AiImageProviderConfig providerConfig) throws IOException, InterruptedException
     {
-        JSONArray results = body.getJSONArray("results");
+        JSONArray results = resolveResultArray(body);
         if (results == null || results.isEmpty())
         {
             throw new ServiceException("图片生成失败：完成结果缺少图片数据");
@@ -181,8 +181,7 @@ public class AiImageGrsaiProvider implements AiImageProvider
         StringBuilder urls = new StringBuilder();
         for (int i = 0; i < results.size(); i++)
         {
-            JSONObject result = results.getJSONObject(i);
-            String url = result == null ? "" : result.getString("url");
+            String url = resolveResultUrl(results.get(i));
             if (StringUtils.isBlank(url))
             {
                 continue;
@@ -205,13 +204,113 @@ public class AiImageGrsaiProvider implements AiImageProvider
         return urls.toString();
     }
 
+    private JSONArray resolveResultArray(JSONObject body)
+    {
+        if (body == null)
+        {
+            return null;
+        }
+        JSONArray results = body.getJSONArray("results");
+        if (results != null)
+        {
+            return results;
+        }
+        results = body.getJSONArray("data");
+        if (results != null)
+        {
+            return results;
+        }
+        results = body.getJSONArray("images");
+        if (results != null)
+        {
+            return results;
+        }
+        String url = resolveResultUrl(body);
+        if (StringUtils.isBlank(url))
+        {
+            return null;
+        }
+        JSONArray wrapped = new JSONArray();
+        wrapped.add(body);
+        return wrapped;
+    }
+
+    private String resolveResultUrl(Object result)
+    {
+        if (result == null)
+        {
+            return "";
+        }
+        if (result instanceof String)
+        {
+            return (String) result;
+        }
+        if (!(result instanceof JSONObject))
+        {
+            return "";
+        }
+        JSONObject json = (JSONObject) result;
+        String url = json.getString("url");
+        if (StringUtils.isNotBlank(url))
+        {
+            return url;
+        }
+        url = json.getString("imageUrl");
+        if (StringUtils.isNotBlank(url))
+        {
+            return url;
+        }
+        url = json.getString("image_url");
+        if (StringUtils.isNotBlank(url))
+        {
+            return url;
+        }
+        url = json.getString("resultImageUrl");
+        if (StringUtils.isNotBlank(url))
+        {
+            return url;
+        }
+        url = json.getString("output");
+        if (StringUtils.isNotBlank(url))
+        {
+            return url;
+        }
+        url = json.getString("b64_json");
+        if (StringUtils.isNotBlank(url))
+        {
+            return "data:image/png;base64," + url;
+        }
+        return "";
+    }
+
     private void ensureNoTerminalFailure(JSONObject body)
     {
         String status = body == null ? "" : body.getString("status");
-        if ("failed".equals(status) || "violation".equals(status))
+        if (isFailureStatus(status))
         {
             throw new ServiceException("图片生成失败：" + resolveError(body, status));
         }
+    }
+
+    private boolean isSuccessStatus(String status)
+    {
+        String normalized = StringUtils.trimToEmpty(status).toLowerCase();
+        return "succeeded".equals(normalized)
+                || "success".equals(normalized)
+                || "completed".equals(normalized)
+                || "complete".equals(normalized)
+                || "done".equals(normalized);
+    }
+
+    private boolean isFailureStatus(String status)
+    {
+        String normalized = StringUtils.trimToEmpty(status).toLowerCase();
+        return "failed".equals(normalized)
+                || "failure".equals(normalized)
+                || "error".equals(normalized)
+                || "violation".equals(normalized)
+                || "canceled".equals(normalized)
+                || "cancelled".equals(normalized);
     }
 
     private JSONObject parseResponseBody(String responseBody)

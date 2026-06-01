@@ -19,6 +19,8 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.framework.config.ServerConfig;
+import com.ruoyi.web.service.TencentCosUploadService;
+import com.ruoyi.web.service.TencentCosUploadService.CosUploadResult;
 
 /**
  * 通用请求处理
@@ -33,6 +35,9 @@ public class CommonController
 
     @Autowired
     private ServerConfig serverConfig;
+
+    @Autowired
+    private TencentCosUploadService tencentCosUploadService;
 
     private static final String FILE_DELIMITER = ",";
 
@@ -76,6 +81,17 @@ public class CommonController
     {
         try
         {
+            if (tencentCosUploadService.isConfigured())
+            {
+                CosUploadResult result = tencentCosUploadService.upload(file);
+                AjaxResult ajax = AjaxResult.success();
+                ajax.put("url", result.getUrl());
+                ajax.put("fileName", result.getFileName());
+                ajax.put("newFileName", result.getNewFileName());
+                ajax.put("originalFilename", file.getOriginalFilename());
+                return ajax;
+            }
+
             // 上传文件路径
             String filePath = RuoYiConfig.getUploadPath();
             // 上传并返回新文件名称
@@ -110,6 +126,16 @@ public class CommonController
             List<String> originalFilenames = new ArrayList<String>();
             for (MultipartFile file : files)
             {
+                if (tencentCosUploadService.isConfigured())
+                {
+                    CosUploadResult result = tencentCosUploadService.upload(file);
+                    urls.add(result.getUrl());
+                    fileNames.add(result.getFileName());
+                    newFileNames.add(result.getNewFileName());
+                    originalFilenames.add(file.getOriginalFilename());
+                    continue;
+                }
+
                 // 上传并返回新文件名称
                 String fileName = FileUploadUtils.upload(filePath, file);
                 String url = serverConfig.getUrl() + fileName;

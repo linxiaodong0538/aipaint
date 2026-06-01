@@ -17,18 +17,25 @@
                   PTS
                 </text>
               </view>
-              <view class="mt-[36rpx] flex items-center justify-between rounded-[28rpx] bg-white/10 px-[28rpx] py-[22rpx]">
-                <view class="min-w-0">
-                  <text class="block text-[24rpx] font-semibold leading-[32rpx] text-white">
-                    {{ activeTier.label }}
-                  </text>
-                  <text class="mt-[4rpx] block text-[20rpx] leading-[28rpx] text-white/50">
-                    {{ activeTier.desc }}
+              <view class="mt-[34rpx] rounded-[30rpx] border border-white/10 bg-white/[0.07] px-[28rpx] py-[24rpx] shadow-[inset_0_1rpx_0_rgba(255,255,255,0.10)]">
+                <view class="flex items-center justify-between gap-[24rpx]">
+                  <view class="flex min-w-0 items-center gap-[18rpx]">
+                    <view class="flex h-[58rpx] w-[58rpx] shrink-0 items-center justify-center rounded-full bg-white">
+                      <text class="vip-gold-letter">V</text>
+                    </view>
+                    <view class="min-w-0">
+                      <text class="block text-[28rpx] font-bold leading-[36rpx] text-white">
+                        {{ activeTier.label }}
+                      </text>
+                      <text class="mt-[4rpx] block text-[20rpx] leading-[28rpx] text-white/48">
+                        {{ memberExpireText }}
+                      </text>
+                    </view>
+                  </view>
+                  <text class="shrink-0 text-[20rpx] font-medium leading-[28rpx] text-white/42">
+                    {{ memberStatusText }}
                   </text>
                 </view>
-                <text class="ml-[20rpx] shrink-0 text-[28rpx] font-bold leading-[36rpx] text-white">
-                  {{ activeTier.badge }}
-                </text>
               </view>
             </view>
           </view>
@@ -74,7 +81,7 @@
                     </text>
                   </view>
                   <text class="mt-[10rpx] block text-[24rpx] leading-[34rpx] text-[#777]">
-                    {{ plan.desc }}
+                    {{ getMembershipPlanDesc(plan) }}
                   </text>
                 </view>
                 <view class="shrink-0 text-right">
@@ -178,7 +185,7 @@
           <view class="rounded-[32rpx] bg-[#eeeeee] px-[32rpx] py-[28rpx]">
             <text class="block text-[26rpx] font-semibold leading-[36rpx] text-black">规则说明</text>
             <text class="mt-[12rpx] block text-[24rpx] leading-[38rpx] text-[#5f5e5e]">
-              图片生成按模型基础价和清晰度计费，生成多张图按张数相乘。会员套餐按月赠送积分；积分加量包只面向已开通会员的用户，用于临时补充额度。购买积分长期有效，会员每月赠送积分按会员规则有效。扣费时优先消耗即将过期的积分批次，再消耗长期有效的购买积分。
+              图片生成按模型基础价和清晰度计费，生成多张图按张数相乘。会员套餐按月赠送积分，续费后会员有效期顺延，当前未过期且未用完的会员赠送积分也会同步顺延。积分加量包只面向已开通会员的用户，购买后长期有效。扣费时优先消耗即将过期的积分批次，再消耗长期有效的购买积分。
             </text>
           </view>
         </section>
@@ -191,7 +198,7 @@
 import { computed, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import { useUserStore } from "@/store/modules/user";
-import { createPaymentOrder, type PaymentParams } from "@/api/payment";
+import { createPaymentOrder, getPaymentOrder, type PaymentParams } from "@/api/payment";
 
 type RechargeMode = "membership" | "addon";
 type MemberTierValue = "none" | "monthly" | "pro" | "studio";
@@ -234,7 +241,7 @@ const modes: Array<{ label: string; value: RechargeMode }> = [
 
 const memberTiers: MemberTier[] = [
   { value: "none", label: "普通用户", badge: "未开通", addonBonus: 0, desc: "可开通会员套餐" },
-  { value: "monthly", label: "月卡会员", badge: "+10%", addonBonus: 10, desc: "积分加量额外加赠" },
+  { value: "monthly", label: "月卡会员", badge: "+10%", addonBonus: 10, desc: "会员权益已生效" },
   { value: "pro", label: "Pro 会员", badge: "+20%", addonBonus: 20, desc: "适合稳定创作" },
   { value: "studio", label: "Studio 会员", badge: "+30%", addonBonus: 30, desc: "高频创作加赠最高" },
 ];
@@ -278,6 +285,16 @@ const activeTier = computed(() => memberTiers.find((tier) => tier.value === curr
 const currentTier = computed<MemberTierValue>(() => userStore.profile?.memberTier || "none");
 const isMember = computed(() => currentTier.value !== "none");
 const creditBalanceText = computed(() => formatCredits(userStore.profile?.creditBalance || 0));
+const memberExpireText = computed(() => {
+  if (!isMember.value) {
+    return activeTier.value.desc;
+  }
+  if (!userStore.profile?.memberExpireTime) {
+    return "会员权益已生效";
+  }
+  return `有效期至 ${formatDateText(userStore.profile.memberExpireTime)}`;
+});
+const memberStatusText = computed(() => (isMember.value ? "已开通" : "未开通"));
 
 const addonCards = computed(() => {
   const bonusRate = activeTier.value.addonBonus / 100;
@@ -297,6 +314,20 @@ function formatCredits(value: number) {
 
 function formatImageCount(credits: number) {
   return formatCredits(Math.floor(Math.max(0, credits) / NANO_BANANA_REFERENCE_COST));
+}
+
+function getMembershipPlanDesc(plan: MembershipPlan) {
+  if (currentTier.value === plan.id) {
+    return "当前套餐续费后顺延30天，未用完的会员赠送积分同步顺延。";
+  }
+  if (isMember.value) {
+    return "购买后会员有效期顺延，未用完的会员赠送积分同步顺延。";
+  }
+  return plan.desc;
+}
+
+function formatDateText(value: string) {
+  return value.slice(0, 10).replace(/-/g, ".");
 }
 
 onShow(() => {
@@ -333,10 +364,11 @@ async function startWechatPay(productId: string, successTitle: string) {
     const result = await createPaymentOrder(productId);
     uni.hideLoading();
     await requestWechatPayment(result.paymentParams);
+    uni.showLoading({ title: "确认到账..." });
+    await waitOrderPaid(result.order.outTradeNo);
+    await userStore.fetchProfile();
+    uni.hideLoading();
     uni.showToast({ title: successTitle, icon: "none" });
-    setTimeout(() => {
-      userStore.fetchProfile().catch(() => undefined);
-    }, 1200);
   } catch (error) {
     uni.hideLoading();
     if (!isPaymentCancel(error)) {
@@ -346,6 +378,23 @@ async function startWechatPay(productId: string, successTitle: string) {
   } finally {
     paying.value = false;
   }
+}
+
+async function waitOrderPaid(outTradeNo: string) {
+  for (let index = 0; index < 8; index += 1) {
+    const order = await getPaymentOrder(outTradeNo);
+    if (order.status === "PAID") {
+      return;
+    }
+    await sleep(1500);
+  }
+  throw new Error("支付已完成，到账确认稍有延迟，请稍后刷新");
+}
+
+function sleep(duration: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, duration);
+  });
 }
 
 function requestWechatPayment(params: PaymentParams) {
@@ -370,3 +419,13 @@ function isPaymentCancel(error: unknown) {
   return message.includes("cancel");
 }
 </script>
+
+<style scoped>
+.vip-gold-letter {
+  color: #d6a64c;
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 2rpx 6rpx rgba(214, 166, 76, 0.25);
+}
+</style>

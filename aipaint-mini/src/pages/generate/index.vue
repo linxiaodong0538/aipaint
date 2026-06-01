@@ -350,7 +350,7 @@ const models: Array<{
   {
     value: "gpt-image-2-vip",
     label: "GPT-image-2-pro",
-    shortLabel: "GPT Image2 Pro",
+    shortLabel: "GPT Image2 VIP",
     description: "大尺寸专业输出",
     tier: "专业",
     iconClass: "icon-huizhang",
@@ -590,6 +590,7 @@ const quality = ref<QualityValue>("1K");
 const count = ref<(typeof counts)[number]>(1);
 const ratio = ref<RatioValue>("auto");
 const generating = ref(false);
+const uploadingReferenceImages = ref(false);
 const mockGenerating = ref(false);
 const polishingPrompt = ref(false);
 const showMoreRatios = ref(false);
@@ -609,6 +610,7 @@ interface RetryParams {
   resolution?: string;
   quality?: string;
   count?: string | number;
+  imageUrls?: string[];
 }
 
 interface ReferenceSelectedFile {
@@ -767,9 +769,20 @@ function applyRetryParams() {
   quality.value = retryQuality;
   ratio.value = normalizeRetryRatio(params.ratio, retryModel, retryQuality);
   count.value = normalizeRetryCount(params.count);
+  referenceImages.value = normalizeRetryImageUrls(params.imageUrls);
   ensureGenerationOptions();
   ratioOptionsReady.value = true;
   logRatioState("retry");
+}
+
+function normalizeRetryImageUrls(value?: string[]) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((url) => String(url || "").trim())
+    .filter(Boolean)
+    .slice(0, maxReferenceImages);
 }
 
 function getRetryParams() {
@@ -947,34 +960,50 @@ async function handleSelectedReferenceImages(files: ReferenceSelectedFile[]) {
     return;
   }
 
-  const acceptedImages: string[] = [];
+  const uploadedImages: string[] = [];
   let oversizedCount = 0;
+  let uploadFailedCount = 0;
 
-  uni.showLoading({ title: "处理参考图...", mask: true });
+  uploadingReferenceImages.value = true;
+  uni.showLoading({ title: "上传参考图...", mask: true });
   try {
     for (const file of files) {
-      if (referenceImages.value.length + acceptedImages.length >= maxReferenceImages) {
+      if (referenceImages.value.length + uploadedImages.length >= maxReferenceImages) {
         break;
       }
 
       const processedPath = await processReferenceImage(file);
       if (processedPath) {
-        acceptedImages.push(processedPath);
+        try {
+          const imageUrl = await uploadImage(processedPath);
+          uploadedImages.push(imageUrl);
+        } catch {
+          uploadFailedCount += 1;
+        }
       } else {
         oversizedCount += 1;
       }
     }
   } finally {
+    uploadingReferenceImages.value = false;
     uni.hideLoading();
   }
 
-  if (acceptedImages.length > 0) {
-    referenceImages.value = [...referenceImages.value, ...acceptedImages].slice(0, maxReferenceImages);
+  if (uploadedImages.length > 0) {
+    referenceImages.value = [...referenceImages.value, ...uploadedImages].slice(0, maxReferenceImages);
   }
 
   if (oversizedCount > 0) {
     uni.showToast({
       title: "图片过大，请更换或裁剪后上传",
+      icon: "none",
+    });
+    return;
+  }
+
+  if (uploadFailedCount > 0) {
+    uni.showToast({
+      title: "参考图上传失败，请重试",
       icon: "none",
     });
   }
@@ -1244,19 +1273,6 @@ function resolveResolutionMultiplier(resolutionValue: QualityValue) {
   return fallbackResolutionMultipliers[resolutionValue];
 }
 
-async function uploadReferenceImages() {
-  if (!referenceImages.value.length) {
-    return [];
-  }
-
-  uni.showLoading({ title: "上传参考图..." });
-  try {
-    return await Promise.all(referenceImages.value.map((image) => uploadImage(image)));
-  } finally {
-    uni.hideLoading();
-  }
-}
-
 async function handlePolishPrompt() {
   if (!userStore.isLogin) {
     await userStore.loginWithWechat();
@@ -1295,6 +1311,11 @@ async function handlePolishPrompt() {
 async function handleGenerate() {
   if (mockGenerating.value) return;
 
+  if (uploadingReferenceImages.value) {
+    uni.showToast({ title: "参考图上传中，请稍候", icon: "none" });
+    return;
+  }
+
   if (!userStore.isLogin) {
     await userStore.loginWithWechat();
     if (!userStore.isLogin) return;
@@ -1310,7 +1331,13 @@ async function handleGenerate() {
   generating.value = true;
 
   try {
-    const imageUrls = await uploadReferenceImages();
+    const imageUrls = [...referenceImages.value];
+    if (import.meta.env.DEV) {
+      console.log("[generate:create]", {
+        model: model.value,
+        imageUrls,
+      });
+    }
     const result = await createImageGeneration({
       prompt: prompt.value.trim(),
       model: model.value,

@@ -16,11 +16,11 @@ ruoyi:
 # 腾讯云COS配置
 tencent:
   cos:
-    secret-id: 
-    secret-key: 
+    secret-id: ${TENCENT_COS_SECRET_ID:}
+    secret-key: ${TENCENT_COS_SECRET_KEY:}
     region: ap-guangzhou
     bucket-name: zh-ai-images-1434508384
-    base-url: https://zh-ai-images-1434508384.cos.ap-guangzhou.myqcloud.com
+    base-url:  https://img.xinlingkeji.cn
 
 # 开发环境配置
 server:
@@ -115,14 +115,16 @@ wechat:
     tokenExpireTime: 43200
   pay:
     # 正式上线前改为 true，并配置商户号、证书序列号、API v3 密钥、商户私钥和回调地址。
-    enabled: false
-    mch-id: ""
-    mch-serial-no: ""
-    api-v3-key: ""
-    private-key-path: ""
+    enabled: true
+    mch-id: "1745905426"
+    mch-serial-no: "4031669FCA319586C5B54A8606107E9567D0FE2B"
+    api-v3-key: "3A7b9C2d5E8f1G4h7I0j3K6l9M2n5O8a"
+    private-key-path: "G:/AI生图小程序资料/WXCertUtil/cert/1745905426_20260521_cert/apiclient_key.pem"
     private-key: ""
-    platform-certificate-path: ""
-    notify-url: "https://你的域名/mini/payment/wechat/notify"
+    platform-certificate-path: "G:/AI生图小程序资料/WXCertUtil/cert/1745905426_20260521_cert/pub_key.pem"
+    notify-url: "https://xinlingkeji.cn/mini/payment/wechat/notify"
+    # 仅本地调试使用：大于 0 时，所有支付订单按该金额下单，单位分；上线前必须改回 0。
+    debug-amount-cent: 1
 
 # MyBatis配置
 mybatis:

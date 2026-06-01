@@ -111,6 +111,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           and remaining_amount > 0
     </update>
 
+    <update id="extendActiveBatchesBySourceType">
+        update ai_credit_batch
+        set expire_time = #{expireTime},
+            update_time = sysdate()
+        where user_id = #{userId}
+          and source_type = #{sourceType}
+          and remaining_amount > 0
+          and expire_time is not null
+          and expire_time > sysdate()
+          and expire_time &lt; #{expireTime}
+    </update>
+
     <insert id="insertCreditRecord" parameterType="AiCreditRecord" useGeneratedKeys="true" keyProperty="recordId">
         insert into ai_credit_record(
             user_id, change_type, amount, balance_after, related_type, related_id, remark, create_time

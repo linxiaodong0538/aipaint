@@ -1,5 +1,6 @@
 package com.ruoyi.system.service;
 
+import java.util.List;
 import java.util.Map;
 import com.ruoyi.system.domain.AiPaymentOrder;
 import com.ruoyi.system.domain.AiUserMembership;
@@ -9,6 +10,8 @@ import com.ruoyi.system.domain.AiUserMembership;
  */
 public interface IAiPaymentService
 {
+    public List<AiPaymentOrder> selectPaymentOrderList(AiPaymentOrder order);
+
     public PaymentPrepayResult createWechatPayment(Long userId, String productId);
 
     public AiPaymentOrder getUserOrder(Long userId, String outTradeNo);
@@ -16,6 +19,8 @@ public interface IAiPaymentService
     public AiUserMembership getActiveMembership(Long userId);
 
     public void handleWechatNotify(Map<String, String> headers, String body);
+
+    public AiPaymentOrder syncWechatPayment(String outTradeNo);
 
     public static class PaymentPrepayResult
     {

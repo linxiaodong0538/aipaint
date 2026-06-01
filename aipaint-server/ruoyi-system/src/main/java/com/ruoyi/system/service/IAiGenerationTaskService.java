@@ -14,6 +14,8 @@ public interface IAiGenerationTaskService
 
     public List<AiGenerationTask> selectGenerationTasksByUserId(Long userId, String status);
 
+    public void markStaleProcessingTasksFailed(int timeoutMinutes);
+
     public int insertGenerationTask(AiGenerationTask task);
 
     public int updateGenerationTask(AiGenerationTask task);

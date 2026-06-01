@@ -22,6 +22,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="expireTime"    column="expire_time"    />
         <result property="notifyTime"    column="notify_time"    />
         <result property="rawNotify"     column="raw_notify"     />
+        <result property="userNickName"  column="user_nick_name" />
+        <result property="userName"      column="user_name"      />
+        <result property="userOpenid"    column="openid"         />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
     </resultMap>
@@ -41,6 +44,48 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                notify_time, raw_notify, create_time, update_time
         from ai_payment_order
     </sql>
+
+    <sql id="selectPaymentOrderWithUserVo">
+        select o.order_id, o.out_trade_no, o.user_id, o.product_id, o.product_type, o.product_name, o.amount_cent, o.credits,
+               o.member_tier, o.member_days, o.status, o.transaction_id, o.prepay_id, o.paid_time, o.expire_time,
+               o.notify_time, o.raw_notify, o.create_time, o.update_time,
+               u.nick_name as user_nick_name,
+               u.user_name,
+               u.openid
+        from ai_payment_order o
+        left join sys_user u on u.user_id = o.user_id
+    </sql>
+
+    <select id="selectPaymentOrderList" parameterType="AiPaymentOrder" resultMap="AiPaymentOrderResult">
+        <include refid="selectPaymentOrderWithUserVo"/>
+        <where>
+            <if test="outTradeNo != null and outTradeNo != ''">
+                and o.out_trade_no like concat('%', #{outTradeNo}, '%')
+            </if>
+            <if test="transactionId != null and transactionId != ''">
+                and o.transaction_id like concat('%', #{transactionId}, '%')
+            </if>
+            <if test="userId != null">
+                and o.user_id = #{userId}
+            </if>
+            <if test="productType != null and productType != ''">
+                and o.product_type = #{productType}
+            </if>
+            <if test="productId != null and productId != ''">
+                and o.product_id = #{productId}
+            </if>
+            <if test="status != null and status != ''">
+                and o.status = #{status}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''">
+                and date_format(o.create_time, '%Y%m%d') &gt;= date_format(#{params.beginTime}, '%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''">
+                and date_format(o.create_time, '%Y%m%d') &lt;= date_format(#{params.endTime}, '%Y%m%d')
+            </if>
+        </where>
+        order by o.create_time desc, o.order_id desc
+    </select>
 
     <insert id="insertPaymentOrder" parameterType="AiPaymentOrder" useGeneratedKeys="true" keyProperty="orderId">
         insert into ai_payment_order(

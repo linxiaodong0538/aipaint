@@ -11,16 +11,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.crypto.Cipher;
@@ -39,6 +42,7 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.IdUtils;
 import com.ruoyi.system.domain.AiPaymentOrder;
 import com.ruoyi.system.domain.AiUserMembership;
+import com.ruoyi.system.mapper.AiCreditMapper;
 import com.ruoyi.system.mapper.AiPaymentMapper;
 import com.ruoyi.system.service.IAiCreditService;
 import com.ruoyi.system.service.IAiPaymentService;
@@ -63,6 +67,8 @@ public class AiPaymentServiceImpl implements IAiPaymentService
     private static final String SOURCE_PAYMENT_ADDON = "PAYMENT_ADDON";
 
     private static final String WECHAT_JSAPI_URL = "https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi";
+
+    private static final String WECHAT_ORDER_QUERY_URL = "https://api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no/";
 
     private static final Map<String, Product> PRODUCTS = buildProducts();
 
@@ -93,6 +99,9 @@ public class AiPaymentServiceImpl implements IAiPaymentService
     @Value("${wechat.pay.notify-url:}")
     private String notifyUrl;
 
+    @Value("${wechat.pay.debug-amount-cent:0}")
+    private int debugAmountCent;
+
     @Autowired
     private AiPaymentMapper paymentMapper;
 
@@ -102,11 +111,20 @@ public class AiPaymentServiceImpl implements IAiPaymentService
     @Autowired
     private IAiCreditService creditService;
 
+    @Autowired
+    private AiCreditMapper creditMapper;
+
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     private volatile PrivateKey cachedPrivateKey;
 
-    private volatile X509Certificate cachedPlatformCertificate;
+    private volatile PublicKey cachedWechatPayPublicKey;
+
+    @Override
+    public List<AiPaymentOrder> selectPaymentOrderList(AiPaymentOrder order)
+    {
+        return paymentMapper.selectPaymentOrderList(order);
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -141,7 +159,7 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         order.setProductId(product.id);
         order.setProductType(product.type);
         order.setProductName(product.name);
-        order.setAmountCent(product.amountCent);
+        order.setAmountCent(resolvePayAmountCent(product));
         order.setCredits(credits);
         order.setMemberTier(product.memberTier);
         order.setMemberDays(product.memberDays);
@@ -160,12 +178,18 @@ public class AiPaymentServiceImpl implements IAiPaymentService
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public AiPaymentOrder getUserOrder(Long userId, String outTradeNo)
     {
         AiPaymentOrder order = paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
         if (order == null || !userId.equals(order.getUserId()))
         {
             throw new ServiceException("订单不存在");
+        }
+        if (!STATUS_PAID.equals(order.getStatus()))
+        {
+            syncPaidOrderFromWechat(order);
+            order = paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
         }
         return order;
     }
@@ -203,6 +227,27 @@ public class AiPaymentServiceImpl implements IAiPaymentService
             return;
         }
 
+        applySuccessfulTransaction(outTradeNo, transaction, plainText);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AiPaymentOrder syncWechatPayment(String outTradeNo)
+    {
+        AiPaymentOrder order = paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
+        if (order == null)
+        {
+            throw new ServiceException("订单不存在");
+        }
+        if (!STATUS_PAID.equals(order.getStatus()))
+        {
+            syncPaidOrderFromWechat(order);
+        }
+        return paymentMapper.selectPaymentOrderByOutTradeNo(outTradeNo);
+    }
+
+    private void applySuccessfulTransaction(String outTradeNo, JSONObject transaction, String rawNotify)
+    {
         AiPaymentOrder order = paymentMapper.selectPaymentOrderByOutTradeNoForUpdate(outTradeNo);
         if (order == null)
         {
@@ -221,7 +266,7 @@ public class AiPaymentServiceImpl implements IAiPaymentService
 
         order.setTransactionId(transaction.getString("transaction_id"));
         order.setPaidTime(parseWechatTime(transaction.getString("success_time")));
-        order.setRawNotify(plainText);
+        order.setRawNotify(rawNotify);
         int updated = paymentMapper.markPaymentOrderPaid(order);
         if (updated <= 0)
         {
@@ -229,6 +274,16 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         }
 
         applyPaidOrderBenefits(order);
+    }
+
+    private void syncPaidOrderFromWechat(AiPaymentOrder order)
+    {
+        JSONObject transaction = queryWechatOrder(order.getOutTradeNo());
+        if (transaction == null || !"SUCCESS".equals(transaction.getString("trade_state")))
+        {
+            return;
+        }
+        applySuccessfulTransaction(order.getOutTradeNo(), transaction, transaction.toJSONString());
     }
 
     private void applyPaidOrderBenefits(AiPaymentOrder order)
@@ -269,6 +324,7 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         {
             paymentMapper.updateMembership(membership);
         }
+        creditMapper.extendActiveBatchesBySourceType(order.getUserId(), SOURCE_PAYMENT_MEMBERSHIP, expireTime);
         return expireTime;
     }
 
@@ -322,6 +378,42 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         {
             Thread.currentThread().interrupt();
             throw new ServiceException("微信支付下单被中断，请稍后重试");
+        }
+    }
+
+    private JSONObject queryWechatOrder(String outTradeNo)
+    {
+        ensureWechatPayConfig();
+        String canonicalUrl = "/v3/pay/transactions/out-trade-no/" + outTradeNo + "?mchid=" + mchId;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(WECHAT_ORDER_QUERY_URL + outTradeNo + "?mchid=" + mchId))
+                .header("Accept", "application/json")
+                .header("Authorization", buildWechatAuthorization("GET", canonicalUrl, ""))
+                .GET()
+                .build();
+        try
+        {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() == 404)
+            {
+                return null;
+            }
+            JSONObject responseJson = JSON.parseObject(response.body());
+            if (response.statusCode() < 200 || response.statusCode() >= 300)
+            {
+                String message = responseJson.getString("message");
+                throw new ServiceException(StringUtils.defaultIfBlank(message, "微信支付查单失败"));
+            }
+            return responseJson;
+        }
+        catch (IOException e)
+        {
+            throw new ServiceException("微信支付查单网络异常，请稍后重试");
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            throw new ServiceException("微信支付查单被中断，请稍后重试");
         }
     }
 
@@ -387,7 +479,7 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         try
         {
             Signature verifier = Signature.getInstance("SHA256withRSA");
-            verifier.initVerify(loadPlatformCertificate());
+            verifier.initVerify(loadWechatPayPublicKey());
             verifier.update((timestamp + "\n" + nonce + "\n" + body + "\n").getBytes(StandardCharsets.UTF_8));
             boolean valid = verifier.verify(Base64.getDecoder().decode(signatureText));
             if (!valid)
@@ -445,17 +537,29 @@ public class AiPaymentServiceImpl implements IAiPaymentService
         return cachedPrivateKey;
     }
 
-    private X509Certificate loadPlatformCertificate() throws Exception
+    private PublicKey loadWechatPayPublicKey() throws Exception
     {
-        if (cachedPlatformCertificate != null)
+        if (cachedWechatPayPublicKey != null)
         {
-            return cachedPlatformCertificate;
+            return cachedWechatPayPublicKey;
         }
+        String pem = Files.readString(Paths.get(platformCertificatePath), StandardCharsets.UTF_8);
+        if (pem.contains("BEGIN PUBLIC KEY"))
+        {
+            pem = pem.replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(pem));
+            cachedWechatPayPublicKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+            return cachedWechatPayPublicKey;
+        }
+
         try (java.io.InputStream inputStream = Files.newInputStream(Paths.get(platformCertificatePath)))
         {
             CertificateFactory factory = CertificateFactory.getInstance("X.509");
-            cachedPlatformCertificate = (X509Certificate) factory.generateCertificate(inputStream);
-            return cachedPlatformCertificate;
+            X509Certificate certificate = (X509Certificate) factory.generateCertificate(inputStream);
+            cachedWechatPayPublicKey = certificate.getPublicKey();
+            return cachedWechatPayPublicKey;
         }
     }
 
@@ -480,6 +584,11 @@ public class AiPaymentServiceImpl implements IAiPaymentService
             throw new ServiceException("商品不存在");
         }
         return product;
+    }
+
+    private int resolvePayAmountCent(Product product)
+    {
+        return debugAmountCent > 0 ? debugAmountCent : product.amountCent;
     }
 
     private String buildOutTradeNo()

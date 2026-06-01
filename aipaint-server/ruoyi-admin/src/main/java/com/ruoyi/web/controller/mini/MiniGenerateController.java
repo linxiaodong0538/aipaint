@@ -40,6 +40,8 @@ import com.ruoyi.web.service.image.AiImageTaskRunner;
 @RequestMapping("/mini/generate")
 public class MiniGenerateController extends BaseController
 {
+    private static final int GENERATION_STALE_TIMEOUT_MINUTES = 10;
+
     private static final String MODEL_GPT_IMAGE_2 = "gpt-image-2";
 
     private static final String MODEL_GPT_IMAGE_2_VIP = "gpt-image-2-vip";
@@ -203,6 +205,7 @@ public class MiniGenerateController extends BaseController
     @GetMapping("/tasks/{taskId}")
     public AjaxResult getTask(@PathVariable Long taskId)
     {
+        taskService.markStaleProcessingTasksFailed(GENERATION_STALE_TIMEOUT_MINUTES);
         AiGenerationTask task = taskService.selectGenerationTaskByIdAndUserId(taskId, SecurityUtils.getUserId());
         return task == null ? error("任务不存在") : success(task);
     }
@@ -217,6 +220,7 @@ public class MiniGenerateController extends BaseController
     public TableDataInfo listTasks(String status)
     {
         String normalizedStatus = normalizeStatus(status);
+        taskService.markStaleProcessingTasksFailed(GENERATION_STALE_TIMEOUT_MINUTES);
         startPage();
         List<AiGenerationTask> tasks = taskService.selectGenerationTasksByUserId(SecurityUtils.getUserId(), normalizedStatus);
         return getDataTable(tasks);

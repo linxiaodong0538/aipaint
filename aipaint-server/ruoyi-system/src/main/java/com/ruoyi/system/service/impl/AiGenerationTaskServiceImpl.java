@@ -15,6 +15,8 @@ import com.ruoyi.system.service.IAiGenerationTaskService;
 @Service
 public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
 {
+    private static final String STALE_PROCESSING_ERROR_MESSAGE = "生成超时，请重新生成";
+
     @Autowired
     private AiGenerationTaskMapper taskMapper;
 
@@ -37,6 +39,25 @@ public class AiGenerationTaskServiceImpl implements IAiGenerationTaskService
     public List<AiGenerationTask> selectGenerationTasksByUserId(Long userId, String status)
     {
         return taskMapper.selectGenerationTasksByUserId(userId, status);
+    }
+
+    @Override
+    public void markStaleProcessingTasksFailed(int timeoutMinutes)
+    {
+        int normalizedTimeoutMinutes = Math.max(1, Math.min(60, timeoutMinutes));
+        Date beforeTime = new Date(System.currentTimeMillis() - normalizedTimeoutMinutes * 60L * 1000L);
+        List<AiGenerationTask> staleTasks = taskMapper.selectStaleProcessingTasks(beforeTime);
+        if (staleTasks == null || staleTasks.isEmpty())
+        {
+            return;
+        }
+        for (AiGenerationTask staleTask : staleTasks)
+        {
+            if (staleTask != null && staleTask.getTaskId() != null)
+            {
+                markFailed(staleTask.getTaskId(), STALE_PROCESSING_ERROR_MESSAGE);
+            }
+        }
     }
 
     @Override

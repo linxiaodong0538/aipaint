@@ -29,6 +29,9 @@ public interface AiCreditMapper
 
     public int expireCreditBatch(@Param("batchId") Long batchId);
 
+    public int extendActiveBatchesBySourceType(@Param("userId") Long userId, @Param("sourceType") String sourceType,
+            @Param("expireTime") java.util.Date expireTime);
+
     public int insertCreditRecord(AiCreditRecord record);
 
     public List<AiCreditRecord> selectCreditRecordsByUserId(@Param("userId") Long userId, @Param("limit") Integer limit);
