@@ -1,0 +1,72 @@
+version: '1.0'
+name: deploy
+displayName: deploy
+
+triggers:
+  trigger: auto
+  push:
+    branches:
+      precise:
+        - main
+
+stages:
+  - name: build
+    displayName: Build admin
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@nodejs
+        name: build_admin
+        displayName: Build admin
+        nodeVersion: 18.16.0
+        commands:
+          - cd aipaint-admin
+          - npm install -g pnpm@8.15.9
+          - pnpm install --frozen-lockfile
+          - pnpm build:prod
+          - mkdir -p ../release
+          - tar -C dist -czf ../release/aipaint-admin.tar.gz .
+        artifacts:
+          - name: admin_dist
+            path:
+              - release/aipaint-admin.tar.gz
+          - name: deploy_script
+            path:
+              - scripts/deploy-on-server.sh
+
+  - name: deploy
+    displayName: Deploy to server
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: deploy@agent
+        name: deploy_server
+        displayName: Deploy server
+        hostGroupID:
+          ID: aipaint-server
+          hostID:
+            - 047e76e3-3a13-4acc-a42c-f7adbad01ea1
+        deployArtifact:
+          - source: build
+            target: /opt/aipaint/releases
+            name: admin_dist
+            dependArtifact: admin_dist
+          - source: build
+            target: /opt/aipaint/releases
+            name: deploy_script
+            dependArtifact: deploy_script
+        script:
+          - set -e
+          - cd /opt/aipaint/releases
+          - rm -rf admin_dist deploy_script release scripts aipaint-admin.tar.gz deploy-on-server.sh
+          - tar -xzf admin_dist.tar.gz
+          - tar -xzf deploy_script.tar.gz
+          - if [ -f release/aipaint-admin.tar.gz ]; then mv release/aipaint-admin.tar.gz ./aipaint-admin.tar.gz; fi
+          - if [ -f scripts/deploy-on-server.sh ]; then cp scripts/deploy-on-server.sh ./deploy-on-server.sh; fi
+          - chmod +x deploy-on-server.sh
+          - WEB_ROOT=/www/wwwroot
+          - SITE_NAME=xinlingkeji.cn
+          - for dir in "$WEB_ROOT/$SITE_NAME.old" "$WEB_ROOT/$SITE_NAME" "$WEB_ROOT/$SITE_NAME.new"; do if [ -e "$dir" ]; then chattr -R -i "$dir" 2>/dev/null || true; fi; done
+          - DEPLOY_REPO_URL=git@gitee.com:zhuyadexiatian/zh-ai.git bash deploy-on-server.sh

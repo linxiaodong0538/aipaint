@@ -2,6 +2,7 @@ package com.ruoyi.web.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.qcloud.cos.COSClient;
@@ -15,6 +16,7 @@ import com.ruoyi.common.exception.file.InvalidExtensionException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
+import com.ruoyi.common.utils.file.FileTypeUtils;
 import com.ruoyi.common.utils.file.MimeTypeUtils;
 import com.ruoyi.common.utils.uuid.IdUtils;
 import com.ruoyi.web.config.TencentCosProperties;
@@ -67,6 +69,51 @@ public class TencentCosUploadService
 
         String url = properties.getBaseUrl().replaceAll("/+$", "") + "/" + objectKey;
         return new CosUploadResult(url, "/" + objectKey, objectKey.substring(objectKey.lastIndexOf("/") + 1));
+    }
+
+    public CosUploadResult uploadBytes(byte[] data, String contentType) throws IOException
+    {
+        if (!isConfigured())
+        {
+            throw new IllegalStateException("腾讯云 COS 未配置");
+        }
+        if (data == null || data.length == 0)
+        {
+            throw new IllegalArgumentException("上传内容不能为空");
+        }
+
+        String extension = resolveExtension(data, contentType);
+        String objectKey = StringUtils.format("upload/{}/{}.{}", DateUtils.datePath(), IdUtils.fastSimpleUUID(), extension);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(data.length);
+        if (StringUtils.isNotBlank(contentType))
+        {
+            metadata.setContentType(contentType);
+        }
+
+        COSClient cosClient = createClient();
+        try (InputStream inputStream = new ByteArrayInputStream(data))
+        {
+            PutObjectRequest request = new PutObjectRequest(properties.getBucketName(), objectKey, inputStream, metadata);
+            cosClient.putObject(request);
+        }
+        finally
+        {
+            cosClient.shutdown();
+        }
+
+        String url = properties.getBaseUrl().replaceAll("/+$", "") + "/" + objectKey;
+        return new CosUploadResult(url, "/" + objectKey, objectKey.substring(objectKey.lastIndexOf("/") + 1));
+    }
+
+    private String resolveExtension(byte[] data, String contentType)
+    {
+        String extension = MimeTypeUtils.getExtension(StringUtils.defaultString(contentType));
+        if (StringUtils.isNotBlank(extension))
+        {
+            return extension;
+        }
+        return StringUtils.defaultIfBlank(FileTypeUtils.getFileExtendName(data), "jpg").toLowerCase();
     }
 
     private COSClient createClient()

@@ -15,13 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.system.service.IAiGenerationTaskService;
+import com.ruoyi.web.service.TencentCosUploadService;
+import com.ruoyi.web.service.TencentCosUploadService.CosUploadResult;
+import com.ruoyi.web.config.TencentCosProperties;
 
 /**
- * 异步归档上游图片，用户先看到上游 URL，归档成功后再替换为本地地址。
+ * 异步归档上游图片，用户先看到上游 URL，归档成功后再替换为 COS 地址。
  */
 @Component
 public class AiImageArchiveService
@@ -30,6 +31,10 @@ public class AiImageArchiveService
 
     private final IAiGenerationTaskService taskService;
 
+    private final TencentCosUploadService tencentCosUploadService;
+
+    private final TencentCosProperties tencentCosProperties;
+
     private final ExecutorService executorService;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -37,9 +42,13 @@ public class AiImageArchiveService
             .build();
 
     public AiImageArchiveService(IAiGenerationTaskService taskService,
+            TencentCosUploadService tencentCosUploadService,
+            TencentCosProperties tencentCosProperties,
             @Value("${ai.image.archive.pool-size:2}") Integer poolSize)
     {
         this.taskService = taskService;
+        this.tencentCosUploadService = tencentCosUploadService;
+        this.tencentCosProperties = tencentCosProperties;
         this.executorService = Executors.newFixedThreadPool(normalizePoolSize(poolSize));
     }
 
@@ -80,7 +89,7 @@ public class AiImageArchiveService
 
     private String archiveUrl(String url) throws IOException, InterruptedException
     {
-        if (!isRemoteHttpUrl(url))
+        if (!isRemoteHttpUrl(url) || isCosUrl(url) || !tencentCosUploadService.isConfigured())
         {
             return url;
         }
@@ -100,7 +109,9 @@ public class AiImageArchiveService
             {
                 return url;
             }
-            return FileUtils.writeBytes(response.body(), RuoYiConfig.getUploadPath());
+            CosUploadResult result = tencentCosUploadService.uploadBytes(response.body(),
+                    response.headers().firstValue("Content-Type").orElse(""));
+            return result.getUrl();
         }
         catch (IllegalArgumentException | IOException e)
         {
@@ -142,6 +153,13 @@ public class AiImageArchiveService
         String value = StringUtils.trimToEmpty(url);
         return StringUtils.startsWithIgnoreCase(value, "http://")
                 || StringUtils.startsWithIgnoreCase(value, "https://");
+    }
+
+    private boolean isCosUrl(String url)
+    {
+        String baseUrl = tencentCosProperties == null ? "" : StringUtils.trimToEmpty(tencentCosProperties.getBaseUrl());
+        return StringUtils.isNotBlank(baseUrl)
+                && StringUtils.startsWithIgnoreCase(StringUtils.trimToEmpty(url), baseUrl.replaceAll("/+$", ""));
     }
 
     private int normalizePoolSize(Integer poolSize)
