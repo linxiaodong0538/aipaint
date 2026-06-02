@@ -2,6 +2,8 @@
 
 这个流程只发布后台管理端和后端服务，不处理小程序。
 
+后端会在服务器本地拉取源码并用 Maven 打包，避免从 GitHub Actions 跨境上传大 jar。前端后台仍在 GitHub Actions 构建，然后上传较小的压缩包到服务器。
+
 ## GitHub Secrets
 
 在 GitHub 仓库的 `Settings -> Secrets and variables -> Actions -> Repository secrets` 添加：
@@ -20,9 +22,11 @@
 ## 服务器目录
 
 ```bash
-sudo mkdir -p /opt/aipaint/releases /opt/aipaint/server /var/www/aipaint-admin
-sudo chown -R deploy:deploy /opt/aipaint /var/www/aipaint-admin
+sudo mkdir -p /opt/aipaint/releases /opt/aipaint/server /var/www/aipaint-admin /www/wwwroot/aipaint-source
+sudo chown -R deploy:deploy /opt/aipaint /var/www/aipaint-admin /www/wwwroot/aipaint-source
 ```
+
+服务器需要安装 Git、JDK 17 和 Maven。当前 workflow 不要求服务器安装 Node.js 或 pnpm。
 
 ## 后端 systemd 服务
 

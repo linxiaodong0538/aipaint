@@ -19,13 +19,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: maven
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -36,10 +29,6 @@ jobs:
           corepack enable
           corepack prepare pnpm@8.15.9 --activate
 
-      - name: Build server
-        working-directory: aipaint-server
-        run: mvn -B -DskipTests clean package
-
       - name: Build admin
         working-directory: aipaint-admin
         run: |
@@ -49,7 +38,6 @@ jobs:
       - name: Prepare release files
         run: |
           mkdir -p release
-          cp aipaint-server/ruoyi-admin/target/ruoyi-admin.jar release/ruoyi-admin.jar
           tar -C aipaint-admin/dist -czf release/aipaint-admin.tar.gz .
 
       - name: Configure SSH
@@ -86,13 +74,6 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 \
             -P "${{ secrets.DEPLOY_PORT || 22 }}" \
-            release/ruoyi-admin.jar \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar"
-          scp -O -v -i ~/.ssh/deploy_key \
-            -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=15 \
-            -P "${{ secrets.DEPLOY_PORT || 22 }}" \
             release/aipaint-admin.tar.gz \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
 
@@ -108,7 +89,17 @@ jobs:
 
           mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.SERVER_DEPLOY_PATH }}" "${{ secrets.SERVER_RELEASE_PATH }}"
 
-          cp "${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar" "${{ secrets.SERVER_DEPLOY_PATH }}/ruoyi-admin.jar"
+          if [ ! -d "/www/wwwroot/aipaint-source/.git" ]; then
+            rm -rf /www/wwwroot/aipaint-source
+            git clone --depth=1 --branch main "https://github.com/${{ github.repository }}.git" /www/wwwroot/aipaint-source
+          else
+            git -C /www/wwwroot/aipaint-source fetch --depth=1 origin main
+            git -C /www/wwwroot/aipaint-source reset --hard origin/main
+          fi
+
+          cd /www/wwwroot/aipaint-source/aipaint-server
+          mvn -B -DskipTests clean package
+          cp ruoyi-admin/target/ruoyi-admin.jar "${{ secrets.SERVER_DEPLOY_PATH }}/ruoyi-admin.jar"
 
           rm -rf "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
           mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
