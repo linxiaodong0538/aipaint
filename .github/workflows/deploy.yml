@@ -1,0 +1,92 @@
+name: Deploy admin and server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+
+      - name: Build server
+        working-directory: aipaint-server
+        run: mvn -B -DskipTests clean package
+
+      - name: Build admin
+        working-directory: aipaint-admin
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:prod
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          cp aipaint-server/ruoyi-admin/target/ruoyi-admin.jar release/ruoyi-admin.jar
+          tar -C aipaint-admin/dist -czf release/aipaint-admin.tar.gz .
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Prepare remote release directory
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "mkdir -p '${{ secrets.SERVER_RELEASE_PATH }}'"
+
+      - name: Upload release files
+        run: |
+          scp -i ~/.ssh/deploy_key -P "${{ secrets.DEPLOY_PORT || 22 }}" release/ruoyi-admin.jar "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar"
+          scp -i ~/.ssh/deploy_key -P "${{ secrets.DEPLOY_PORT || 22 }}" release/aipaint-admin.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
+
+      - name: Activate release
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          set -e
+
+          mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.SERVER_DEPLOY_PATH }}" "${{ secrets.SERVER_RELEASE_PATH }}"
+
+          cp "${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar" "${{ secrets.SERVER_DEPLOY_PATH }}/ruoyi-admin.jar"
+
+          rm -rf "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          tar -xzf "${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz" -C "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          rm -rf "${{ secrets.ADMIN_DEPLOY_PATH }}.old"
+          if [ -d "${{ secrets.ADMIN_DEPLOY_PATH }}" ]; then
+            mv "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.ADMIN_DEPLOY_PATH }}.old"
+          fi
+          mv "${{ secrets.ADMIN_DEPLOY_PATH }}.new" "${{ secrets.ADMIN_DEPLOY_PATH }}"
+
+          systemctl restart "${{ secrets.SERVER_SERVICE_NAME }}"
+          nginx -t
+          systemctl reload nginx
+          EOF
