@@ -59,18 +59,51 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Verify SSH connection
+        run: |
+          ssh -vvv -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo ssh-ok"
+
       - name: Prepare remote release directory
         run: |
-          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" "mkdir -p '${{ secrets.SERVER_RELEASE_PATH }}'"
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "mkdir -p '${{ secrets.SERVER_RELEASE_PATH }}'"
 
       - name: Upload release files
         run: |
-          scp -i ~/.ssh/deploy_key -P "${{ secrets.DEPLOY_PORT || 22 }}" release/ruoyi-admin.jar "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar"
-          scp -i ~/.ssh/deploy_key -P "${{ secrets.DEPLOY_PORT || 22 }}" release/aipaint-admin.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
+          scp -v -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -P "${{ secrets.DEPLOY_PORT || 22 }}" \
+            release/ruoyi-admin.jar \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar"
+          scp -v -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -P "${{ secrets.DEPLOY_PORT || 22 }}" \
+            release/aipaint-admin.tar.gz \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
 
       - name: Activate release
         run: |
-          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
           set -e
 
           mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.SERVER_DEPLOY_PATH }}" "${{ secrets.SERVER_RELEASE_PATH }}"
