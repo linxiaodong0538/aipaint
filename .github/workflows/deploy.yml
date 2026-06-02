@@ -1,0 +1,119 @@
+name: Deploy admin and server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@8.15.9 --activate
+
+      - name: Build admin
+        working-directory: aipaint-admin
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:prod
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          tar -C aipaint-admin/dist -czf release/aipaint-admin.tar.gz .
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || 22 }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Verify SSH connection
+        run: |
+          ssh -vvv -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo ssh-ok"
+
+      - name: Prepare remote release directory
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "mkdir -p '${{ secrets.SERVER_RELEASE_PATH }}'"
+
+      - name: Upload release files
+        run: |
+          rsync -avz --partial --progress \
+            -e "ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -p ${{ secrets.DEPLOY_PORT || 22 }}" \
+            release/aipaint-admin.tar.gz \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
+
+      - name: Activate release
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            -p "${{ secrets.DEPLOY_PORT || 22 }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+          set -e
+
+          mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.SERVER_DEPLOY_PATH }}" "${{ secrets.SERVER_RELEASE_PATH }}"
+
+          REPO_URL="${{ secrets.DEPLOY_REPO_URL }}"
+          if [ -z "$REPO_URL" ]; then
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+          fi
+
+          if [ ! -d "/www/wwwroot/aipaint-source/.git" ]; then
+            rm -rf /www/wwwroot/aipaint-source
+            git clone --depth=1 --branch main "$REPO_URL" /www/wwwroot/aipaint-source
+          else
+            git -C /www/wwwroot/aipaint-source remote set-url origin "$REPO_URL"
+            git -C /www/wwwroot/aipaint-source fetch --depth=1 origin main
+            git -C /www/wwwroot/aipaint-source reset --hard origin/main
+          fi
+
+          cd /www/wwwroot/aipaint-source/aipaint-server
+          mvn -B -DskipTests clean package
+          cp ruoyi-admin/target/ruoyi-admin.jar "${{ secrets.SERVER_DEPLOY_PATH }}/ruoyi-admin.jar"
+
+          rm -rf "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          tar -xzf "${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz" -C "${{ secrets.ADMIN_DEPLOY_PATH }}.new"
+          rm -rf "${{ secrets.ADMIN_DEPLOY_PATH }}.old"
+          if [ -d "${{ secrets.ADMIN_DEPLOY_PATH }}" ]; then
+            mv "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.ADMIN_DEPLOY_PATH }}.old"
+          fi
+          mv "${{ secrets.ADMIN_DEPLOY_PATH }}.new" "${{ secrets.ADMIN_DEPLOY_PATH }}"
+
+          systemctl restart "${{ secrets.SERVER_SERVICE_NAME }}"
+          nginx -t
+          systemctl reload nginx
+          EOF
