@@ -34,7 +34,7 @@ jobs:
       - name: Enable pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@10 --activate
+          corepack prepare pnpm@8.15.9 --activate
 
       - name: Build server
         working-directory: aipaint-server

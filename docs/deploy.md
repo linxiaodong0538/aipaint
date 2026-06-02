@@ -66,3 +66,7 @@ git push origin main
 ```
 
 也可以在 GitHub Actions 页面手动点 `Run workflow`。
+
+## 备注
+
+`aipaint-admin` 当前仓库里的 `pnpm-lock.yaml` 是旧版 lockfile，workflow 里固定使用 `pnpm@8` 来保持兼容。
