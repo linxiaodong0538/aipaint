@@ -81,14 +81,14 @@ jobs:
 
       - name: Upload release files
         run: |
-          scp -v -i ~/.ssh/deploy_key \
+          scp -O -v -i ~/.ssh/deploy_key \
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 \
             -P "${{ secrets.DEPLOY_PORT || 22 }}" \
             release/ruoyi-admin.jar \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/ruoyi-admin.jar"
-          scp -v -i ~/.ssh/deploy_key \
+          scp -O -v -i ~/.ssh/deploy_key \
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 \
