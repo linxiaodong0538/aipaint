@@ -69,11 +69,8 @@ jobs:
 
       - name: Upload release files
         run: |
-          scp -O -v -i ~/.ssh/deploy_key \
-            -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=15 \
-            -P "${{ secrets.DEPLOY_PORT || 22 }}" \
+          rsync -avz --partial --progress \
+            -e "ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -p ${{ secrets.DEPLOY_PORT || 22 }}" \
             release/aipaint-admin.tar.gz \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.SERVER_RELEASE_PATH }}/aipaint-admin.tar.gz"
 
@@ -89,10 +86,16 @@ jobs:
 
           mkdir -p "${{ secrets.ADMIN_DEPLOY_PATH }}" "${{ secrets.SERVER_DEPLOY_PATH }}" "${{ secrets.SERVER_RELEASE_PATH }}"
 
+          REPO_URL="${{ secrets.DEPLOY_REPO_URL }}"
+          if [ -z "$REPO_URL" ]; then
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+          fi
+
           if [ ! -d "/www/wwwroot/aipaint-source/.git" ]; then
             rm -rf /www/wwwroot/aipaint-source
-            git clone --depth=1 --branch main "https://github.com/${{ github.repository }}.git" /www/wwwroot/aipaint-source
+            git clone --depth=1 --branch main "$REPO_URL" /www/wwwroot/aipaint-source
           else
+            git -C /www/wwwroot/aipaint-source remote set-url origin "$REPO_URL"
             git -C /www/wwwroot/aipaint-source fetch --depth=1 origin main
             git -C /www/wwwroot/aipaint-source reset --hard origin/main
           fi

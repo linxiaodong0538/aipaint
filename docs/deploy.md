@@ -18,6 +18,7 @@
 | `SERVER_DEPLOY_PATH` | 后端 jar 部署目录 | `/opt/aipaint/server` |
 | `ADMIN_DEPLOY_PATH` | 管理端静态资源目录 | `/var/www/aipaint-admin` |
 | `SERVER_SERVICE_NAME` | systemd 服务名 | `aipaint-server` |
+| `DEPLOY_REPO_URL` | 服务器拉源码的 Git 地址，推荐填 Gitee 地址 | `https://gitee.com/xxx/aipaint.git` |
 
 ## 服务器目录
 
